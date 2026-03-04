@@ -1,0 +1,21 @@
+package com.virtualworld.easyexpensecontrol.domain.repository
+
+import com.virtualworld.easyexpensecontrol.data.model.Transaction
+import kotlinx.coroutines.flow.Flow
+
+interface TransactionRepository {
+
+    suspend fun addTransaction(transaction: Transaction)
+
+    fun getTransactions(): Flow<List<Transaction>>
+
+    fun getTransactionById(id: Long): Flow<Transaction>
+
+    suspend fun updateTransaction(transaction: Transaction)
+
+    suspend fun deleteTransaction(transaction: Transaction)
+
+    suspend fun getTransactionCountForCategory(categoryId: Long): Int
+
+    fun getTransactionsByCategoryAndDate(categoryId: Long, year: Int, month: String): Flow<List<Transaction>>
+}

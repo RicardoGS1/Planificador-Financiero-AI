@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="red_transaction">#F44336</color>
+    <color name="green_transaction">#4CAF50</color>
+    <!-- Paleta de colores Future: https://goodpalette.io/11a5bf-e33974-b2b7b8 -->
+    <color name="bold_from_palette">#002623</color>
+    <color name="app_bar_color">#004D4B</color>
+    <color name="blue_green_dark">#016F73</color>
+    <color name="blue_green_light">#068C99</color>
+    <color name="blue_dark">#11A5BF</color>
+    <color name="blue_light">#46C3E4</color>
+    <color name="blue_ultra_light">#80D7F7</color>
+    <color name="blue_transparent">#BBE8FE</color>
+    <color name="blue_white">#F2FAFF</color>
+</resources>

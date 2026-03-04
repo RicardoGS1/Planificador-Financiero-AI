@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Easy Expense Control</string>
+    <string name="update_transaction">Actualizar transaccion</string>
+    <string name="add_transaction">Añadir transaccion</string>
+    <string name="update_budget">Actualizar presupuesto</string>
+    <string name="add_budget">Añadir presupuesto</string>
+</resources>
