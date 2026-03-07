@@ -55,7 +55,7 @@ import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
-import com.virtualworld.easyexpensecontrol.ui.components.NavigationBar
+import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -84,7 +84,7 @@ fun HistoryScreen(
                 showBackArrow = false
             ) { navController.navigateUp() }
         },
-        bottomBar = { NavigationBar(navController = navController) },
+        bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .fillMaxSize()

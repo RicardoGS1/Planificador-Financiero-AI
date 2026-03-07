@@ -27,3 +27,7 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// Acento rosa para bottom bar y FAB (estilo imagen referencia)
+val AccentPink = Color(0xFFEC407A)
+val AccentPinkLight = Color(0xFFF48FB1)

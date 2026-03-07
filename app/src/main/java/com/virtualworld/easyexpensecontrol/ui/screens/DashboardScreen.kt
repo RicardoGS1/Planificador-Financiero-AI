@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -45,8 +46,7 @@ import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
-import com.virtualworld.easyexpensecontrol.ui.components.FABCustom
-import com.virtualworld.easyexpensecontrol.ui.components.NavigationBar
+import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -67,11 +67,8 @@ fun DashboardScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.systemBars.asPaddingValues()),
-        bottomBar = { NavigationBar(navController = navController) },
-        containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            FABCustom(navController = navController)
-        }
+        bottomBar = { CurvedBottomBar(navController = navController) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         val listaTransacciones = transactionViewModel.getAllTransactions
             .collectAsState(initial = emptyList()).value
@@ -90,7 +87,7 @@ fun DashboardScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TotalBalanceCard(balance = balance)
+            TotalBalanceSection(balance = balance)
             Spacer(modifier = Modifier.height(12.dp))
             LastThreeDaysChart(
                 transactions = listaTransacciones,
@@ -122,34 +119,25 @@ fun DashboardScreen(
 }
 
 @Composable
-fun TotalBalanceCard(balance: Double) {
-    Card(
+fun TotalBalanceSection(balance: Double) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Saldo total",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "%.2f €".format(Locale.getDefault(), balance),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Text(
+            text = "Saldo total",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "%.2f €".format(Locale.getDefault(), balance),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -295,11 +283,17 @@ fun LatestTransactionsList(
                 modifier = Modifier.padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                items(sorted, key = { it.id }) { transaction ->
+                itemsIndexed(sorted, key = { _, t -> t.id }) { index, transaction ->
                     LatestTransactionRow(
                         transaction = transaction,
                         categoryViewModel = categoryViewModel
                     )
+                    if (index < sorted.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
                 }
             }
         }

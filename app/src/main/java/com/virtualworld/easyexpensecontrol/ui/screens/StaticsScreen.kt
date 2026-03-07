@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
-import com.virtualworld.easyexpensecontrol.ui.components.NavigationBar
+import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlin.math.roundToInt
 
@@ -54,7 +54,7 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.systemBars.asPaddingValues()),
-        bottomBar = { NavigationBar(navController = navController) },
+        bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         val transactions = transactionViewModel.getAllTransactions

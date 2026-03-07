@@ -53,7 +53,7 @@ import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
-import com.virtualworld.easyexpensecontrol.ui.components.NavigationBar
+import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 
@@ -76,7 +76,7 @@ fun BudgetScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.systemBars.asPaddingValues()),
-        bottomBar = { NavigationBar(navController = navController) },
+        bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         val budgetList = budgetViewModel.getAllBudgets.collectAsState(initial = emptyList())
