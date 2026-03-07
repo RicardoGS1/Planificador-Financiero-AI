@@ -44,8 +44,8 @@ import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
-import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
+import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.components.DatePickerModal
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -89,16 +89,6 @@ fun AddEditDetailTransactionView(
     }
 
     Scaffold(
-        topBar = {
-            AppBarView(
-                title = if (id != 0L) {
-                    stringResource(id = R.string.update_transaction)
-                } else {
-                    stringResource(id = R.string.add_transaction)
-                },
-                showBackArrow = true
-            ) { navController.navigateUp() }
-        },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
@@ -113,7 +103,15 @@ fun AddEditDetailTransactionView(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                Spacer(modifier = Modifier.height(26.dp))
+                ScreenHeader(
+                    title = if (id != 0L) {
+                        stringResource(id = R.string.update_transaction)
+                    } else {
+                        stringResource(id = R.string.add_transaction)
+                    },
+                    showBackArrow = true,
+                    onBackClick = { navController.navigateUp() }
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

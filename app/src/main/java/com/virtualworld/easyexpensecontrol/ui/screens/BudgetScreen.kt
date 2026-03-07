@@ -51,9 +51,9 @@ import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
-import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
-import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
+import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
+import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 
@@ -68,11 +68,6 @@ fun BudgetScreen(
     var budgetToDelete by remember { mutableStateOf<Budget?>(null) }
 
     Scaffold(
-        topBar = {
-            AppBarView(title = "Presupuestos", showBackArrow = false) {
-                navController.navigateUp()
-            }
-        },
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.systemBars.asPaddingValues()),
@@ -82,23 +77,32 @@ fun BudgetScreen(
         val budgetList = budgetViewModel.getAllBudgets.collectAsState(initial = emptyList())
 
         if (budgetList.value.isEmpty()) {
-            Text(
-                text = "No hay presupuestos disponibles. Por favor antes de añadir presupuestos, añada transacciones.",
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(15.dp)
-                    .wrapContentHeight(Alignment.CenterVertically),
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            item {
+                    .padding(paddingValues)
+            ) {
+                ScreenHeader(title = "Presupuestos", showBackArrow = false)
+                Text(
+                    text = "No hay presupuestos disponibles. Por favor antes de añadir presupuestos, añada transacciones.",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(15.dp)
+                        .wrapContentHeight(Alignment.CenterVertically),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                item {
+                    ScreenHeader(title = "Presupuestos", showBackArrow = false)
+                }
+                item {
                 Column {
                     Spacer(Modifier.height(16.dp))
                     Row(
@@ -178,6 +182,7 @@ fun BudgetScreen(
                     }
                 )
             }
+        }
         }
     }
 

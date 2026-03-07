@@ -45,8 +45,8 @@ import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDays
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
-import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
+import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -61,9 +61,6 @@ fun DashboardScreen(
     categoryViewModel: CategoryViewModel
 ) {
     Scaffold(
-        topBar = {
-            AppBarView(title = "Planificador Financiero", showBackArrow = false)
-        },
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.systemBars.asPaddingValues()),
@@ -87,6 +84,7 @@ fun DashboardScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            ScreenHeader(title = "Planificador Financiero", showBackArrow = false)
             TotalBalanceSection(balance = balance)
             Spacer(modifier = Modifier.height(12.dp))
             LastThreeDaysChart(

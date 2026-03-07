@@ -53,9 +53,9 @@ import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
-import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
-import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
+import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
+import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -78,12 +78,6 @@ fun HistoryScreen(
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        topBar = {
-            AppBarView(
-                title = "Transacciones",
-                showBackArrow = false
-            ) { navController.navigateUp() }
-        },
         bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier
@@ -94,6 +88,7 @@ fun HistoryScreen(
                 .collectAsState(initial = emptyList())
 
             if (transactionList.value.isEmpty()) {
+                ScreenHeader(title = "Transacciones", showBackArrow = false)
                 Text(
                     text = "No hay transacciones disponibles.",
                     modifier = Modifier
@@ -109,6 +104,9 @@ fun HistoryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                item {
+                    ScreenHeader(title = "Transacciones", showBackArrow = false)
+                }
                 items(transactionList.value, key = { transaction -> transaction.id }) { transaction ->
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->

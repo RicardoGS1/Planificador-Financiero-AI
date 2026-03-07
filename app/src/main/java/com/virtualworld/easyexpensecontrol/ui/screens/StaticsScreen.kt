@@ -38,19 +38,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
-import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
+import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlin.math.roundToInt
 
 @Composable
 fun StaticsScreen(navController: NavController, transactionViewModel: TransactionViewModel) {
     Scaffold(
-        topBar = {
-            AppBarView(title = "Estadísticas", showBackArrow = false) {
-                navController.navigateUp()
-            }
-        },
         modifier = Modifier
             .fillMaxSize()
             .padding(WindowInsets.systemBars.asPaddingValues()),
@@ -73,28 +68,36 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
             }
         }
 
-        if (transactions.isNotEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-                    .padding(paddingValues)
-            ) {
-                BarChart(
-                    income = totalAmountIncome,
-                    expenses = totalAmountExpenses,
-                    modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            ScreenHeader(title = "Estadísticas", showBackArrow = false)
+            if (transactions.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(500.dp)
+                        .padding(top = 16.dp)
+                ) {
+                    BarChart(
+                        income = totalAmountIncome,
+                        expenses = totalAmountExpenses,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            } else {
+                Text(
+                    text = "No hay gráficos estadísticos disponibles. Por favor ingrese transacciones.",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .wrapContentHeight(Alignment.CenterVertically),
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
                 )
             }
-        } else {
-            Text(
-                text = "No hay gráficos estadísticos disponibles. Por favor ingrese transacciones.",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentHeight(Alignment.CenterVertically),
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp
-            )
         }
     }
 }

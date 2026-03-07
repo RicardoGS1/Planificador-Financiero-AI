@@ -210,7 +210,7 @@ private fun CurvedBarShape(
     Box(modifier = modifier)
 }
 
-/** Forma con curva cóncava central (muesca para el FAB). */
+/** Forma con curva cóncava central: la barra se deforma rodeando el FAB (muesca en semicírculo). */
 private class CurvedBottomShape(private val notchRadius: Dp) : androidx.compose.ui.graphics.Shape {
     override fun createOutline(
         size: androidx.compose.ui.geometry.Size,
@@ -222,16 +222,21 @@ private class CurvedBottomShape(private val notchRadius: Dp) : androidx.compose.
         val h = size.height
         val cx = w / 2f
         val path = Path().apply {
+            // Empezar abajo-izquierda, borde izquierdo, luego borde superior hasta el inicio de la muesca
             moveTo(0f, h)
             lineTo(0f, 0f)
             lineTo(cx - r, 0f)
-            // Arco inferior del semicírculo (curva cóncava hacia abajo)
+            // Bajar por el lado izquierdo de la muesca hasta donde empieza el arco
+            lineTo(cx - r, r)
+            // Arco (semicírculo inferior): la barra “baja” alrededor del FAB y vuelve a subir
             arcTo(
                 rect = Rect(cx - r, 0f, cx + r, 2 * r),
                 startAngleDegrees = 180f,
                 sweepAngleDegrees = 180f,
                 forceMoveTo = false
             )
+            // Subir por el lado derecho de la muesca y continuar borde superior
+            lineTo(cx + r, 0f)
             lineTo(w, 0f)
             lineTo(w, h)
             close()
