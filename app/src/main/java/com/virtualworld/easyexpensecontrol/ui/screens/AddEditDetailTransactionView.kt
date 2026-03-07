@@ -1,29 +1,41 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,7 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,11 +58,13 @@ import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
-import com.virtualworld.easyexpensecontrol.ui.components.DatePickerModal
+import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditDetailTransactionView(
     id: Long,
@@ -61,9 +75,12 @@ fun AddEditDetailTransactionView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var categoryName by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
     if (id != 0L) {
-        val transaction = transactionViewModel.getTransactionById(id).collectAsState(initial = Transaction(0L, TransactionType.Ingreso, 0.0, 0L, 0L, ""))
+        val transaction = transactionViewModel.getTransactionById(id).collectAsState(
+            initial = Transaction(0L, TransactionType.Ingreso, 0.0, 0L, 0L, "")
+        )
         transaction.value.let {
             transactionViewModel.transactionTypeState = it.type
             transactionViewModel.transactionAmountState = it.amount
@@ -72,7 +89,8 @@ fun AddEditDetailTransactionView(
             transactionViewModel.transactionDateState = it.date
         }
 
-        val category = categoryViewModel.getCategoryById(transactionViewModel.transactionCategoryState).collectAsState(initial = null)
+        val category = categoryViewModel.getCategoryById(transactionViewModel.transactionCategoryState)
+            .collectAsState(initial = null)
         LaunchedEffect(category.value) {
             category.value?.let {
                 categoryName = it.name
@@ -85,114 +103,227 @@ fun AddEditDetailTransactionView(
         transactionViewModel.transactionAmountState = 0.0
         transactionViewModel.transactionDescriptionState = ""
         transactionViewModel.transactionCategoryState = 0L
-        transactionViewModel.transactionDateState = 0L
+        val todayStart = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        transactionViewModel.transactionDateState = todayStart
+    }
+
+    val initialDateMillis = transactionViewModel.transactionDateState.takeIf { it != 0L }
+        ?: System.currentTimeMillis()
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialDateMillis,
+        initialDisplayedMonthMillis = initialDateMillis
+    )
+    LaunchedEffect(datePickerState.selectedDateMillis) {
+        datePickerState.selectedDateMillis?.let { transactionViewModel.onTransactionDateChanged(it) }
     }
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(WindowInsets.systemBars.asPaddingValues()),
-        content = { it ->
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxWidth()
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ScreenHeader(
+                title = if (id != 0L) stringResource(id = R.string.update_transaction)
+                else stringResource(id = R.string.add_transaction),
+                showBackArrow = true,
+                onBackClick = { navController.navigateUp() }
+            )
+
             Column(
                 modifier = Modifier
-                    .padding(it)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                ScreenHeader(
-                    title = if (id != 0L) {
-                        stringResource(id = R.string.update_transaction)
-                    } else {
-                        stringResource(id = R.string.add_transaction)
-                    },
-                    showBackArrow = true,
-                    onBackClick = { navController.navigateUp() }
+                // Tipo de transacción — selector integrado
+                Text(
+                    text = "Tipo de transacción",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                TransactionTypeSelector(
+                    selectedType = transactionViewModel.transactionTypeState,
+                    onTypeChanged = transactionViewModel::onTransactionTypeChanged
                 )
 
-                Row(
+                // Importe
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Text("Selecciona el tipo de transacción ")
-                    TransactionTypeDropdown(
-                        selectedType = transactionViewModel.transactionTypeState,
-                        onTypeChanged = transactionViewModel::onTransactionTypeChanged
-                    )
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Importe",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AppTextField(
+                            label = "0.00",
+                            value = if (transactionViewModel.transactionAmountState > 0)
+                                transactionViewModel.transactionAmountState.toString() else "",
+                            onValueChange = { value ->
+                                transactionViewModel.onTransactionAmountChanged(value.toDoubleOrNull() ?: 0.0)
+                            },
+                            keyboardType = KeyboardType.Number
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AppTextField(
-                    label = "Importe",
-                    value = transactionViewModel.transactionAmountState.toString(),
-                    onValueChange = { value ->
-                        transactionViewModel.onTransactionAmountChanged(value.toDoubleOrNull() ?: 0.0)
-                    },
-                    keyboardType = KeyboardType.Number
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AppTextField(
-                    label = "Descripción",
-                    value = transactionViewModel.transactionDescriptionState,
-                    onValueChange = transactionViewModel::onTransactionDescriptionChanged
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                AppTextField(
-                    label = "Categoría",
-                    value = categoryName,
-                    onValueChange = { value ->
-                        categoryName = value
+                // Descripción
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Descripción",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AppTextField(
+                            label = "Ej: Compra supermercado",
+                            value = transactionViewModel.transactionDescriptionState,
+                            onValueChange = transactionViewModel::onTransactionDescriptionChanged
+                        )
                     }
-                )
+                }
+
+                // Categoría: escribir nueva o elegir existente
+                val categoriesByType by categoryViewModel.getCategoriesByType(transactionViewModel.transactionTypeState)
+                    .collectAsState(initial = emptyList())
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Categoría",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AppTextField(
+                            label = "Escribe una nueva o elige abajo",
+                            value = categoryName,
+                            onValueChange = { categoryName = it }
+                        )
+                        if (categoriesByType.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Categorías existentes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                categoriesByType.forEach { cat ->
+                                    CategoryChip(
+                                        name = cat.name,
+                                        isSelected = categoryName.equals(cat.name, ignoreCase = true),
+                                        onClick = { categoryName = cat.name }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
 
                 val category by categoryViewModel.getCategoryByName(categoryName).collectAsState(initial = null)
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                var showDatePicker by remember { mutableStateOf(false) }
-
-                if (showDatePicker) {
-                    DatePickerModal(
-                        initialDate = transactionViewModel.transactionDateState.takeIf { it != 0L },
-                        onDateSelected = { selectedDate ->
-                            transactionViewModel.onTransactionDateChanged(selectedDate ?: 0L)
-                            showDatePicker = false
-                        },
-                        onDismiss = {
-                            showDatePicker = false
-                        }
-                    )
-                }
-
-                ElevatedButton(
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.padding(12.dp),
+                // Fecha — compacto hasta que el usuario toque para editar
+                var datePickerExpanded by remember { mutableStateOf(false) }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Text(
-                        text = "Abrir Selector de Fecha",
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
+                    Column(Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { datePickerExpanded = !datePickerExpanded },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.size(8.dp))
+                                Column {
+                                    Text(
+                                        text = "Fecha",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = datePickerState.selectedDateMillis?.let { convertTimestampToString(it) }
+                                            ?: "Toca para elegir fecha",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            Icon(
+                                imageVector = if (datePickerExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (datePickerExpanded) "Ocultar calendario" else "Cambiar fecha",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        if (datePickerExpanded) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            DatePicker(
+                                state = datePickerState,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = DatePickerDefaults.colors(
+                                    selectedDayContainerColor = AccentBlue,
+                                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    todayDateBorderColor = AccentBlue,
+                                    todayContentColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+                    }
                 }
-
-                Text(
-                    text = "Fecha: ${transactionViewModel.transactionDateState.takeIf { it != 0L }
-                        ?.let { convertTimestampToString(it) } ?: "No seleccionada"}"
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 var isLoading by remember { mutableStateOf(false) }
 
-                Button(
+                FilledTonalButton(
                     onClick = {
                         when {
                             transactionViewModel.transactionAmountState <= 0 -> {
@@ -210,7 +341,7 @@ fun AddEditDetailTransactionView(
                                     snackbarHostState.showSnackbar("El campo de categoría no puede estar vacío.")
                                 }
                             }
-                            transactionViewModel.transactionDateState == 0L -> {
+                            datePickerState.selectedDateMillis == null -> {
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Debe seleccionar una fecha.")
                                 }
@@ -237,24 +368,110 @@ fun AddEditDetailTransactionView(
                             }
                         }
                     },
-                    enabled = !isLoading
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    enabled = !isLoading,
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     } else {
                         Text(
                             text = if (id != 0L) stringResource(id = R.string.update_transaction)
                             else stringResource(id = R.string.add_transaction),
-                            style = TextStyle(fontSize = 18.sp)
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
-    )
+    }
+}
+
+@Composable
+fun TransactionTypeSelector(
+    selectedType: TransactionType,
+    onTypeChanged: (TransactionType) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        TransactionType.entries.forEach { type ->
+            val isSelected = type == selectedType
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onTypeChanged(type) },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected) AccentBlue
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = if (isSelected) 4.dp else 1.dp
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 14.dp, horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = if (type == TransactionType.Ingreso) Icons.Default.TrendingUp
+                        else Icons.Default.TrendingDown,
+                        contentDescription = null,
+                        tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = type.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryChip(
+    name: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) AccentBlue
+            else MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+        )
+    }
 }
 
 @Composable
@@ -262,22 +479,5 @@ fun TransactionTypeDropdown(
     selectedType: TransactionType,
     onTypeChanged: (TransactionType) -> Unit
 ) {
-    val expanded = remember { mutableStateOf(false) }
-    val types = TransactionType.entries.toTypedArray()
-
-    Card {
-        OutlinedButton(onClick = { expanded.value = !expanded.value }) {
-            Text(text = selectedType.name)
-        }
-        DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
-            types.forEach { type ->
-                DropdownMenuItem(onClick = {
-                    onTypeChanged(type)
-                    expanded.value = false
-                }) {
-                    Text(text = type.name)
-                }
-            }
-        }
-    }
+    TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)
 }
