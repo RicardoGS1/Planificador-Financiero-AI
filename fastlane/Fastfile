@@ -29,7 +29,7 @@ platform :android do
         task: 'assemble',
         build_type: 'AndroidTest'
       )
-      screengrab
+
     end
 
 end
