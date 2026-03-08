@@ -9,6 +9,9 @@ on:
 env:
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
+  # Android SDK en el runner (ajusta la ruta si en tu Mac está en otro sitio)
+  ANDROID_HOME: /Users/ricardogranado/Library/Android/sdk
+  ANDROID_SDK_ROOT: /Users/ricardogranado/Library/Android/sdk
 
 jobs:
   build:
