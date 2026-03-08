@@ -18,9 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Bundle environment
+        run: |
+          echo "BUNDLE_GEMFILE=$GITHUB_WORKSPACE/Gemfile" >> $GITHUB_ENV
+          echo "BUNDLE_PATH=$GITHUB_WORKSPACE/vendor/bundle" >> $GITHUB_ENV
+
       - name: Create google-services.json from secret
         run: |
-          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
+          cd "$GITHUB_WORKSPACE" && echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
 
@@ -31,19 +36,14 @@ jobs:
           echo "PATH=$HOME/Library/Android/sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
       - name: Set executable permission for Gradle wrapper
-        run: chmod +x ./gradlew
+        run: cd "$GITHUB_WORKSPACE" && chmod +x ./gradlew
 
       - name: Install dependencies
         run: |
-          cd "$GITHUB_WORKSPACE"
-          bundle config set --local path 'vendor/bundle'
-          bundle install
-          bundle update fastlane
+          cd "$GITHUB_WORKSPACE" && bundle install && bundle update fastlane
 
       - name: Build
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          ./vendor/bundle/bin/fastlane build
+        run: cd "$GITHUB_WORKSPACE" && bundle exec fastlane build
 
   test:
     runs-on: [ self-hosted, android ]
@@ -51,9 +51,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Bundle environment
+        run: |
+          echo "BUNDLE_GEMFILE=$GITHUB_WORKSPACE/Gemfile" >> $GITHUB_ENV
+          echo "BUNDLE_PATH=$GITHUB_WORKSPACE/vendor/bundle" >> $GITHUB_ENV
+
       - name: Create google-services.json from secret
         run: |
-          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
+          cd "$GITHUB_WORKSPACE" && echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
 
@@ -64,19 +69,14 @@ jobs:
           echo "PATH=$HOME/Library/Android/sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
       - name: Set executable permission for Gradle wrapper
-        run: chmod +x ./gradlew
+        run: cd "$GITHUB_WORKSPACE" && chmod +x ./gradlew
 
       - name: Install dependencies
         run: |
-          cd "$GITHUB_WORKSPACE"
-          bundle config set --local path 'vendor/bundle'
-          bundle install
-          bundle update fastlane
+          cd "$GITHUB_WORKSPACE" && bundle install && bundle update fastlane
 
       - name: Run tests
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          ./vendor/bundle/bin/fastlane tests
+        run: cd "$GITHUB_WORKSPACE" && bundle exec fastlane tests
 
   ui-test:
     runs-on: [ self-hosted, android ]
@@ -84,9 +84,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Bundle environment
+        run: |
+          echo "BUNDLE_GEMFILE=$GITHUB_WORKSPACE/Gemfile" >> $GITHUB_ENV
+          echo "BUNDLE_PATH=$GITHUB_WORKSPACE/vendor/bundle" >> $GITHUB_ENV
+
       - name: Create google-services.json from secret
         run: |
-          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
+          cd "$GITHUB_WORKSPACE" && echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > app/google-services.json
         env:
           GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
 
@@ -97,16 +102,11 @@ jobs:
           echo "PATH=$HOME/Library/Android/sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
       - name: Set executable permission for Gradle wrapper
-        run: chmod +x ./gradlew
+        run: cd "$GITHUB_WORKSPACE" && chmod +x ./gradlew
 
       - name: Install dependencies
         run: |
-          cd "$GITHUB_WORKSPACE"
-          bundle config set --local path 'vendor/bundle'
-          bundle install
-          bundle update fastlane
+          cd "$GITHUB_WORKSPACE" && bundle install && bundle update fastlane
 
       - name: Run UI tests
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          ./vendor/bundle/bin/fastlane ui_tests
+        run: cd "$GITHUB_WORKSPACE" && bundle exec fastlane ui_tests
