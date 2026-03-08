@@ -1,0 +1,56 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  LC_ALL: "en_US.UTF-8"
+  LANG: "en_US.UTF-8"
+
+jobs:
+  build:
+    runs-on: [ self-hosted, android ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Build
+        run: bundle exec fastlane build
+
+  test:
+    runs-on: [ self-hosted, android ]
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec fastlane tests
+
+  ui-test:
+    runs-on: [ self-hosted, android ]
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Run UI tests
+        run: bundle exec fastlane ui_tests
