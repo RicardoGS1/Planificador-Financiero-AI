@@ -14,14 +14,20 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,12 +60,14 @@ import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
-import com.virtualworld.easyexpensecontrol.ui.components.AppBarView
+import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
+import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
-import com.virtualworld.easyexpensecontrol.ui.components.NavigationBar
+import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
+import java.util.Locale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -78,13 +87,7 @@ fun HistoryScreen(
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        topBar = {
-            AppBarView(
-                title = "Transacciones",
-                showBackArrow = false
-            ) { navController.navigateUp() }
-        },
-        bottomBar = { NavigationBar(navController = navController) },
+        bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .fillMaxSize()
@@ -94,6 +97,7 @@ fun HistoryScreen(
                 .collectAsState(initial = emptyList())
 
             if (transactionList.value.isEmpty()) {
+                ScreenHeader(title = "Transacciones", showBackArrow = false)
                 Text(
                     text = "No hay transacciones disponibles.",
                     modifier = Modifier
@@ -109,6 +113,9 @@ fun HistoryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                item {
+                    ScreenHeader(title = "Transacciones", showBackArrow = false)
+                }
                 items(transactionList.value, key = { transaction -> transaction.id }) { transaction ->
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
@@ -256,61 +263,77 @@ suspend fun checkIfExistBudgetAssociatedWithTransaction(
     return posibleBudget
 }
 
+private val IncomeGreen = Color(0xFF4CAF50)
+private val ExpenseRed = Color(0xFFE33936)
+
 @Composable
 fun TransactionItem(
     transaction: Transaction,
     categoryViewModel: CategoryViewModel,
     onClick: () -> Unit
 ) {
+    val isIngreso = transaction.type == TransactionType.Ingreso
+    val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
+    val category = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso)).value
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable { onClick() },
-        elevation = 10.dp
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(AccentBlue, CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = transaction.description,
-                        color = colorResource(id = R.color.bold_from_palette),
-                        maxLines = Int.MAX_VALUE,
-                        overflow = TextOverflow.Clip
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = if (transaction.type.name == "Ingreso") "${transaction.amount}€" else "-${transaction.amount}€",
-                    fontWeight = FontWeight.Bold,
-                    color = if (transaction.type.name == "Ingreso") {
-                        colorResource(id = R.color.green_transaction)
-                    } else {
-                        colorResource(id = R.color.red_transaction)
-                    },
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                Icon(
+                    imageVector = if (isIngreso) Icons.Default.ArrowDownward else Icons.Default.ShoppingCart,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-
-            val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
-            val categoryState = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso))
-            val currentCategory = categoryState.value
-
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = transaction.description.ifEmpty { "Sin descripción" },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = category.name.ifEmpty { "Sin categoría" },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.size(2.dp))
+                Text(
+                    text = convertTimestampToString(transaction.date),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Categoría: " + currentCategory.name,
-                modifier = Modifier.padding(top = 4.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = colorResource(id = R.color.blue_green_light)
-            )
-            Text(
-                text = convertTimestampToString(transaction.date),
-                style = MaterialTheme.typography.bodySmall,
-                color = colorResource(id = R.color.blue_ultra_light)
+                text = if (isIngreso) "+%.2f €".format(Locale.getDefault(), transaction.amount) else "-%.2f €".format(Locale.getDefault(), transaction.amount),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (isIngreso) IncomeGreen else ExpenseRed
             )
         }
     }
