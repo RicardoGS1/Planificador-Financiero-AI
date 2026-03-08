@@ -33,6 +33,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          bundle config set --local path 'vendor/bundle'
           bundle install
           bundle update fastlane
 
@@ -62,6 +63,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          bundle config set --local path 'vendor/bundle'
           bundle install
           bundle update fastlane
 
@@ -91,6 +93,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          bundle config set --local path 'vendor/bundle'
           bundle install
           bundle update fastlane
 
