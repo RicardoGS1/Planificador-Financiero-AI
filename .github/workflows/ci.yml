@@ -9,6 +9,8 @@ on:
 env:
   LC_ALL: "en_US.UTF-8"
   LANG: "en_US.UTF-8"
+  # Evita el warning de Java "restricted method" / native access al ejecutar Gradle
+  GRADLE_OPTS: "-J--enable-native-access=ALL-UNNAMED"
 
 jobs:
   build:
