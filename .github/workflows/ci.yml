@@ -33,7 +33,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install dependencies
-        run: bundle install
+        run: |
+          bundle install
+          bundle update fastlane
 
       - name: Build
         run: bundle exec fastlane build
@@ -60,7 +62,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install dependencies
-        run: bundle install
+        run: |
+          bundle install
+          bundle update fastlane
 
       - name: Run tests
         run: bundle exec fastlane tests
@@ -87,7 +91,9 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install dependencies
-        run: bundle install
+        run: |
+          bundle install
+          bundle update fastlane
 
       - name: Run UI tests
         run: bundle exec fastlane ui_tests
