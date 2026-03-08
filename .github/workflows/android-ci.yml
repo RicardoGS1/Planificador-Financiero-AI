@@ -1,0 +1,41 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, master, fastlane2 ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  LC_ALL: "en_US.UTF-8"
+  LANG: "en_US.UTF-8"
+
+jobs:
+  build:
+    runs-on: [self-hosted, android]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bundler
+        run: gem install bundler
+      - name: Fastlane build
+        run: fastlane build
+
+  test:
+    runs-on: [self-hosted, android]
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bundler
+        run: gem install bundler
+      - name: Fastlane tests
+        run: fastlane tests
+
+  ui-test:
+    runs-on: [self-hosted, android]
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bundler
+        run: gem install bundler
+      - name: Fastlane ui_tests
+        run: fastlane ui_tests
