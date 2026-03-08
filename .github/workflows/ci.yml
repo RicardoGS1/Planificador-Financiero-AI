@@ -40,7 +40,7 @@ jobs:
           bundle update fastlane
 
       - name: Build
-        run: bundle exec fastlane build
+        run: ./vendor/bundle/bin/fastlane build
 
   test:
     runs-on: [ self-hosted, android ]
@@ -70,7 +70,7 @@ jobs:
           bundle update fastlane
 
       - name: Run tests
-        run: bundle exec fastlane tests
+        run: ./vendor/bundle/bin/fastlane tests
 
   ui-test:
     runs-on: [ self-hosted, android ]
@@ -100,4 +100,4 @@ jobs:
           bundle update fastlane
 
       - name: Run UI tests
-        run: bundle exec fastlane ui_tests
+        run: ./vendor/bundle/bin/fastlane ui_tests
