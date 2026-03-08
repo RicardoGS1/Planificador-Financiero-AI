@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -92,10 +95,9 @@ fun BudgetScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                BudgetScreenHeader(
-                    title = "Presupuestos",
-                    onAddClick = { navController.navigate(Screen.AddEditBudgetScreen.route + "/0L") }
-                )
+
+                ScreenHeader(title = "Presupuesto", showBackArrow = false)
+
                 Text(
                     text = "No hay presupuestos disponibles. Añade uno para controlar tus gastos por categoría y mes.",
                     modifier = Modifier
@@ -113,7 +115,11 @@ fun BudgetScreen(
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(22.dp))
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp)
+                    )
                     Spacer(Modifier.width(10.dp))
                     Text("Añadir primer presupuesto", fontWeight = FontWeight.SemiBold)
                 }
@@ -125,77 +131,110 @@ fun BudgetScreen(
                     .padding(paddingValues)
             ) {
                 item {
-                    BudgetScreenHeader(
-                        title = "Presupuestos",
-                        onAddClick = { navController.navigate(Screen.AddEditBudgetScreen.route + "/0L") }
-                    )
+                    ScreenHeader(title = "Presupuesto", showBackArrow = false)
                     Spacer(Modifier.height(8.dp))
                 }
 
-            items(budgetList.value, key = { budget -> budget.id }) { budget ->
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { value ->
-                        if (value == SwipeToDismissBoxValue.EndToStart || value == SwipeToDismissBoxValue.StartToEnd) {
-                            budgetToDelete = budget
-                            showDialog = true
-                            false
-                        } else false
-                    }
-                )
+                items(budgetList.value, key = { budget -> budget.id }) { budget ->
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { value ->
+                            if (value == SwipeToDismissBoxValue.EndToStart || value == SwipeToDismissBoxValue.StartToEnd) {
+                                budgetToDelete = budget
+                                showDialog = true
+                                false
+                            } else false
+                        }
+                    )
 
-                SwipeToDismissBox(
-                    modifier = Modifier.animateContentSize(),
-                    state = dismissState,
-                    backgroundContent = {
-                        val color by animateColorAsState(
-                            colorResource(R.color.red_transaction),
-                            label = "dismiss_background"
-                        )
+                    SwipeToDismissBox(
+                        modifier = Modifier.animateContentSize(),
+                        state = dismissState,
+                        backgroundContent = {
+                            val color by animateColorAsState(
+                                colorResource(R.color.red_transaction),
+                                label = "dismiss_background"
+                            )
 
-                        if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .background(color)
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Delete Icon",
-                                    tint = colorResource(R.color.blue_white)
-                                )
+                            if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(color)
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete Icon",
+                                        tint = colorResource(R.color.blue_white)
+                                    )
+                                }
+                            } else if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(color)
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete Icon",
+                                        tint = colorResource(R.color.blue_white)
+                                    )
+                                }
                             }
-                        } else if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .background(color)
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = Alignment.CenterStart
+                        },
+                        enableDismissFromEndToStart = true,
+                        enableDismissFromStartToEnd = true,
+                        content = {
+                            BudgetItem(
+                                budget = budget,
+                                categoryViewModel = categoryViewModel
                             ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Delete Icon",
-                                    tint = colorResource(R.color.blue_white)
-                                )
+                                val id = budget.id
+                                navController.navigate(Screen.AddEditBudgetScreen.route + "/$id")
                             }
                         }
-                    },
-                    enableDismissFromEndToStart = true,
-                    enableDismissFromStartToEnd = true,
-                    content = {
-                        BudgetItem(
-                            budget = budget,
-                            categoryViewModel = categoryViewModel
+                    )
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .clickable {
+                                navController.navigate(Screen.AddEditBudgetScreen.route + "/0L")
+                            },
+                        shape = BudgetCardShape,
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            val id = budget.id
-                            navController.navigate(Screen.AddEditBudgetScreen.route + "/$id")
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                text = "Añadir presupuesto",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
-                )
+                }
             }
-        }
         }
     }
 
@@ -229,23 +268,14 @@ fun BudgetScreen(
 }
 
 @Composable
-private fun BudgetScreenHeader(
-    title: String,
-    onAddClick: () -> Unit
+fun AddPresupuesto(
+    onAddClick: () -> Unit,
 ) {
-    Row(
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+
+            .windowInsetsPadding(WindowInsets.statusBars.add(WindowInsets.displayCutout))
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
         FilledTonalButton(
             onClick = onAddClick,
             shape = RoundedCornerShape(12.dp),
@@ -279,7 +309,8 @@ fun BudgetItem(
     onClick: () -> Unit
 ) {
     val categoryFlow = categoryViewModel.getCategoryById(budget.category)
-    val categoryState = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso))
+    val categoryState =
+        categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso))
     val currentCategory = categoryState.value
     val progress = if (budget.monthlyLimit > 0)
         (budget.currentExpenditure / budget.monthlyLimit).toFloat().coerceIn(0f, Float.MAX_VALUE)
