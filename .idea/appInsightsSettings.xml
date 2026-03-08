@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.virtualworld.easyexpensecontrol" />
+                  <option name="mobileSdkAppId" value="1:101056095900:android:1615e19dc2523fb987af59" />
+                  <option name="projectId" value="planificador-financiero-5e125" />
+                  <option name="projectNumber" value="101056095900" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

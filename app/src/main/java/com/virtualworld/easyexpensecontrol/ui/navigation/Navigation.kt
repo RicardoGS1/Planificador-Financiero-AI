@@ -38,7 +38,7 @@ fun Navigation(
         startDestination = Screen.DashboardScreen.route
     ) {
         composable(route = Screen.DashboardScreen.route) {
-            DashboardScreen(navController, transactionViewModel)
+            DashboardScreen(navController, transactionViewModel, categoryViewModel)
         }
         composable(route = Screen.BudgetScreen.route) {
             BudgetScreen(navController, budgetViewModel, categoryViewModel, onPlaySound)
