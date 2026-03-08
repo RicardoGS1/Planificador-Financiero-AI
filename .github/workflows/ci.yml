@@ -3,7 +3,7 @@ name: Android CI
 
 on:
   push:
-    branches: [ main, master, fastlane ]
+    branches: [ main, master, Fastlane ]
   pull_request:
     branches: [ main, master ]
 
