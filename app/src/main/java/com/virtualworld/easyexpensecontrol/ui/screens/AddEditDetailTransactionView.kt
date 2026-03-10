@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.TrendingDown
@@ -160,6 +161,22 @@ fun AddEditDetailTransactionView(
                     selectedType = transactionViewModel.transactionTypeState,
                     onTypeChanged = transactionViewModel::onTransactionTypeChanged
                 )
+
+                if (transactionViewModel.transactionTypeState == TransactionType.Gasto) {
+                    FilledTonalButton(
+                        onClick = { /* TODO: abrir cámara o selector de imagen */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(text = "Tomar foto")
+                    }
+                }
 
                 // Importe
                 Card(
