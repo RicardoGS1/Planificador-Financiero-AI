@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,15 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     id("com.google.gms.google-services")
 }
+
+// Cargar GEMINI_API_KEY desde local.properties (findProperty no la lee por defecto)
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+val geminiKey = localProperties.getProperty("GEMINI_API_KEY", "")
+    .ifEmpty { (project.findProperty("GEMINI_API_KEY") as String?) ?: "" }
 
 android {
     namespace = "com.virtualworld.easyexpensecontrol"
@@ -16,6 +27,8 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -41,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -93,4 +107,10 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.gson)
 }
