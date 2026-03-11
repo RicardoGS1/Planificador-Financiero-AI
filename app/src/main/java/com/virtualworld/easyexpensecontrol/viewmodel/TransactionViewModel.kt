@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
+import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsByCategoryAndDateUseCase
@@ -17,20 +19,30 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransac
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.SaveTransactionUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TransactionViewModel(
     private val getTransactionsUseCase: GetTransactionsUseCase,
     private val getTransactionByIdUseCase: GetTransactionByIdUseCase,
     private val getTransactionsByCategoryAndDateUseCase: GetTransactionsByCategoryAndDateUseCase,
     private val saveTransactionUseCase: SaveTransactionUseCase,
-    private val deleteTransactionUseCase: DeleteTransactionUseCase
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val processReceiptUseCase: ProcessReceiptUseCase,
+    private val getCategoryByNameUseCase: GetCategoryByNameUseCase
 ) : ViewModel() {
     var transactionTypeState by mutableStateOf(TransactionType.Ingreso)
     var transactionAmountState by mutableDoubleStateOf(0.0)
     var transactionCategoryState by mutableLongStateOf(0L)
     var transactionDateState by mutableLongStateOf(0L)
     var transactionDescriptionState by mutableStateOf("")
+
+    private val _receiptProcessingState = MutableStateFlow<ReceiptProcessingState>(ReceiptProcessingState.Idle)
+    val receiptProcessingState: StateFlow<ReceiptProcessingState> = _receiptProcessingState.asStateFlow()
 
     fun onTransactionTypeChanged(newType: TransactionType) {
         transactionTypeState = newType
@@ -60,6 +72,39 @@ class TransactionViewModel(
 
     fun getTransactionsByCategoryAndDate(categoryId: Long, year: Int, month: String): Flow<List<Transaction>> =
         getTransactionsByCategoryAndDateUseCase(categoryId, year, month)
+
+    fun processReceiptImage(imageBytes: ByteArray) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _receiptProcessingState.value = ReceiptProcessingState.Loading
+            processReceiptUseCase(imageBytes)
+                .onSuccess { result ->
+                    val category = getCategoryByNameUseCase(result.suggestedCategoryName).firstOrNull()
+                    val categoryNameForUi = if (category != null) {
+                        withContext(Dispatchers.Main) {
+                            transactionAmountState = result.amount
+                            transactionDescriptionState = result.description
+                            transactionCategoryState = category.id
+                        }
+                        category.name
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            transactionAmountState = result.amount
+                            transactionDescriptionState = result.description
+                            transactionCategoryState = 0L
+                        }
+                        result.suggestedCategoryName
+                    }
+                    _receiptProcessingState.value = ReceiptProcessingState.Success(categoryNameForUi)
+                }
+                .onFailure { e ->
+                    _receiptProcessingState.value = ReceiptProcessingState.Error(e.message ?: "Error al analizar el comprobante")
+                }
+        }
+    }
+
+    fun clearReceiptProcessingState() {
+        _receiptProcessingState.value = ReceiptProcessingState.Idle
+    }
 
     fun saveTransaction(
         id: Long,

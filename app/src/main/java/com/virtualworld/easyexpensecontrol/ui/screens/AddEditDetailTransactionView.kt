@@ -1,5 +1,8 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.TrendingDown
@@ -46,11 +50,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
@@ -60,8 +66,10 @@ import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
+import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +84,34 @@ fun AddEditDetailTransactionView(
     val scope = rememberCoroutineScope()
     var categoryName by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            context.contentResolver.openInputStream(tempPhotoUri!!)?.use { it.readBytes() }?.let { bytes ->
+                transactionViewModel.processReceiptImage(bytes)
+            }
+        }
+    }
+
+    val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
+    LaunchedEffect(receiptState) {
+        when (receiptState) {
+            is ReceiptProcessingState.Success -> {
+                categoryName = (receiptState as ReceiptProcessingState.Success).categoryNameForUi
+                categoryViewModel.categoryNameState = categoryName
+                snackbarHostState.showSnackbar("Comprobante analizado")
+                transactionViewModel.clearReceiptProcessingState()
+            }
+            is ReceiptProcessingState.Error -> {
+                snackbarHostState.showSnackbar((receiptState as ReceiptProcessingState.Error).message)
+                transactionViewModel.clearReceiptProcessingState()
+            }
+            else -> { }
+        }
+    }
 
     if (id != 0L) {
         val transaction = transactionViewModel.getTransactionById(id).collectAsState(
@@ -99,17 +135,21 @@ fun AddEditDetailTransactionView(
             }
         }
     } else {
-        transactionViewModel.transactionTypeState = TransactionType.Ingreso
-        transactionViewModel.transactionAmountState = 0.0
-        transactionViewModel.transactionDescriptionState = ""
-        transactionViewModel.transactionCategoryState = 0L
-        val todayStart = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis
-        transactionViewModel.transactionDateState = todayStart
+        // Solo inicializar estado al entrar en pantalla "añadir", no en cada recomposición,
+        // para no sobrescribir los valores que rellenó el análisis del comprobante (Gemini).
+        LaunchedEffect(id) {
+            transactionViewModel.transactionTypeState = TransactionType.Ingreso
+            transactionViewModel.transactionAmountState = 0.0
+            transactionViewModel.transactionDescriptionState = ""
+            transactionViewModel.transactionCategoryState = 0L
+            val todayStart = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            transactionViewModel.transactionDateState = todayStart
+        }
     }
 
     val initialDateMillis = transactionViewModel.transactionDateState.takeIf { it != 0L }
@@ -160,6 +200,41 @@ fun AddEditDetailTransactionView(
                     selectedType = transactionViewModel.transactionTypeState,
                     onTypeChanged = transactionViewModel::onTransactionTypeChanged
                 )
+
+                if (transactionViewModel.transactionTypeState == TransactionType.Gasto) {
+                    val isAnalyzingReceipt = receiptState is ReceiptProcessingState.Loading
+                    FilledTonalButton(
+                        onClick = {
+                            if (!isAnalyzingReceipt) {
+                                val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+                                tempPhotoUri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    file
+                                )
+                                tempPhotoUri?.let { takePictureLauncher.launch(it) }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        enabled = !isAnalyzingReceipt
+                    ) {
+                        if (isAnalyzingReceipt) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.CameraAlt,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(text = if (isAnalyzingReceipt) "Analizando…" else "Tomar foto")
+                    }
+                }
 
                 // Importe
                 Card(
