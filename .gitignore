@@ -14,3 +14,7 @@
 .cxx
 local.properties
 /app/google-services.json
+/AI-powered-expense-control.jks
+/app/release/app-release.apk
+/app/release/baselineProfiles/0/app-release.dm
+/app/release/baselineProfiles/1/app-release.dm
