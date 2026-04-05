@@ -1,7 +1,12 @@
 <resources>
-    <string name="app_name">Easy Expense Control</string>
-    <string name="update_transaction">Actualizar transaccion</string>
-    <string name="add_transaction">Añadir transaccion</string>
-    <string name="update_budget">Actualizar presupuesto</string>
-    <string name="add_budget">Añadir presupuesto</string>
+    <!-- Replace with your actual AdMob IDs in production -->
+    <string name="admob_app_id">ca-app-pub-7595196761874810~3205761801</string>
+    <string name="admob_interstitial_camera">ca-app-pub-7595196761874810/4843314519</string>
+    <string name="admob_app_open">ca-app-pub-7595196761874810/6869674643</string>
+
+    <string name="app_name">AI-Powered Expense Control</string>
+    <string name="update_transaction">Update transaction</string>
+    <string name="add_transaction">Add transaction</string>
+    <string name="update_budget">Update budget</string>
+    <string name="add_budget">Add budget</string>
 </resources>

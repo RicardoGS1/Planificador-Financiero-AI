@@ -1,8 +1,12 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,10 +62,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import com.virtualworld.easyexpensecontrol.ads.CameraInterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
+import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
@@ -87,12 +93,19 @@ fun AddEditDetailTransactionView(
     val context = LocalContext.current
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
     val takePictureLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
+        contract = TakePictureWithUriGrants()
     ) { success ->
         if (success && tempPhotoUri != null) {
             context.contentResolver.openInputStream(tempPhotoUri!!)?.use { it.readBytes() }?.let { bytes ->
                 transactionViewModel.processReceiptImage(bytes)
             }
+        }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            tempPhotoUri?.let { uri -> takePictureLauncher.launch(uri) }
         }
     }
 
@@ -206,13 +219,25 @@ fun AddEditDetailTransactionView(
                     FilledTonalButton(
                         onClick = {
                             if (!isAnalyzingReceipt) {
-                                val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
-                                tempPhotoUri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    file
-                                )
-                                tempPhotoUri?.let { takePictureLauncher.launch(it) }
+                                val activity = context as? Activity ?: return@FilledTonalButton
+                                CameraInterstitialAdHelper.showThenContinue(activity) {
+                                    val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        file
+                                    )
+                                    tempPhotoUri = uri
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CAMERA
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        takePictureLauncher.launch(uri)
+                                    } else {
+                                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),

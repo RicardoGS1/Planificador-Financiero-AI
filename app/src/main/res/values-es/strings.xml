@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Control de gastos impulsado por IA</string>
+    <string name="update_transaction">Actualizar transacción</string>
+    <string name="add_transaction">Añadir transacción</string>
+    <string name="update_budget">Actualizar presupuesto</string>
+    <string name="add_budget">Añadir presupuesto</string>
+</resources>
