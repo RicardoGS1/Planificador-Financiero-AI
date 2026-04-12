@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">अभी कोई डेटा नहीं। आँकड़े देखने के लिए लेनदेन जोड़ें।</string>
     <string name="period_day">दिन</string>
+    <string name="period_week">सप्ताह</string>
     <string name="period_month">माह</string>
     <string name="period_year">वर्ष</string>
     <string name="select_day">दिन चुनें</string>

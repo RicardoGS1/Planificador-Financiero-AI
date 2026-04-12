@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">Noch keine Daten. Fügen Sie Transaktionen hinzu, um Statistiken zu sehen.</string>
     <string name="period_day">Tag</string>
+    <string name="period_week">Woche</string>
     <string name="period_month">Monat</string>
     <string name="period_year">Jahr</string>
     <string name="select_day">Tag auswählen</string>
@@ -87,6 +88,7 @@
     <string name="cd_hide_calendar">Kalender ausblenden</string>
     <string name="cd_change_date">Datum ändern</string>
     <string name="receipt_analyzed">Beleg analysiert</string>
+    <string name="err_type_required">Bitte wählen Sie einen Transaktionstyp.</string>
     <string name="err_amount_gt_zero">Der Betrag muss größer als 0 sein.</string>
     <string name="err_description_empty">Die Beschreibung darf nicht leer sein.</string>
     <string name="err_category_empty">Die Kategorie darf nicht leer sein.</string>

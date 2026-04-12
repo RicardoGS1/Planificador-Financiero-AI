@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">Нет данных. Добавьте операции, чтобы увидеть статистику.</string>
     <string name="period_day">День</string>
+    <string name="period_week">Неделя</string>
     <string name="period_month">Месяц</string>
     <string name="period_year">Год</string>
     <string name="select_day">Выберите день</string>

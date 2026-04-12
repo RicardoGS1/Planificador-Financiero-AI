@@ -38,7 +38,7 @@ class TransactionViewModel(
     private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
     private val appContext: Context
 ) : ViewModel() {
-    var transactionTypeState by mutableStateOf(TransactionType.Ingreso)
+    var transactionTypeState by mutableStateOf<TransactionType?>(null)
     var transactionAmountState by mutableDoubleStateOf(0.0)
     var transactionCategoryState by mutableLongStateOf(0L)
     var transactionDateState by mutableLongStateOf(0L)
@@ -47,7 +47,7 @@ class TransactionViewModel(
     private val _receiptProcessingState = MutableStateFlow<ReceiptProcessingState>(ReceiptProcessingState.Idle)
     val receiptProcessingState: StateFlow<ReceiptProcessingState> = _receiptProcessingState.asStateFlow()
 
-    fun onTransactionTypeChanged(newType: TransactionType) {
+    fun onTransactionTypeChanged(newType: TransactionType?) {
         transactionTypeState = newType
     }
 
@@ -122,7 +122,7 @@ class TransactionViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             saveTransactionUseCase(
                 id = id,
-                type = transactionTypeState,
+                type = transactionTypeState ?: return@launch,
                 amount = transactionAmountState,
                 description = transactionDescriptionState.trim(),
                 categoryName = categoryName,

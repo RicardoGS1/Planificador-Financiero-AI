@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">No hay datos. Añade transacciones para ver estadísticas.</string>
     <string name="period_day">Día</string>
+    <string name="period_week">Semana</string>
     <string name="period_month">Mes</string>
     <string name="period_year">Año</string>
     <string name="select_day">Selecciona el día</string>
@@ -87,6 +88,7 @@
     <string name="cd_hide_calendar">Ocultar calendario</string>
     <string name="cd_change_date">Cambiar fecha</string>
     <string name="receipt_analyzed">Comprobante analizado</string>
+    <string name="err_type_required">Selecciona un tipo de transacción.</string>
     <string name="err_amount_gt_zero">El importe debe ser mayor que 0.</string>
     <string name="err_description_empty">La descripción no puede estar vacía.</string>
     <string name="err_category_empty">El campo de categoría no puede estar vacío.</string>

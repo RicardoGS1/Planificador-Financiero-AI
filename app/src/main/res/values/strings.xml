@@ -32,6 +32,7 @@
 
     <string name="statistics_no_data">No data yet. Add transactions to see statistics.</string>
     <string name="period_day">Day</string>
+    <string name="period_week">Week</string>
     <string name="period_month">Month</string>
     <string name="period_year">Year</string>
     <string name="select_day">Select day</string>
@@ -91,6 +92,7 @@
     <string name="cd_hide_calendar">Hide calendar</string>
     <string name="cd_change_date">Change date</string>
     <string name="receipt_analyzed">Receipt analyzed</string>
+    <string name="err_type_required">Please select a transaction type.</string>
     <string name="err_amount_gt_zero">Amount must be greater than 0.</string>
     <string name="err_description_empty">Description cannot be empty.</string>
     <string name="err_category_empty">Category cannot be empty.</string>

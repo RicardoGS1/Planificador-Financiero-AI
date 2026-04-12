@@ -160,7 +160,7 @@ fun AddEditDetailTransactionView(
         // Solo inicializar estado al entrar en pantalla "añadir", no en cada recomposición,
         // para no sobrescribir los valores que rellenó el análisis del comprobante (Gemini).
         LaunchedEffect(id) {
-            transactionViewModel.transactionTypeState = TransactionType.Ingreso
+            transactionViewModel.transactionTypeState = null
             transactionViewModel.transactionAmountState = 0.0
             transactionViewModel.transactionDescriptionState = ""
             transactionViewModel.transactionCategoryState = 0L
@@ -223,7 +223,7 @@ fun AddEditDetailTransactionView(
                     onTypeChanged = transactionViewModel::onTransactionTypeChanged
                 )
 
-                if (transactionViewModel.transactionTypeState == TransactionType.Gasto) {
+                if (transactionViewModel.transactionTypeState != null && transactionViewModel.transactionTypeState == TransactionType.Gasto) {
                     val isAnalyzingReceipt = receiptState is ReceiptProcessingState.Loading
                     FilledTonalButton(
                         onClick = {
@@ -322,8 +322,11 @@ fun AddEditDetailTransactionView(
                 }
 
                 // Categoría: escribir nueva o elegir existente
-                val categoriesByType by categoryViewModel.getCategoriesByType(transactionViewModel.transactionTypeState)
-                    .collectAsState(initial = emptyList())
+                val currentType = transactionViewModel.transactionTypeState
+                val categoriesByType by (
+                    if (currentType != null) categoryViewModel.getCategoriesByType(currentType)
+                    else kotlinx.coroutines.flow.flowOf(emptyList())
+                ).collectAsState(initial = emptyList())
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -479,6 +482,11 @@ fun AddEditDetailTransactionView(
                 FilledTonalButton(
                     onClick = {
                         when {
+                            transactionViewModel.transactionTypeState == null -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
+                                }
+                            }
                             transactionViewModel.transactionAmountState <= 0 -> {
                                 scope.launch {
                                     snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
@@ -554,7 +562,7 @@ fun AddEditDetailTransactionView(
 
 @Composable
 fun TransactionTypeSelector(
-    selectedType: TransactionType,
+    selectedType: TransactionType?,
     onTypeChanged: (TransactionType) -> Unit
 ) {
     Row(
@@ -649,7 +657,7 @@ private fun CategoryChip(
 
 @Composable
 fun TransactionTypeDropdown(
-    selectedType: TransactionType,
+    selectedType: TransactionType?,
     onTypeChanged: (TransactionType) -> Unit
 ) {
     TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)

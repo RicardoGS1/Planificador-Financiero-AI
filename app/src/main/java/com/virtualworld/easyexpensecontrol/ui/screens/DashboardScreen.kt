@@ -2,6 +2,7 @@ package com.virtualworld.easyexpensecontrol.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,18 +32,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.R
-import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDays
+import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDayPeriods
+import com.virtualworld.easyexpensecontrol.core.util.getLastThreeMonthPeriods
+import com.virtualworld.easyexpensecontrol.core.util.getLastThreeWeekPeriods
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
@@ -52,6 +62,8 @@ import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import java.util.Locale
+
+private enum class ChartPeriod { DAY, WEEK, MONTH }
 
 private const val MAX_ULTIMAS_ENTRADAS = 15
 
@@ -88,7 +100,7 @@ fun DashboardScreen(
             ScreenHeader(title = stringResource(R.string.screen_financial_planner), showBackArrow = false)
             TotalBalanceSection(balance = balance)
             Spacer(modifier = Modifier.height(12.dp))
-            LastThreeDaysChart(
+            PeriodChart(
                 transactions = listaTransacciones,
                 todayLabel = stringResource(R.string.day_today),
                 yesterdayLabel = stringResource(R.string.day_yesterday),
@@ -143,25 +155,37 @@ fun TotalBalanceSection(balance: Double) {
 }
 
 @Composable
-fun LastThreeDaysChart(
+fun PeriodChart(
     transactions: List<Transaction>,
     todayLabel: String,
     yesterdayLabel: String,
     modifier: Modifier = Modifier
 ) {
-    val days = getLastThreeDays(todayLabel, yesterdayLabel)
-    val dayData = days.map { (label, dayStartMs) ->
-        val dayEndMs = dayStartMs + 86400000L
-        val ingresos = transactions
-            .filter { it.type == TransactionType.Ingreso && it.date >= dayStartMs && it.date < dayEndMs }
+    var selectedPeriod by remember { mutableStateOf(ChartPeriod.MONTH) }
+    val monthNamesShort = stringArrayResource(R.array.month_names_short)
+
+    val periods = when (selectedPeriod) {
+        ChartPeriod.DAY -> getLastThreeDayPeriods(todayLabel, yesterdayLabel)
+        ChartPeriod.WEEK -> getLastThreeWeekPeriods()
+        ChartPeriod.MONTH -> getLastThreeMonthPeriods(monthNamesShort)
+    }.reversed()
+
+    val periodData = periods.map { period ->
+        val income = transactions
+            .filter { it.type == TransactionType.Ingreso && it.date >= period.startMs && it.date < period.endMs }
             .sumOf { it.amount }
-        val gastos = transactions
-            .filter { it.type == TransactionType.Gasto && it.date >= dayStartMs && it.date < dayEndMs }
+        val expense = transactions
+            .filter { it.type == TransactionType.Gasto && it.date >= period.startMs && it.date < period.endMs }
             .sumOf { it.amount }
-        Triple(label, ingresos, gastos)
+        Triple(period.label, income, expense)
     }
-    val maxVal = dayData.flatMap { listOf(it.second, it.third) }.maxOrNull() ?: 1.0
+
+    val maxVal = periodData.flatMap { listOf(it.second, it.third) }.maxOrNull() ?: 1.0
     val maxHeight = maxVal.coerceAtLeast(1.0)
+
+    val dayLabel = stringResource(R.string.period_day)
+    val weekLabel = stringResource(R.string.period_week)
+    val monthLabel = stringResource(R.string.period_month)
 
     Card(
         modifier = modifier,
@@ -174,12 +198,29 @@ fun LastThreeDaysChart(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.last_3_days),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.label_income) + " / " + stringResource(R.string.label_expense),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                PeriodSelector(
+                    selected = selectedPeriod,
+                    onSelect = { selectedPeriod = it },
+                    dayLabel = dayLabel,
+                    weekLabel = weekLabel,
+                    monthLabel = monthLabel
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Canvas(
                 modifier = Modifier
@@ -192,7 +233,7 @@ fun LastThreeDaysChart(
                 val chartHeight = size.height - bottomPadding
                 val gap = barWidth * 0.2f
 
-                dayData.forEachIndexed { index, (_, ing, gas) ->
+                periodData.forEachIndexed { index, (_, ing, gas) ->
                     val groupLeft = index * barGroupWidth
                     val ingHeight = (ing / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
                     val gasHeight = (gas / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
@@ -216,9 +257,9 @@ fun LastThreeDaysChart(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                days.forEach { (label, _) ->
+                periods.forEach { period ->
                     Text(
-                        text = label,
+                        text = period.label,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
@@ -251,6 +292,44 @@ fun LastThreeDaysChart(
                     Text(stringResource(R.string.label_expense), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PeriodSelector(
+    selected: ChartPeriod,
+    onSelect: (ChartPeriod) -> Unit,
+    dayLabel: String,
+    weekLabel: String,
+    monthLabel: String
+) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+            .padding(2.dp)
+    ) {
+        listOf(
+            ChartPeriod.DAY to dayLabel,
+            ChartPeriod.WEEK to weekLabel,
+            ChartPeriod.MONTH to monthLabel
+        ).forEach { (period, label) ->
+            val isSelected = period == selected
+            Text(
+                text = label,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else Color.Transparent
+                    )
+                    .clickable { onSelect(period) }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
         }
     }
 }
