@@ -41,7 +41,12 @@ fun Navigation(
             DashboardScreen(navController, transactionViewModel, categoryViewModel)
         }
         composable(route = Screen.BudgetScreen.route) {
-            BudgetScreen(navController, budgetViewModel, categoryViewModel, onPlaySound)
+            BudgetScreen(
+                navController = navController,
+                budgetViewModel = budgetViewModel,
+                categoryViewModel = categoryViewModel,
+                transactionViewModel = transactionViewModel
+            )
         }
         composable(
             route = Screen.AddEditBudgetScreen.route + "/{id}",

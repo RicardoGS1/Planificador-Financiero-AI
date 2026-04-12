@@ -46,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -97,9 +98,9 @@ fun HistoryScreen(
                 .collectAsState(initial = emptyList())
 
             if (transactionList.value.isEmpty()) {
-                ScreenHeader(title = "Transacciones", showBackArrow = false)
+                ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 Text(
-                    text = "No hay transacciones disponibles.",
+                    text = stringResource(R.string.no_transactions),
                     modifier = Modifier
                         .fillMaxSize()
                         .wrapContentHeight(Alignment.CenterVertically),
@@ -114,7 +115,7 @@ fun HistoryScreen(
                     .padding(paddingValues)
             ) {
                 item {
-                    ScreenHeader(title = "Transacciones", showBackArrow = false)
+                    ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 }
                 items(transactionList.value, key = { transaction -> transaction.id }) { transaction ->
                     val dismissState = rememberSwipeToDismissBoxState(
@@ -146,7 +147,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Delete Icon",
+                                        contentDescription = stringResource(R.string.cd_delete),
                                         tint = colorResource(R.color.blue_white)
                                     )
                                 }
@@ -160,7 +161,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Delete Icon",
+                                        contentDescription = stringResource(R.string.cd_delete),
                                         tint = colorResource(R.color.blue_white)
                                     )
                                 }
@@ -183,10 +184,10 @@ fun HistoryScreen(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("¿Desea eliminar esta transacción?") },
+            title = { Text(stringResource(R.string.delete_transaction_title)) },
             text = {
                 Text(
-                    "Esta acción conlleva que esta transacción y toda la información relacionada con ella se elimine permanentemente de la aplicación."
+                    stringResource(R.string.delete_transaction_message)
                 )
             },
             confirmButton = {
@@ -222,14 +223,14 @@ fun HistoryScreen(
                         showDialog = false
                     }
                 ) {
-                    Text("Aceptar", color = colorResource(R.color.red_transaction))
+                    Text(stringResource(R.string.accept), color = colorResource(R.color.red_transaction))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDialog = false }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -307,7 +308,7 @@ fun TransactionItem(
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = transaction.description.ifEmpty { "Sin descripción" },
+                    text = transaction.description.ifEmpty { stringResource(R.string.no_description) },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
@@ -316,7 +317,7 @@ fun TransactionItem(
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
-                    text = category.name.ifEmpty { "Sin categoría" },
+                    text = category.name.ifEmpty { stringResource(R.string.no_category) },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1

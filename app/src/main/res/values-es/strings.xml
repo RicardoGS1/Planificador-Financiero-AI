@@ -1,7 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Control de gastos impulsado por IA</string>
+    <string name="app_name">Control de gastos con IA</string>
     <string name="update_transaction">Actualizar transacción</string>
     <string name="add_transaction">Añadir transacción</string>
     <string name="update_budget">Actualizar presupuesto</string>
     <string name="add_budget">Añadir presupuesto</string>
+
+    <string name="nav_home">Inicio</string>
+    <string name="nav_history">Historial</string>
+    <string name="nav_statistics">Estadísticas</string>
+    <string name="nav_budgets">Presupuestos</string>
+
+    <string name="screen_financial_planner">Planificador financiero</string>
+    <string name="screen_transactions">Transacciones</string>
+    <string name="screen_statistics">Estadísticas</string>
+    <string name="screen_budget">Presupuesto</string>
+
+    <string name="total_balance">Saldo total</string>
+    <string name="last_entries">Últimas entradas</string>
+    <string name="last_3_days">Últimos 3 días</string>
+    <string name="no_recent_transactions">No hay transacciones recientes</string>
+    <string name="no_description">Sin descripción</string>
+    <string name="no_category">Sin categoría</string>
+
+    <string name="day_today">Hoy</string>
+    <string name="day_yesterday">Ayer</string>
+
+    <string name="statistics_no_data">No hay datos. Añade transacciones para ver estadísticas.</string>
+    <string name="period_day">Día</string>
+    <string name="period_month">Mes</string>
+    <string name="period_year">Año</string>
+    <string name="select_day">Selecciona el día</string>
+    <string name="cd_day_previous">Día anterior</string>
+    <string name="cd_day_next">Día siguiente</string>
+    <string name="month_year">Mes y año</string>
+    <string name="cd_month_next">Mes siguiente</string>
+    <string name="cd_month_previous">Mes anterior</string>
+    <string name="cd_year_next">Año siguiente</string>
+    <string name="cd_year_previous">Año anterior</string>
+    <string name="year_label">Año</string>
+
+    <string name="chart_subtitle_day">Ingresos vs gastos del día</string>
+    <string name="chart_subtitle_month">Ingresos y gastos por día</string>
+    <string name="chart_subtitle_year">Ingresos y gastos por mes</string>
+    <string name="comparison_euro">Comparación en €</string>
+    <string name="chart_no_data_period">Sin datos en este período</string>
+    <string name="label_income">Ingresos</string>
+    <string name="label_expense">Gastos</string>
+
+    <string name="budget_no_categories_message">No hay categorías de gasto disponibles. Crea categorías de tipo gasto para gestionar tu presupuesto.</string>
+    <string name="add_button">Añadir</string>
+    <string name="budget_attention">ATENCIÓN</string>
+    <string name="budget_remaining">Queda %1$.2f €</string>
+    <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
+    <string name="set_budget">Fijar presupuesto</string>
+    <string name="increase_budget">Aumentar presupuesto</string>
+
+    <string name="no_transactions">No hay transacciones disponibles.</string>
+    <string name="delete_transaction_title">¿Desea eliminar esta transacción?</string>
+    <string name="delete_transaction_message">Esta acción eliminará permanentemente esta transacción y toda la información relacionada de la aplicación.</string>
+    <string name="accept">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="ok">OK</string>
+    <string name="cd_delete">Eliminar</string>
+
+    <string name="transaction_type">Tipo de transacción</string>
+    <string name="transaction_type_income">Ingreso</string>
+    <string name="transaction_type_expense">Gasto</string>
+    <string name="take_photo">Tomar foto</string>
+    <string name="analyzing">Analizando…</string>
+    <string name="amount_label">Importe</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">Descripción</string>
+    <string name="hint_description">Ej.: Compra en supermercado</string>
+    <string name="category_label">Categoría</string>
+    <string name="hint_category">Escribe una nueva o elige abajo</string>
+    <string name="existing_categories">Categorías existentes</string>
+    <string name="date_label">Fecha</string>
+    <string name="tap_pick_date">Toca para elegir fecha</string>
+    <string name="cd_hide_calendar">Ocultar calendario</string>
+    <string name="cd_change_date">Cambiar fecha</string>
+    <string name="receipt_analyzed">Comprobante analizado</string>
+    <string name="err_amount_gt_zero">El importe debe ser mayor que 0.</string>
+    <string name="err_description_empty">La descripción no puede estar vacía.</string>
+    <string name="err_category_empty">El campo de categoría no puede estar vacío.</string>
+    <string name="err_date_required">Debe seleccionar una fecha.</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="success_operation">Operación completada con éxito</string>
+    <string name="error_unknown">Error desconocido</string>
+
+    <string name="tap_pick_month_year">Toca para elegir mes y año</string>
+    <string name="cd_hide_picker">Ocultar selector</string>
+    <string name="cd_change_month_year">Cambiar mes y año</string>
+    <string name="monthly_limit">Límite mensual</string>
+    <string name="err_select_category">Por favor, selecciona una categoría para continuar.</string>
+    <string name="err_select_month_year">Por favor, selecciona un mes y año para continuar.</string>
+    <string name="err_monthly_limit_empty">El campo de límite mensual no puede estar vacío.</string>
+    <string name="err_duplicate_budget">No se pueden agregar dos presupuestos idénticos.</string>
+    <string name="apply_month_year">Aplicar mes y año</string>
+    <string name="select_category">Selecciona una categoría</string>
+    <string name="cd_pick_category">Elegir categoría</string>
+    <string name="cd_year_decrease">Año anterior</string>
+    <string name="cd_year_increase">Año siguiente</string>
+
+    <string name="cd_back">Volver</string>
+    <string name="cd_navigate_back">Navegar hacia atrás</string>
+    <string name="cd_add_entry">Añadir entrada</string>
+    <string name="cd_add_transactions">Añadir transacciones</string>
+
+    <string name="error_receipt_analysis">Error al analizar el comprobante</string>
+    <string name="category_default_other">Otros</string>
+    <string name="gemini_empty_response">Respuesta vacía de la IA</string>
+    <string name="gemini_parse_error">No se pudo interpretar la respuesta de la IA</string>
+    <string name="gemini_error_403">API Gemini: acceso denegado (403). Comprueba la clave y que la API Generative Language esté activada en Google Cloud.</string>
+    <string name="gemini_error_401">API Gemini: clave inválida (401). Revisa GEMINI_API_KEY en local.properties.</string>
+    <string name="gemini_error_429">API Gemini: límite de uso (429). Espera un momento e inténtalo de nuevo.</string>
+    <string name="gemini_error_other">Error de API Gemini %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>Enero</item>
+        <item>Febrero</item>
+        <item>Marzo</item>
+        <item>Abril</item>
+        <item>Mayo</item>
+        <item>Junio</item>
+        <item>Julio</item>
+        <item>Agosto</item>
+        <item>Septiembre</item>
+        <item>Octubre</item>
+        <item>Noviembre</item>
+        <item>Diciembre</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>Ene</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Abr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Ago</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dic</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>ENE</item>
+        <item>FEB</item>
+        <item>MAR</item>
+        <item>ABR</item>
+        <item>MAY</item>
+        <item>JUN</item>
+        <item>JUL</item>
+        <item>AGO</item>
+        <item>SEP</item>
+        <item>OCT</item>
+        <item>NOV</item>
+        <item>DIC</item>
+    </string-array>
 </resources>

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.virtualworld.easyexpensecontrol.R
 //noinspection UsingMaterialAndMaterial3Libraries
@@ -29,7 +30,7 @@ fun AppBarView(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         tint = Color.White,
-                        contentDescription = "Navegar hacia atrás"
+                        contentDescription = stringResource(R.string.cd_navigate_back)
                     )
                 }
             }

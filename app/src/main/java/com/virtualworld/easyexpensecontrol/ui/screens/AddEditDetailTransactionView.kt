@@ -115,7 +115,7 @@ fun AddEditDetailTransactionView(
             is ReceiptProcessingState.Success -> {
                 categoryName = (receiptState as ReceiptProcessingState.Success).categoryNameForUi
                 categoryViewModel.categoryNameState = categoryName
-                snackbarHostState.showSnackbar("Comprobante analizado")
+                snackbarHostState.showSnackbar(context.getString(R.string.receipt_analyzed))
                 transactionViewModel.clearReceiptProcessingState()
             }
             is ReceiptProcessingState.Error -> {
@@ -204,7 +204,7 @@ fun AddEditDetailTransactionView(
             ) {
                 // Tipo de transacción — selector integrado
                 Text(
-                    text = "Tipo de transacción",
+                    text = stringResource(R.string.transaction_type),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 4.dp)
@@ -257,7 +257,10 @@ fun AddEditDetailTransactionView(
                             )
                         }
                         Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = if (isAnalyzingReceipt) "Analizando…" else "Tomar foto")
+                        Text(
+                            text = if (isAnalyzingReceipt) stringResource(R.string.analyzing)
+                            else stringResource(R.string.take_photo)
+                        )
                     }
                 }
 
@@ -270,13 +273,13 @@ fun AddEditDetailTransactionView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Importe",
+                            text = stringResource(R.string.amount_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
-                            label = "0.00",
+                            label = stringResource(R.string.hint_amount),
                             value = if (transactionViewModel.transactionAmountState > 0)
                                 transactionViewModel.transactionAmountState.toString() else "",
                             onValueChange = { value ->
@@ -296,13 +299,13 @@ fun AddEditDetailTransactionView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Descripción",
+                            text = stringResource(R.string.description_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
-                            label = "Ej: Compra supermercado",
+                            label = stringResource(R.string.hint_description),
                             value = transactionViewModel.transactionDescriptionState,
                             onValueChange = transactionViewModel::onTransactionDescriptionChanged
                         )
@@ -320,20 +323,20 @@ fun AddEditDetailTransactionView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Categoría",
+                            text = stringResource(R.string.category_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
-                            label = "Escribe una nueva o elige abajo",
+                            label = stringResource(R.string.hint_category),
                             value = categoryName,
                             onValueChange = { categoryName = it }
                         )
                         if (categoriesByType.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Categorías existentes",
+                                text = stringResource(R.string.existing_categories),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -385,13 +388,13 @@ fun AddEditDetailTransactionView(
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Column {
                                     Text(
-                                        text = "Fecha",
+                                        text = stringResource(R.string.date_label),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
                                         text = datePickerState.selectedDateMillis?.let { convertTimestampToString(it) }
-                                            ?: "Toca para elegir fecha",
+                                            ?: stringResource(R.string.tap_pick_date),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Medium
@@ -400,7 +403,8 @@ fun AddEditDetailTransactionView(
                             }
                             Icon(
                                 imageVector = if (datePickerExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (datePickerExpanded) "Ocultar calendario" else "Cambiar fecha",
+                                contentDescription = if (datePickerExpanded) stringResource(R.string.cd_hide_calendar)
+                                else stringResource(R.string.cd_change_date),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -428,22 +432,22 @@ fun AddEditDetailTransactionView(
                         when {
                             transactionViewModel.transactionAmountState <= 0 -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("El importe debe ser mayor a 0.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
                                 }
                             }
                             transactionViewModel.transactionDescriptionState.isBlank() -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("La descripción no puede estar vacía.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_description_empty))
                                 }
                             }
                             categoryName.isBlank() -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("El campo de categoría no puede estar vacío.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_category_empty))
                                 }
                             }
                             datePickerState.selectedDateMillis == null -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Debe seleccionar una fecha.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_date_required))
                                 }
                             }
                             else -> {
@@ -454,13 +458,16 @@ fun AddEditDetailTransactionView(
                                     category = category,
                                     onError = { error ->
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Error: $error")
+                                            snackbarHostState.showSnackbar(
+                                                if (error.isBlank()) context.getString(R.string.error_unknown)
+                                                else context.getString(R.string.error_prefix, error)
+                                            )
                                             isLoading = false
                                         }
                                     },
                                     onSuccess = {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Operación completada con éxito")
+                                            snackbarHostState.showSnackbar(context.getString(R.string.success_operation))
                                             navController.navigateUp()
                                         }
                                     }
@@ -536,7 +543,10 @@ fun TransactionTypeSelector(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = type.name,
+                        text = when (type) {
+                            TransactionType.Ingreso -> stringResource(R.string.transaction_type_income)
+                            TransactionType.Gasto -> stringResource(R.string.transaction_type_expense)
+                        },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary

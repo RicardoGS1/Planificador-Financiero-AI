@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDays
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
@@ -84,18 +86,20 @@ fun DashboardScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ScreenHeader(title = "Planificador Financiero", showBackArrow = false)
+            ScreenHeader(title = stringResource(R.string.screen_financial_planner), showBackArrow = false)
             TotalBalanceSection(balance = balance)
             Spacer(modifier = Modifier.height(12.dp))
             LastThreeDaysChart(
                 transactions = listaTransacciones,
+                todayLabel = stringResource(R.string.day_today),
+                yesterdayLabel = stringResource(R.string.day_yesterday),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Últimas entradas",
+                text = stringResource(R.string.last_entries),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
@@ -125,7 +129,7 @@ fun TotalBalanceSection(balance: Double) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Saldo total",
+            text = stringResource(R.string.total_balance),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -142,9 +146,11 @@ fun TotalBalanceSection(balance: Double) {
 @Composable
 fun LastThreeDaysChart(
     transactions: List<Transaction>,
+    todayLabel: String,
+    yesterdayLabel: String,
     modifier: Modifier = Modifier
 ) {
-    val days = getLastThreeDays()
+    val days = getLastThreeDays(todayLabel, yesterdayLabel)
     val dayData = days.map { (label, dayStartMs) ->
         val dayEndMs = dayStartMs + 86400000L
         val ingresos = transactions
@@ -170,7 +176,7 @@ fun LastThreeDaysChart(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Últimos 3 días",
+                text = stringResource(R.string.last_3_days),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
@@ -233,7 +239,7 @@ fun LastThreeDaysChart(
                             .background(Color(0xFF4CAF50), RoundedCornerShape(2.dp))
                     )
                     Spacer(modifier = Modifier.size(6.dp))
-                    Text("Ingresos", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.label_income), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(modifier = Modifier.size(16.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -243,7 +249,7 @@ fun LastThreeDaysChart(
                             .background(Color(0xFFE33936), RoundedCornerShape(2.dp))
                     )
                     Spacer(modifier = Modifier.size(6.dp))
-                    Text("Gastos", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.label_expense), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -271,7 +277,7 @@ fun LatestTransactionsList(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No hay transacciones recientes",
+                    text = stringResource(R.string.no_recent_transactions),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -328,14 +334,14 @@ fun LatestTransactionRow(
         Spacer(modifier = Modifier.size(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = transaction.description.ifEmpty { "Sin descripción" },
+                text = transaction.description.ifEmpty { stringResource(R.string.no_description) },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1
             )
             Text(
-                text = category.name.ifEmpty { "Sin categoría" },
+                text = category.name.ifEmpty { stringResource(R.string.no_category) },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1

@@ -52,6 +52,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,7 +64,6 @@ import com.virtualworld.easyexpensecontrol.core.util.getEndOfDay
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfMonth
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfYear
 import com.virtualworld.easyexpensecontrol.core.util.getLastNDays
-import com.virtualworld.easyexpensecontrol.core.util.getMonthNamesShort
 import com.virtualworld.easyexpensecontrol.core.util.getStartOfMonth
 import com.virtualworld.easyexpensecontrol.core.util.getStartOfYear
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
@@ -88,7 +89,10 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
     var selectedMonth by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
     var selectedYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
 
-    val days = remember { getLastNDays(30) }
+    val todayLabel = stringResource(R.string.day_today)
+    val yesterdayLabel = stringResource(R.string.day_yesterday)
+    val monthNamesShort = stringArrayResource(R.array.month_names_short).toList()
+    val days = remember(todayLabel, yesterdayLabel) { getLastNDays(30, todayLabel, yesterdayLabel) }
     val selectedDayStart = days.getOrNull(selectedDayIndex)?.second ?: 0L
     val selectedDayEnd = if (selectedDayStart > 0) getEndOfDay(selectedDayStart) else 0L
 
@@ -105,7 +109,7 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            ScreenHeader(title = "Estadísticas", showBackArrow = false)
+            ScreenHeader(title = stringResource(R.string.screen_statistics), showBackArrow = false)
 
             // Selector de período: Día | Mes | Año
             PeriodTypeSelector(
@@ -146,7 +150,7 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No hay datos. Añade transacciones para ver estadísticas.",
+                        text = stringResource(R.string.statistics_no_data),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -194,7 +198,6 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
                         }
                     }
                     PeriodType.Year -> {
-                        val monthNames = getMonthNamesShort()
                         (1..12).map { month ->
                             val mStart = getStartOfMonth(selectedYear, month)
                             val mEnd = getEndOfMonth(selectedYear, month)
@@ -204,7 +207,7 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
                             val gas = transactions
                                 .filter { it.type == TransactionType.Gasto && it.date in mStart..mEnd }
                                 .sumOf { it.amount }
-                            ChartBarGroup(monthNames[month - 1], ing, gas)
+                            ChartBarGroup(monthNamesShort[month - 1], ing, gas)
                         }
                     }
                 }
@@ -246,7 +249,7 @@ private fun PeriodTypeSelector(
                 inactiveContentColor = onSurface
             )
         ) {
-            Text("Día")
+            Text(stringResource(R.string.period_day))
         }
         SegmentedButton(
             selected = selected == PeriodType.Month,
@@ -259,7 +262,7 @@ private fun PeriodTypeSelector(
                 inactiveContentColor = onSurface
             )
         ) {
-            Text("Mes")
+            Text(stringResource(R.string.period_month))
         }
         SegmentedButton(
             selected = selected == PeriodType.Year,
@@ -272,7 +275,7 @@ private fun PeriodTypeSelector(
                 inactiveContentColor = onSurface
             )
         ) {
-            Text("Año")
+            Text(stringResource(R.string.period_year))
         }
     }
 }
@@ -286,7 +289,7 @@ private fun DaySelector(
 ) {
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(
-            text = "Selecciona el día",
+            text = stringResource(R.string.select_day),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -302,7 +305,7 @@ private fun DaySelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { if (selectedIndex < days.size - 1) onSelect(selectedIndex + 1) }) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = "Día anterior")
+                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_day_previous))
             }
             Text(
                 text = days.getOrNull(selectedIndex)?.first ?: "",
@@ -313,7 +316,7 @@ private fun DaySelector(
                 textAlign = TextAlign.Center
             )
             IconButton(onClick = { if (selectedIndex > 0) onSelect(selectedIndex - 1) }) {
-                Icon(Icons.Rounded.ChevronRight, contentDescription = "Día siguiente")
+                Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_day_next))
             }
         }
     }
@@ -327,10 +330,10 @@ private fun MonthYearSelector(
     onYearChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val monthNames = getMonthNamesShort()
+    val monthNames = stringArrayResource(R.array.month_names_short).toList()
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(
-            text = "Mes y año",
+            text = stringResource(R.string.month_year),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -353,7 +356,7 @@ private fun MonthYearSelector(
                         onMonthChange(month + 1)
                     }
                 }) {
-                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Mes siguiente", modifier = Modifier.rotate(-90f))
+                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_month_next), modifier = Modifier.rotate(-90f))
                 }
                 Text(
                     text = monthNames.getOrNull(month - 1) ?: "",
@@ -371,12 +374,12 @@ private fun MonthYearSelector(
                         onMonthChange(month - 1)
                     }
                 }) {
-                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "Mes anterior", modifier = Modifier.rotate(90f))
+                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_month_previous), modifier = Modifier.rotate(90f))
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { onYearChange(year + 1) }) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = "Año siguiente")
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_next))
                 }
                 Text(
                     text = year.toString(),
@@ -387,7 +390,7 @@ private fun MonthYearSelector(
                     textAlign = TextAlign.Center
                 )
                 IconButton(onClick = { onYearChange(year - 1) }) {
-                    Icon(Icons.Rounded.ChevronRight, contentDescription = "Año anterior")
+                    Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_previous))
                 }
             }
         }
@@ -402,7 +405,7 @@ private fun YearSelector(
 ) {
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(
-            text = "Año",
+            text = stringResource(R.string.year_label),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -417,7 +420,7 @@ private fun YearSelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { onYearChange(year - 1) }) {
-                Icon(Icons.Rounded.ChevronRight, contentDescription = "Año anterior")
+                Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_previous))
             }
             Text(
                 text = year.toString(),
@@ -427,7 +430,7 @@ private fun YearSelector(
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
             IconButton(onClick = { onYearChange(year + 1) }) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = "Año siguiente")
+                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_next))
             }
         }
     }
@@ -444,9 +447,9 @@ private fun StatisticsChart(
     val labelColor = colorResource(R.color.bold_from_palette)
 
     val subtitle = when (periodType) {
-        PeriodType.Day -> "Ingresos vs Gastos del día"
-        PeriodType.Month -> "Ingresos y gastos por día"
-        PeriodType.Year -> "Ingresos y gastos por mes"
+        PeriodType.Day -> stringResource(R.string.chart_subtitle_day)
+        PeriodType.Month -> stringResource(R.string.chart_subtitle_month)
+        PeriodType.Year -> stringResource(R.string.chart_subtitle_year)
     }
 
     Card(
@@ -468,7 +471,7 @@ private fun StatisticsChart(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = "Comparación en €",
+                text = stringResource(R.string.comparison_euro),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -482,7 +485,7 @@ private fun StatisticsChart(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Sin datos en este período",
+                        text = stringResource(R.string.chart_no_data_period),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -504,9 +507,9 @@ private fun StatisticsChart(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    LegendItem(color = colorGreen, label = "Ingresos")
+                    LegendItem(color = colorGreen, label = stringResource(R.string.label_income))
                     Spacer(modifier = Modifier.width(24.dp))
-                    LegendItem(color = colorRed, label = "Gastos")
+                    LegendItem(color = colorRed, label = stringResource(R.string.label_expense))
                 }
             }
         }

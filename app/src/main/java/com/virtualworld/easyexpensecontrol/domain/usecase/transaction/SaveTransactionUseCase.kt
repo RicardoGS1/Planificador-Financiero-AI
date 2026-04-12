@@ -46,7 +46,7 @@ class SaveTransactionUseCase(
             }
             onSuccess()
         } catch (e: Exception) {
-            onError(e.message ?: "Error desconocido")
+            onError(e.message.orEmpty())
         }
     }
 

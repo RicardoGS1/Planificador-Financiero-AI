@@ -83,7 +83,7 @@ val appModule = module {
             .build()
     }
     single { get<Retrofit>().create(GeminiApi::class.java) }
-    single { ReceiptRemoteDataSource(get(), BuildConfig.GEMINI_API_KEY, get()) }
+    single { ReceiptRemoteDataSource(get(), BuildConfig.GEMINI_API_KEY, get(), androidContext()) }
     single<ReceiptAnalysisRepository> { ReceiptAnalysisRepositoryImpl(get()) }
     single { ProcessReceiptUseCase(get(), get()) }
 
@@ -104,7 +104,8 @@ val appModule = module {
             saveTransactionUseCase = get(),
             deleteTransactionUseCase = get(),
             processReceiptUseCase = get(),
-            getCategoryByNameUseCase = get()
+            getCategoryByNameUseCase = get(),
+            appContext = androidContext()
         )
     }
     viewModel {

@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol.data.remote
 
+import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -8,6 +9,7 @@ import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiGenerationConfi
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiInlineData
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiPart
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiRequest
+import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.remote.dto.ReceiptResultDto
 import retrofit2.HttpException
 import java.io.IOException
@@ -18,7 +20,8 @@ import java.io.IOException
 class ReceiptRemoteDataSource(
     private val geminiApi: GeminiApi,
     private val apiKey: String,
-    private val gson: Gson
+    private val gson: Gson,
+    private val appContext: Context
 ) {
 
     private val fallbackCategories = "Supermercado, Transporte, Restaurante, Farmacia, Ocio, Gasolina, Hogar, Otros"
@@ -70,20 +73,29 @@ class ReceiptRemoteDataSource(
                 ?.parts
                 ?.firstOrNull()
                 ?.text
-                ?: return Result.failure(IllegalStateException("Respuesta vacía de la IA"))
+                ?: return Result.failure(
+                    IllegalStateException(appContext.getString(R.string.gemini_empty_response))
+                )
 
             Log.d("GeminiResponse", "JSON recibido: $text")
             val dto = parseReceiptJson(text)
             Result.success(dto)
         } catch (e: JsonSyntaxException) {
-            Result.failure(IllegalArgumentException("No se pudo interpretar la respuesta de la IA", e))
+            Result.failure(
+                IllegalArgumentException(appContext.getString(R.string.gemini_parse_error), e)
+            )
         } catch (e: HttpException) {
             val body = e.response()?.errorBody()?.string() ?: ""
             val msg = when (e.code()) {
-                403 -> "API Gemini: acceso denegado (403). Comprueba que la clave en local.properties sea correcta y que la API \"Generative Language API\" esté activada en tu proyecto de Google Cloud. ${if (body.isNotEmpty()) " Detalle: $body" else ""}"
-                401 -> "API Gemini: clave inválida (401). Revisa GEMINI_API_KEY en local.properties."
-                429 -> "API Gemini: límite de uso (429). Espera un momento e inténtalo de nuevo."
-                else -> "API Gemini error ${e.code()}: ${body.ifEmpty { e.message() }}"
+                403 -> appContext.getString(R.string.gemini_error_403) +
+                    if (body.isNotEmpty()) " ${body}" else ""
+                401 -> appContext.getString(R.string.gemini_error_401)
+                429 -> appContext.getString(R.string.gemini_error_429)
+                else -> appContext.getString(
+                    R.string.gemini_error_other,
+                    e.code(),
+                    body.ifEmpty { e.message() ?: "" }
+                )
             }
             Result.failure(IOException(msg))
         } catch (e: Exception) {
@@ -98,7 +110,9 @@ class ReceiptRemoteDataSource(
         return dto.copy(
             amount = amount,
             description = dto.description.take(200),
-            categoryName = dto.categoryName.take(100).ifEmpty { "Otros" }
+            categoryName = dto.categoryName.take(100).ifEmpty {
+                appContext.getString(R.string.category_default_other)
+            }
         )
     }
 }

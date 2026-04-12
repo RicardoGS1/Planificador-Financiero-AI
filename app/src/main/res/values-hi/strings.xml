@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI संचालित खर्च नियंत्रण</string>
+    <string name="update_transaction">लेनदेन अपडेट करें</string>
+    <string name="add_transaction">लेनदेन जोड़ें</string>
+    <string name="update_budget">बजट अपडेट करें</string>
+    <string name="add_budget">बजट जोड़ें</string>
+
+    <string name="nav_home">होम</string>
+    <string name="nav_history">इतिहास</string>
+    <string name="nav_statistics">आँकड़े</string>
+    <string name="nav_budgets">बजट</string>
+
+    <string name="screen_financial_planner">वित्तीय योजनाकार</string>
+    <string name="screen_transactions">लेनदेन</string>
+    <string name="screen_statistics">आँकड़े</string>
+    <string name="screen_budget">बजट</string>
+
+    <string name="total_balance">कुल शेष</string>
+    <string name="last_entries">नवीनतम प्रविष्टियाँ</string>
+    <string name="last_3_days">पिछले 3 दिन</string>
+    <string name="no_recent_transactions">कोई हालिया लेनदेन नहीं</string>
+    <string name="no_description">कोई विवरण नहीं</string>
+    <string name="no_category">कोई श्रेणी नहीं</string>
+
+    <string name="day_today">आज</string>
+    <string name="day_yesterday">कल</string>
+
+    <string name="statistics_no_data">अभी कोई डेटा नहीं। आँकड़े देखने के लिए लेनदेन जोड़ें।</string>
+    <string name="period_day">दिन</string>
+    <string name="period_month">माह</string>
+    <string name="period_year">वर्ष</string>
+    <string name="select_day">दिन चुनें</string>
+    <string name="cd_day_previous">पिछला दिन</string>
+    <string name="cd_day_next">अगला दिन</string>
+    <string name="month_year">माह और वर्ष</string>
+    <string name="cd_month_next">अगला माह</string>
+    <string name="cd_month_previous">पिछला माह</string>
+    <string name="cd_year_next">अगला वर्ष</string>
+    <string name="cd_year_previous">पिछला वर्ष</string>
+    <string name="year_label">वर्ष</string>
+
+    <string name="chart_subtitle_day">दिन के लिए आय बनाम खर्च</string>
+    <string name="chart_subtitle_month">दिन के अनुसार आय और खर्च</string>
+    <string name="chart_subtitle_year">माह के अनुसार आय और खर्च</string>
+    <string name="comparison_euro">तुलना (€)</string>
+    <string name="chart_no_data_period">इस अवधि के लिए कोई डेटा नहीं</string>
+    <string name="label_income">आय</string>
+    <string name="label_expense">खर्च</string>
+
+    <string name="budget_no_categories_message">कोई व्यय श्रेणी उपलब्ध नहीं। अपना बजट प्रबंधित करने के लिए व्यय-प्रकार की श्रेणियाँ बनाएँ।</string>
+    <string name="add_button">जोड़ें</string>
+    <string name="budget_attention">चेतावनी</string>
+    <string name="budget_remaining">%1$.2f € शेष</string>
+    <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
+    <string name="set_budget">बजट निर्धारित करें</string>
+    <string name="increase_budget">बजट बढ़ाएँ</string>
+
+    <string name="no_transactions">कोई लेनदेन उपलब्ध नहीं।</string>
+    <string name="delete_transaction_title">इस लेनदेन को हटाएँ?</string>
+    <string name="delete_transaction_message">यह इस लेनदेन और संबंधित सभी जानकारी को स्थायी रूप से हटा देगा।</string>
+    <string name="accept">स्वीकार करें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="ok">ठीक</string>
+    <string name="cd_delete">हटाएँ</string>
+
+    <string name="transaction_type">लेनदेन प्रकार</string>
+    <string name="transaction_type_income">आय</string>
+    <string name="transaction_type_expense">खर्च</string>
+    <string name="take_photo">फोटो लें</string>
+    <string name="analyzing">विश्लेषण हो रहा है…</string>
+    <string name="amount_label">राशि</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">विवरण</string>
+    <string name="hint_description">उदा.: किराना खरीदारी</string>
+    <string name="category_label">श्रेणी</string>
+    <string name="hint_category">नया टाइप करें या नीचे चुनें</string>
+    <string name="existing_categories">मौजूदा श्रेणियाँ</string>
+    <string name="date_label">तारीख</string>
+    <string name="tap_pick_date">तारीख चुनने के लिए टैप करें</string>
+    <string name="cd_hide_calendar">कैलेंडर छिपाएँ</string>
+    <string name="cd_change_date">तारीख बदलें</string>
+    <string name="receipt_analyzed">रसीद का विश्लेषण हो गया</string>
+    <string name="err_amount_gt_zero">राशि 0 से अधिक होनी चाहिए।</string>
+    <string name="err_description_empty">विवरण खाली नहीं हो सकता।</string>
+    <string name="err_category_empty">श्रेणी खाली नहीं हो सकती।</string>
+    <string name="err_date_required">कृपया एक तारीख चुनें।</string>
+    <string name="error_prefix">त्रुटि: %1$s</string>
+    <string name="success_operation">कार्रवाई सफलतापूर्वक पूर्ण</string>
+    <string name="error_unknown">अज्ञात त्रुटि</string>
+
+    <string name="tap_pick_month_year">माह और वर्ष चुनने के लिए टैप करें</string>
+    <string name="cd_hide_picker">चयनकर्ता छिपाएँ</string>
+    <string name="cd_change_month_year">माह और वर्ष बदलें</string>
+    <string name="monthly_limit">मासिक सीमा</string>
+    <string name="err_select_category">जारी रखने के लिए कृपया एक श्रेणी चुनें।</string>
+    <string name="err_select_month_year">जारी रखने के लिए कृपया माह और वर्ष चुनें।</string>
+    <string name="err_monthly_limit_empty">मासिक सीमा खाली नहीं हो सकती।</string>
+    <string name="err_duplicate_budget">दो समान बजट नहीं जोड़े जा सकते।</string>
+    <string name="apply_month_year">माह और वर्ष लागू करें</string>
+    <string name="select_category">एक श्रेणी चुनें</string>
+    <string name="cd_pick_category">श्रेणी चुनें</string>
+    <string name="cd_year_decrease">पिछला वर्ष</string>
+    <string name="cd_year_increase">अगला वर्ष</string>
+
+    <string name="cd_back">वापस</string>
+    <string name="cd_navigate_back">पीछे नेविगेट करें</string>
+    <string name="cd_add_entry">प्रविष्टि जोड़ें</string>
+    <string name="cd_add_transactions">लेनदेन जोड़ें</string>
+
+    <string name="error_receipt_analysis">रसीद का विश्लेषण नहीं हो सका</string>
+    <string name="category_default_other">अन्य</string>
+    <string name="gemini_empty_response">AI से खाली प्रतिक्रिया</string>
+    <string name="gemini_parse_error">AI प्रतिक्रिया समझ नहीं आई</string>
+    <string name="gemini_error_403">Gemini API: पहुँच अस्वीकृत (403)। कुंजी और Google Cloud में Generative Language API जाँचें।</string>
+    <string name="gemini_error_401">Gemini API: अमान्य कुंजी (401)। local.properties में GEMINI_API_KEY जाँचें।</string>
+    <string name="gemini_error_429">Gemini API: दर सीमा (429)। कुछ देर प्रतीक्षा करें और पुनः प्रयास करें।</string>
+    <string name="gemini_error_other">Gemini API त्रुटि %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>जनवरी</item>
+        <item>फ़रवरी</item>
+        <item>मार्च</item>
+        <item>अप्रैल</item>
+        <item>मई</item>
+        <item>जून</item>
+        <item>जुलाई</item>
+        <item>अगस्त</item>
+        <item>सितंबर</item>
+        <item>अक्टूबर</item>
+        <item>नवंबर</item>
+        <item>दिसंबर</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>जन</item>
+        <item>फ़र</item>
+        <item>मार्च</item>
+        <item>अप्रै</item>
+        <item>मई</item>
+        <item>जून</item>
+        <item>जुला</item>
+        <item>अग</item>
+        <item>सित</item>
+        <item>अक्टू</item>
+        <item>नवं</item>
+        <item>दिसं</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>जन</item>
+        <item>फ़र</item>
+        <item>मार्च</item>
+        <item>अप्रै</item>
+        <item>मई</item>
+        <item>जून</item>
+        <item>जुला</item>
+        <item>अग</item>
+        <item>सित</item>
+        <item>अक्टू</item>
+        <item>नवं</item>
+        <item>दिसं</item>
+    </string-array>
+</resources>
