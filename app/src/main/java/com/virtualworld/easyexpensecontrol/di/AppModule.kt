@@ -2,6 +2,7 @@ package com.virtualworld.easyexpensecontrol.di
 
 import androidx.room.Room
 import com.virtualworld.easyexpensecontrol.BuildConfig
+import com.virtualworld.easyexpensecontrol.data.local.BudgetListVisibilityRepository
 import com.virtualworld.easyexpensecontrol.data.local.FinancialDatabase
 import com.virtualworld.easyexpensecontrol.data.remote.GeminiApi
 import com.virtualworld.easyexpensecontrol.data.remote.ReceiptRemoteDataSource
@@ -53,6 +54,8 @@ val appModule = module {
     single { get<FinancialDatabase>().transactionDao() }
     single { get<FinancialDatabase>().categoryDao() }
     single { get<FinancialDatabase>().budgetDao() }
+
+    single { BudgetListVisibilityRepository(androidContext()) }
 
     // Repositorios (implementaciones data que cumplen interfaces domain)
     single<TransactionRepositoryDomain> { TransactionRepository(get()) }

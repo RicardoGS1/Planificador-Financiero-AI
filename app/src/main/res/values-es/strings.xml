@@ -55,6 +55,12 @@
     <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
     <string name="set_budget">Fijar presupuesto</string>
     <string name="increase_budget">Aumentar presupuesto</string>
+    <string name="budget_list_visibility_title">Categorías en la lista de presupuesto</string>
+    <string name="budget_list_visibility_hint">Desmarca una categoría para ocultarla en esta lista. La elección se guarda en este dispositivo.</string>
+    <string name="budget_list_visibility_apply">Aplicar</string>
+    <string name="budget_list_visibility_show_all">Mostrar todas</string>
+    <string name="cd_budget_list_visibility">Elegir qué categorías aparecen en la lista de presupuesto</string>
+    <string name="budget_list_all_hidden_message">No se muestra ninguna categoría. Pulsa el botón de la lista para elegir cuáles quieres ver.</string>
 
     <string name="no_transactions">No hay transacciones disponibles.</string>
     <string name="delete_transaction_title">¿Desea eliminar esta transacción?</string>

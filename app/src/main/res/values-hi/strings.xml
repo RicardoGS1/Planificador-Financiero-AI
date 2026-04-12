@@ -55,6 +55,12 @@
     <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
     <string name="set_budget">बजट निर्धारित करें</string>
     <string name="increase_budget">बजट बढ़ाएँ</string>
+    <string name="budget_list_visibility_title">बजट सूची में श्रेणियाँ</string>
+    <string name="budget_list_visibility_hint">किसी श्रेणी को इस सूची से छिपाने के लिए उसका चेक हटाएँ। आपकी पसंद इस डिवाइस पर सहेजी जाती है।</string>
+    <string name="budget_list_visibility_apply">लागू करें</string>
+    <string name="budget_list_visibility_show_all">सभी दिखाएँ</string>
+    <string name="cd_budget_list_visibility">चुनें कि बजट सूची में कौन सी श्रेणियाँ दिखें</string>
+    <string name="budget_list_all_hidden_message">कोई श्रेणी नहीं दिख रही। सूची बटन दबाकर चुनें कि कौन सी श्रेणियाँ देखनी हैं।</string>
 
     <string name="no_transactions">कोई लेनदेन उपलब्ध नहीं।</string>
     <string name="delete_transaction_title">इस लेनदेन को हटाएँ?</string>

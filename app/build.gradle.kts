@@ -94,6 +94,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     testImplementation(libs.junit.jupiter)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.material)
