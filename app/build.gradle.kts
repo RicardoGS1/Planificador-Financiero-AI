@@ -24,9 +24,9 @@ android {
     defaultConfig {
         applicationId = "com.virtualworld.easyexpensecontrol"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35
+        versionCode = 100100
+        versionName = "1.1"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
 
@@ -43,6 +43,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -70,6 +71,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-process:2.8.7")
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -92,6 +94,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     testImplementation(libs.junit.jupiter)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.material)
@@ -107,6 +110,8 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)

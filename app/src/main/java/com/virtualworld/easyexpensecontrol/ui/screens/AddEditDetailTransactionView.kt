@@ -1,11 +1,17 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -50,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,11 +66,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import com.virtualworld.easyexpensecontrol.ads.CameraInterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
+import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
+import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
+import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
@@ -83,16 +95,25 @@ fun AddEditDetailTransactionView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var categoryName by remember { mutableStateOf("") }
+    var selectedIconKey by remember { mutableStateOf<String?>(null) }
+    var showIconPicker by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
     val takePictureLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
+        contract = TakePictureWithUriGrants()
     ) { success ->
         if (success && tempPhotoUri != null) {
             context.contentResolver.openInputStream(tempPhotoUri!!)?.use { it.readBytes() }?.let { bytes ->
                 transactionViewModel.processReceiptImage(bytes)
             }
+        }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            tempPhotoUri?.let { uri -> takePictureLauncher.launch(uri) }
         }
     }
 
@@ -102,7 +123,7 @@ fun AddEditDetailTransactionView(
             is ReceiptProcessingState.Success -> {
                 categoryName = (receiptState as ReceiptProcessingState.Success).categoryNameForUi
                 categoryViewModel.categoryNameState = categoryName
-                snackbarHostState.showSnackbar("Comprobante analizado")
+                snackbarHostState.showSnackbar(context.getString(R.string.receipt_analyzed))
                 transactionViewModel.clearReceiptProcessingState()
             }
             is ReceiptProcessingState.Error -> {
@@ -130,6 +151,7 @@ fun AddEditDetailTransactionView(
         LaunchedEffect(category.value) {
             category.value?.let {
                 categoryName = it.name
+                selectedIconKey = it.iconName
                 categoryViewModel.categoryNameState = it.name
                 categoryViewModel.categoryTypeState = it.type
             }
@@ -191,7 +213,7 @@ fun AddEditDetailTransactionView(
             ) {
                 // Tipo de transacción — selector integrado
                 Text(
-                    text = "Tipo de transacción",
+                    text = stringResource(R.string.transaction_type),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 4.dp)
@@ -206,13 +228,25 @@ fun AddEditDetailTransactionView(
                     FilledTonalButton(
                         onClick = {
                             if (!isAnalyzingReceipt) {
-                                val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
-                                tempPhotoUri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    file
-                                )
-                                tempPhotoUri?.let { takePictureLauncher.launch(it) }
+                                val activity = context as? Activity ?: return@FilledTonalButton
+                                CameraInterstitialAdHelper.showThenContinue(activity) {
+                                    val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        file
+                                    )
+                                    tempPhotoUri = uri
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CAMERA
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        takePictureLauncher.launch(uri)
+                                    } else {
+                                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -232,7 +266,10 @@ fun AddEditDetailTransactionView(
                             )
                         }
                         Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = if (isAnalyzingReceipt) "Analizando…" else "Tomar foto")
+                        Text(
+                            text = if (isAnalyzingReceipt) stringResource(R.string.analyzing)
+                            else stringResource(R.string.take_photo)
+                        )
                     }
                 }
 
@@ -245,13 +282,13 @@ fun AddEditDetailTransactionView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Importe",
+                            text = stringResource(R.string.amount_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
-                            label = "0.00",
+                            label = stringResource(R.string.hint_amount),
                             value = if (transactionViewModel.transactionAmountState > 0)
                                 transactionViewModel.transactionAmountState.toString() else "",
                             onValueChange = { value ->
@@ -271,13 +308,13 @@ fun AddEditDetailTransactionView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Descripción",
+                            text = stringResource(R.string.description_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
-                            label = "Ej: Compra supermercado",
+                            label = stringResource(R.string.hint_description),
                             value = transactionViewModel.transactionDescriptionState,
                             onValueChange = transactionViewModel::onTransactionDescriptionChanged
                         )
@@ -295,20 +332,48 @@ fun AddEditDetailTransactionView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Categoría",
+                            text = stringResource(R.string.category_label),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        AppTextField(
-                            label = "Escribe una nueva o elige abajo",
-                            value = categoryName,
-                            onValueChange = { categoryName = it }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                                    .clickable { showIconPicker = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = CategoryIcons.getIcon(selectedIconKey),
+                                    contentDescription = stringResource(R.string.cd_change_icon),
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                AppTextField(
+                                    label = stringResource(R.string.hint_category),
+                                    value = categoryName,
+                                    onValueChange = { categoryName = it }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.tap_icon_to_change),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (categoriesByType.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Categorías existentes",
+                                text = stringResource(R.string.existing_categories),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -323,13 +388,25 @@ fun AddEditDetailTransactionView(
                                 categoriesByType.forEach { cat ->
                                     CategoryChip(
                                         name = cat.name,
+                                        iconKey = cat.iconName,
                                         isSelected = categoryName.equals(cat.name, ignoreCase = true),
-                                        onClick = { categoryName = cat.name }
+                                        onClick = {
+                                            categoryName = cat.name
+                                            selectedIconKey = cat.iconName
+                                        }
                                     )
                                 }
                             }
                         }
                     }
+                }
+
+                if (showIconPicker) {
+                    IconPickerDialog(
+                        selectedIconKey = selectedIconKey,
+                        onIconSelected = { key -> selectedIconKey = key },
+                        onDismiss = { showIconPicker = false }
+                    )
                 }
 
                 val category by categoryViewModel.getCategoryByName(categoryName).collectAsState(initial = null)
@@ -360,13 +437,13 @@ fun AddEditDetailTransactionView(
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Column {
                                     Text(
-                                        text = "Fecha",
+                                        text = stringResource(R.string.date_label),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
                                         text = datePickerState.selectedDateMillis?.let { convertTimestampToString(it) }
-                                            ?: "Toca para elegir fecha",
+                                            ?: stringResource(R.string.tap_pick_date),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Medium
@@ -375,7 +452,8 @@ fun AddEditDetailTransactionView(
                             }
                             Icon(
                                 imageVector = if (datePickerExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (datePickerExpanded) "Ocultar calendario" else "Cambiar fecha",
+                                contentDescription = if (datePickerExpanded) stringResource(R.string.cd_hide_calendar)
+                                else stringResource(R.string.cd_change_date),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -403,22 +481,22 @@ fun AddEditDetailTransactionView(
                         when {
                             transactionViewModel.transactionAmountState <= 0 -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("El importe debe ser mayor a 0.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
                                 }
                             }
                             transactionViewModel.transactionDescriptionState.isBlank() -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("La descripción no puede estar vacía.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_description_empty))
                                 }
                             }
                             categoryName.isBlank() -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("El campo de categoría no puede estar vacío.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_category_empty))
                                 }
                             }
                             datePickerState.selectedDateMillis == null -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Debe seleccionar una fecha.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_date_required))
                                 }
                             }
                             else -> {
@@ -427,15 +505,19 @@ fun AddEditDetailTransactionView(
                                     id = id,
                                     categoryName = categoryName,
                                     category = category,
+                                    iconName = selectedIconKey,
                                     onError = { error ->
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Error: $error")
+                                            snackbarHostState.showSnackbar(
+                                                if (error.isBlank()) context.getString(R.string.error_unknown)
+                                                else context.getString(R.string.error_prefix, error)
+                                            )
                                             isLoading = false
                                         }
                                     },
                                     onSuccess = {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Operación completada con éxito")
+                                            snackbarHostState.showSnackbar(context.getString(R.string.success_operation))
                                             navController.navigateUp()
                                         }
                                     }
@@ -511,7 +593,10 @@ fun TransactionTypeSelector(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = type.name,
+                        text = when (type) {
+                            TransactionType.Ingreso -> stringResource(R.string.transaction_type_income)
+                            TransactionType.Gasto -> stringResource(R.string.transaction_type_expense)
+                        },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary
@@ -526,6 +611,7 @@ fun TransactionTypeSelector(
 @Composable
 private fun CategoryChip(
     name: String,
+    iconKey: String?,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -538,14 +624,26 @@ private fun CategoryChip(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = CategoryIcons.getIcon(iconKey),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

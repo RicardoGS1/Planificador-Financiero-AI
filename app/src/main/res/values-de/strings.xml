@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KI-gestützte Ausgabenkontrolle</string>
+    <string name="update_transaction">Transaktion aktualisieren</string>
+    <string name="add_transaction">Transaktion hinzufügen</string>
+    <string name="update_budget">Budget aktualisieren</string>
+    <string name="add_budget">Budget hinzufügen</string>
+
+    <string name="nav_home">Start</string>
+    <string name="nav_history">Verlauf</string>
+    <string name="nav_statistics">Statistik</string>
+    <string name="nav_budgets">Budgets</string>
+
+    <string name="screen_financial_planner">Finanzplaner</string>
+    <string name="screen_transactions">Transaktionen</string>
+    <string name="screen_statistics">Statistik</string>
+    <string name="screen_budget">Budget</string>
+
+    <string name="total_balance">Gesamtsaldo</string>
+    <string name="last_entries">Neueste Einträge</string>
+    <string name="last_3_days">Letzte 3 Tage</string>
+    <string name="no_recent_transactions">Keine aktuellen Transaktionen</string>
+    <string name="no_description">Keine Beschreibung</string>
+    <string name="no_category">Keine Kategorie</string>
+
+    <string name="day_today">Heute</string>
+    <string name="day_yesterday">Gestern</string>
+
+    <string name="statistics_no_data">Noch keine Daten. Fügen Sie Transaktionen hinzu, um Statistiken zu sehen.</string>
+    <string name="period_day">Tag</string>
+    <string name="period_month">Monat</string>
+    <string name="period_year">Jahr</string>
+    <string name="select_day">Tag auswählen</string>
+    <string name="cd_day_previous">Vorheriger Tag</string>
+    <string name="cd_day_next">Nächster Tag</string>
+    <string name="month_year">Monat und Jahr</string>
+    <string name="cd_month_next">Nächster Monat</string>
+    <string name="cd_month_previous">Vorheriger Monat</string>
+    <string name="cd_year_next">Nächstes Jahr</string>
+    <string name="cd_year_previous">Vorheriges Jahr</string>
+    <string name="year_label">Jahr</string>
+
+    <string name="chart_subtitle_day">Einnahmen vs. Ausgaben am Tag</string>
+    <string name="chart_subtitle_month">Einnahmen und Ausgaben pro Tag</string>
+    <string name="chart_subtitle_year">Einnahmen und Ausgaben pro Monat</string>
+    <string name="comparison_euro">Vergleich (€)</string>
+    <string name="chart_no_data_period">Keine Daten für diesen Zeitraum</string>
+    <string name="label_income">Einnahmen</string>
+    <string name="label_expense">Ausgaben</string>
+
+    <string name="budget_no_categories_message">Keine Ausgabenkategorien vorhanden. Erstellen Sie Ausgaben-Kategorien, um Ihr Budget zu verwalten.</string>
+    <string name="add_button">Hinzufügen</string>
+    <string name="budget_attention">ACHTUNG</string>
+    <string name="budget_remaining">Noch %1$.2f €</string>
+    <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
+    <string name="set_budget">Budget festlegen</string>
+    <string name="increase_budget">Budget erhöhen</string>
+    <string name="budget_list_visibility_title">Kategorien in der Budgetliste</string>
+    <string name="budget_list_visibility_hint">Deaktiviere eine Kategorie, um sie in dieser Liste auszublenden. Deine Auswahl wird auf diesem Gerät gespeichert.</string>
+    <string name="budget_list_visibility_apply">Anwenden</string>
+    <string name="budget_list_visibility_show_all">Alle anzeigen</string>
+    <string name="cd_budget_list_visibility">Auswählen, welche Kategorien in der Budgetliste erscheinen</string>
+    <string name="budget_list_all_hidden_message">Es werden keine Kategorien angezeigt. Tippe auf das Listen-Symbol, um auszuwählen, welche du sehen möchtest.</string>
+
+    <string name="no_transactions">Keine Transaktionen vorhanden.</string>
+    <string name="delete_transaction_title">Diese Transaktion löschen?</string>
+    <string name="delete_transaction_message">Dies löscht die Transaktion und alle zugehörigen Daten dauerhaft aus der App.</string>
+    <string name="accept">Akzeptieren</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="ok">OK</string>
+    <string name="cd_delete">Löschen</string>
+
+    <string name="transaction_type">Transaktionstyp</string>
+    <string name="transaction_type_income">Einnahme</string>
+    <string name="transaction_type_expense">Ausgabe</string>
+    <string name="take_photo">Foto aufnehmen</string>
+    <string name="analyzing">Wird analysiert…</string>
+    <string name="amount_label">Betrag</string>
+    <string name="hint_amount">0,00</string>
+    <string name="description_label">Beschreibung</string>
+    <string name="hint_description">z. B. Supermarkteinkauf</string>
+    <string name="category_label">Kategorie</string>
+    <string name="hint_category">Neue eingeben oder unten wählen</string>
+    <string name="existing_categories">Vorhandene Kategorien</string>
+    <string name="date_label">Datum</string>
+    <string name="tap_pick_date">Tippen, um ein Datum zu wählen</string>
+    <string name="cd_hide_calendar">Kalender ausblenden</string>
+    <string name="cd_change_date">Datum ändern</string>
+    <string name="receipt_analyzed">Beleg analysiert</string>
+    <string name="err_amount_gt_zero">Der Betrag muss größer als 0 sein.</string>
+    <string name="err_description_empty">Die Beschreibung darf nicht leer sein.</string>
+    <string name="err_category_empty">Die Kategorie darf nicht leer sein.</string>
+    <string name="err_date_required">Bitte wählen Sie ein Datum.</string>
+    <string name="error_prefix">Fehler: %1$s</string>
+    <string name="success_operation">Vorgang erfolgreich abgeschlossen</string>
+    <string name="error_unknown">Unbekannter Fehler</string>
+
+    <string name="tap_pick_month_year">Tippen, um Monat und Jahr zu wählen</string>
+    <string name="cd_hide_picker">Auswahl ausblenden</string>
+    <string name="cd_change_month_year">Monat und Jahr ändern</string>
+    <string name="monthly_limit">Monatliches Limit</string>
+    <string name="err_select_category">Bitte wählen Sie eine Kategorie, um fortzufahren.</string>
+    <string name="err_select_month_year">Bitte wählen Sie Monat und Jahr, um fortzufahren.</string>
+    <string name="err_monthly_limit_empty">Das monatliche Limit darf nicht leer sein.</string>
+    <string name="err_duplicate_budget">Zwei identische Budgets sind nicht möglich.</string>
+    <string name="apply_month_year">Monat und Jahr übernehmen</string>
+    <string name="select_category">Kategorie auswählen</string>
+    <string name="cd_pick_category">Kategorie wählen</string>
+    <string name="cd_year_decrease">Vorheriges Jahr</string>
+    <string name="cd_year_increase">Nächstes Jahr</string>
+
+    <string name="cd_back">Zurück</string>
+    <string name="cd_navigate_back">Zurück navigieren</string>
+    <string name="cd_add_entry">Eintrag hinzufügen</string>
+    <string name="cd_add_transactions">Transaktionen hinzufügen</string>
+
+    <string name="icon_picker_title">Symbol auswählen</string>
+    <string name="cd_change_icon">Symbol ändern</string>
+    <string name="tap_icon_to_change">Tippe auf das Symbol, um es zu ändern</string>
+
+    <string name="error_receipt_analysis">Beleg konnte nicht analysiert werden</string>
+    <string name="category_default_other">Sonstiges</string>
+    <string name="gemini_empty_response">Leere Antwort der KI</string>
+    <string name="gemini_parse_error">KI-Antwort konnte nicht interpretiert werden</string>
+    <string name="gemini_error_403">Gemini-API: Zugriff verweigert (403). Prüfen Sie den Schlüssel und die Generative Language API in Google Cloud.</string>
+    <string name="gemini_error_401">Gemini-API: Ungültiger Schlüssel (401). Prüfen Sie GEMINI_API_KEY in local.properties.</string>
+    <string name="gemini_error_429">Gemini-API: Ratenlimit (429). Warten Sie und versuchen Sie es erneut.</string>
+    <string name="gemini_error_other">Gemini-API-Fehler %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>Januar</item>
+        <item>Februar</item>
+        <item>März</item>
+        <item>April</item>
+        <item>Mai</item>
+        <item>Juni</item>
+        <item>Juli</item>
+        <item>August</item>
+        <item>September</item>
+        <item>Oktober</item>
+        <item>November</item>
+        <item>Dezember</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mär</item>
+        <item>Apr</item>
+        <item>Mai</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Okt</item>
+        <item>Nov</item>
+        <item>Dez</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>JAN</item>
+        <item>FEB</item>
+        <item>MÄR</item>
+        <item>APR</item>
+        <item>MAI</item>
+        <item>JUN</item>
+        <item>JUL</item>
+        <item>AUG</item>
+        <item>SEP</item>
+        <item>OKT</item>
+        <item>NOV</item>
+        <item>DEZ</item>
+    </string-array>
+</resources>

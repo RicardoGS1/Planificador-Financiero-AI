@@ -38,7 +38,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.virtualworld.easyexpensecontrol.R
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentPink
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
@@ -56,10 +58,10 @@ data class CurvedNavItem(
 @Composable
 fun CurvedBottomBar(navController: NavController) {
     val items = listOf(
-        CurvedNavItem(Screen.DashboardScreen.route, "Inicio", Icons.Outlined.Home),
-        CurvedNavItem(Screen.HistoryScreen.route, "Historial", Icons.Outlined.History),
-        CurvedNavItem(Screen.StaticsScreen.route, "Estadísticas", Icons.Outlined.BarChart),
-        CurvedNavItem(Screen.BudgetScreen.route, "Presupuestos", Icons.Outlined.AccountBalanceWallet)
+        CurvedNavItem(Screen.DashboardScreen.route, stringResource(R.string.nav_home), Icons.Outlined.Home),
+        CurvedNavItem(Screen.HistoryScreen.route, stringResource(R.string.nav_history), Icons.Outlined.History),
+        CurvedNavItem(Screen.StaticsScreen.route, stringResource(R.string.nav_statistics), Icons.Outlined.BarChart),
+        CurvedNavItem(Screen.BudgetScreen.route, stringResource(R.string.nav_budgets), Icons.Outlined.AccountBalanceWallet)
     )
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -156,7 +158,7 @@ fun CurvedBottomBar(navController: NavController) {
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Añadir entrada",
+                contentDescription = stringResource(R.string.cd_add_entry),
                 tint = Color.White,
                 modifier = Modifier.size(28.dp)
             )

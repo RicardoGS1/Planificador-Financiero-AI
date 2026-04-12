@@ -45,6 +45,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -64,11 +66,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val monthNames = listOf(
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-)
-
 @Composable
 fun AddEditDetailBudgetView(
     id: Long,
@@ -77,6 +74,7 @@ fun AddEditDetailBudgetView(
     transactionViewModel: TransactionViewModel,
     navController: NavController
 ) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
@@ -100,7 +98,8 @@ fun AddEditDetailBudgetView(
             }
         }
     } else {
-        budgetViewModel.budgetCategoryState = 0L
+        // Mantiene la categoría preseleccionada cuando se navega desde "Fijar presupuesto"
+        // y evita que se resetee en recomposiciones.
         budgetViewModel.budgetCurrentExpenditureState = 0.0
         budgetViewModel.budgetMonthlyLimitState = 0.0
     }
@@ -136,20 +135,23 @@ fun AddEditDetailBudgetView(
                     }
                 }
 
-                snackbarHostState.showSnackbar("Operación completada con éxito.")
+                snackbarHostState.showSnackbar(context.getString(R.string.success_operation))
                 navController.navigateUp()
             } catch (e: Exception) {
-                snackbarHostState.showSnackbar("Error: ${e.message}")
+                snackbarHostState.showSnackbar(
+                    context.getString(R.string.error_prefix, e.message ?: context.getString(R.string.error_unknown))
+                )
             } finally {
                 isLoading = false
             }
         }
     }
 
-    val displayDate = remember(budgetViewModel.budgetMonthState, budgetViewModel.budgetYearState) {
+    val monthNamesFull = stringArrayResource(R.array.month_names_full)
+    val displayDate = remember(budgetViewModel.budgetMonthState, budgetViewModel.budgetYearState, monthNamesFull) {
         val m = budgetViewModel.budgetMonthState.toIntOrNull() ?: 0
         val y = budgetViewModel.budgetYearState
-        if (m in 1..12 && y > 0) "${monthNames[m - 1]} $y" else ""
+        if (m in 1..12 && y > 0) "${monthNamesFull[m - 1]} $y" else ""
     }
 
     Scaffold(
@@ -215,12 +217,12 @@ fun AddEditDetailBudgetView(
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Column {
                                     Text(
-                                        text = "Mes y año",
+                                        text = stringResource(R.string.month_year),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
-                                        text = displayDate.ifEmpty { "Toca para elegir mes y año" },
+                                        text = displayDate.ifEmpty { stringResource(R.string.tap_pick_month_year) },
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = if (displayDate.isNotEmpty())
                                             MaterialTheme.colorScheme.onSurface
@@ -232,7 +234,8 @@ fun AddEditDetailBudgetView(
                             }
                             Icon(
                                 imageVector = if (isPickerVisible) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (isPickerVisible) "Ocultar selector" else "Cambiar mes y año",
+                                contentDescription = if (isPickerVisible) stringResource(R.string.cd_hide_picker)
+                                else stringResource(R.string.cd_change_month_year),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -263,13 +266,13 @@ fun AddEditDetailBudgetView(
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(
-                            text = "Límite mensual",
+                            text = stringResource(R.string.monthly_limit),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
-                            label = "0.00",
+                            label = stringResource(R.string.hint_amount),
                             value = if (budgetViewModel.budgetMonthlyLimitState > 0)
                                 budgetViewModel.budgetMonthlyLimitState.toString() else "",
                             onValueChange = { value ->
@@ -286,17 +289,17 @@ fun AddEditDetailBudgetView(
                         when {
                             budgetViewModel.budgetCategoryState == 0L -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Por favor, selecciona una categoría para continuar.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_select_category))
                                 }
                             }
                             id == 0L && displayDate.isBlank() -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Por favor, selecciona un mes y año para continuar.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_select_month_year))
                                 }
                             }
                             budgetViewModel.budgetMonthlyLimitState == 0.0 -> {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("El campo de límite mensual no puede estar vacío.")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_monthly_limit_empty))
                                 }
                             }
                             id == 0L -> {
@@ -309,7 +312,7 @@ fun AddEditDetailBudgetView(
                                             budgetViewModel.budgetYearState
                                         ).first()
                                     if (budgetAlreadyExists != null) {
-                                        snackbarHostState.showSnackbar("No se pueden agregar dos presupuestos idénticos.")
+                                        snackbarHostState.showSnackbar(context.getString(R.string.err_duplicate_budget))
                                         isLoading = false
                                     } else {
                                         handleSaveBudget()
@@ -357,17 +360,14 @@ private fun MonthPickerInline(
 ) {
     var selectedMonth by remember { mutableStateOf(currentMonth) }
     var selectedYear by remember { mutableStateOf(currentYear) }
-    val months = listOf(
-        "Ene", "Feb", "Mar", "Abr", "May", "Jun",
-        "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
-    )
+    val months = stringArrayResource(R.array.month_names_short).toList()
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { selectedYear = (selectedYear - 1).coerceAtLeast(2020) }) {
-            Icon(Icons.Default.ExpandMore, contentDescription = "Año anterior", modifier = Modifier.size(28.dp))
+            Icon(Icons.Default.ExpandMore, contentDescription = stringResource(R.string.cd_year_decrease), modifier = Modifier.size(28.dp))
         }
         Text(
             text = "$selectedYear",
@@ -376,7 +376,7 @@ private fun MonthPickerInline(
             color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onClick = { selectedYear++ }) {
-            Icon(Icons.Default.ExpandLess, contentDescription = "Año siguiente", modifier = Modifier.size(28.dp))
+            Icon(Icons.Default.ExpandLess, contentDescription = stringResource(R.string.cd_year_increase), modifier = Modifier.size(28.dp))
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
@@ -422,7 +422,7 @@ private fun MonthPickerInline(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Text("Aplicar mes y año")
+        Text(stringResource(R.string.apply_month_year))
     }
 }
 
@@ -435,7 +435,7 @@ private fun BudgetCategoryCard(
     var expanded by remember { mutableStateOf(false) }
     val categories = categoryViewModel.getCategoriesByType(TransactionType.Gasto).collectAsState(initial = emptyList()).value
     val selectedCategoryName = categories.find { it.id == selectedCategory }?.name
-        ?: "Selecciona una categoría"
+        ?: stringResource(R.string.select_category)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -445,7 +445,7 @@ private fun BudgetCategoryCard(
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                text = "Categoría",
+                text = stringResource(R.string.category_label),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -478,7 +478,7 @@ private fun BudgetCategoryCard(
                     }
                     Icon(
                         imageVector = Icons.Default.ExpandMore,
-                        contentDescription = "Elegir categoría",
+                        contentDescription = stringResource(R.string.cd_pick_category),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )

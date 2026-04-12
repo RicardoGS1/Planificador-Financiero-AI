@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol.viewmodel
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -17,6 +18,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransac
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsByCategoryAndDateUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.SaveTransactionUseCase
+import com.virtualworld.easyexpensecontrol.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +35,8 @@ class TransactionViewModel(
     private val saveTransactionUseCase: SaveTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val processReceiptUseCase: ProcessReceiptUseCase,
-    private val getCategoryByNameUseCase: GetCategoryByNameUseCase
+    private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
+    private val appContext: Context
 ) : ViewModel() {
     var transactionTypeState by mutableStateOf(TransactionType.Ingreso)
     var transactionAmountState by mutableDoubleStateOf(0.0)
@@ -97,7 +100,9 @@ class TransactionViewModel(
                     _receiptProcessingState.value = ReceiptProcessingState.Success(categoryNameForUi)
                 }
                 .onFailure { e ->
-                    _receiptProcessingState.value = ReceiptProcessingState.Error(e.message ?: "Error al analizar el comprobante")
+                    _receiptProcessingState.value = ReceiptProcessingState.Error(
+                        e.message ?: appContext.getString(R.string.error_receipt_analysis)
+                    )
                 }
         }
     }
@@ -110,6 +115,7 @@ class TransactionViewModel(
         id: Long,
         categoryName: String,
         category: Category?,
+        iconName: String?,
         onError: suspend (String) -> Unit,
         onSuccess: suspend () -> Unit
     ) {
@@ -122,6 +128,7 @@ class TransactionViewModel(
                 categoryName = categoryName,
                 category = category,
                 date = transactionDateState,
+                iconName = iconName,
                 onError = { msg -> viewModelScope.launch(Dispatchers.Main) { onError(msg) } },
                 onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } }
             )

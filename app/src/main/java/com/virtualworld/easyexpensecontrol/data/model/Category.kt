@@ -20,5 +20,7 @@ data class Category(
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "type")
-    val type: TransactionType
+    val type: TransactionType,
+    @ColumnInfo(name = "icon_name", defaultValue = "NULL")
+    val iconName: String? = null
 )
