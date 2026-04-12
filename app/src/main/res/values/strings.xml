@@ -118,6 +118,10 @@
     <string name="cd_add_entry">Add entry</string>
     <string name="cd_add_transactions">Add transactions</string>
 
+    <string name="icon_picker_title">Choose an icon</string>
+    <string name="cd_change_icon">Change icon</string>
+    <string name="tap_icon_to_change">Tap the icon to change it</string>
+
     <string name="error_receipt_analysis">Could not analyze the receipt</string>
     <string name="category_default_other">Other</string>
     <string name="gemini_empty_response">Empty response from AI</string>

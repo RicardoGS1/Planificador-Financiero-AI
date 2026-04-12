@@ -114,6 +114,10 @@
     <string name="cd_add_entry">प्रविष्टि जोड़ें</string>
     <string name="cd_add_transactions">लेनदेन जोड़ें</string>
 
+    <string name="icon_picker_title">आइकन चुनें</string>
+    <string name="cd_change_icon">आइकन बदलें</string>
+    <string name="tap_icon_to_change">बदलने के लिए आइकन पर टैप करें</string>
+
     <string name="error_receipt_analysis">रसीद का विश्लेषण नहीं हो सका</string>
     <string name="category_default_other">अन्य</string>
     <string name="gemini_empty_response">AI से खाली प्रतिक्रिया</string>

@@ -48,7 +48,9 @@ val appModule = module {
             androidContext(),
             FinancialDatabase::class.java,
             "financialapp.db"
-        ).build()
+        )
+            .addMigrations(FinancialDatabase.MIGRATION_1_2)
+            .build()
     }
 
     single { get<FinancialDatabase>().transactionDao() }

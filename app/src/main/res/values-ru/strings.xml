@@ -114,6 +114,10 @@
     <string name="cd_add_entry">Добавить запись</string>
     <string name="cd_add_transactions">Добавить операции</string>
 
+    <string name="icon_picker_title">Выберите значок</string>
+    <string name="cd_change_icon">Изменить значок</string>
+    <string name="tap_icon_to_change">Нажмите на значок, чтобы изменить</string>
+
     <string name="error_receipt_analysis">Не удалось проанализировать чек</string>
     <string name="category_default_other">Прочее</string>
     <string name="gemini_empty_response">Пустой ответ ИИ</string>

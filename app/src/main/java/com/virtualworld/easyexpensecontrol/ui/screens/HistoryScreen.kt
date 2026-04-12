@@ -25,7 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ShoppingCart
+import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.AlertDialog
@@ -276,6 +276,7 @@ fun TransactionItem(
     val isIngreso = transaction.type == TransactionType.Ingreso
     val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
     val category = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso)).value
+    val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
 
     Card(
         modifier = Modifier
@@ -299,7 +300,7 @@ fun TransactionItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isIngreso) Icons.Default.ArrowDownward else Icons.Default.ShoppingCart,
+                    imageVector = displayIcon,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)

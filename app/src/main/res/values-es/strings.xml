@@ -114,6 +114,10 @@
     <string name="cd_add_entry">Añadir entrada</string>
     <string name="cd_add_transactions">Añadir transacciones</string>
 
+    <string name="icon_picker_title">Elige un icono</string>
+    <string name="cd_change_icon">Cambiar icono</string>
+    <string name="tap_icon_to_change">Toca el icono para cambiarlo</string>
+
     <string name="error_receipt_analysis">Error al analizar el comprobante</string>
     <string name="category_default_other">Otros</string>
     <string name="gemini_empty_response">Respuesta vacía de la IA</string>

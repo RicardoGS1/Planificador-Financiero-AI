@@ -114,6 +114,10 @@
     <string name="cd_add_entry">Eintrag hinzufügen</string>
     <string name="cd_add_transactions">Transaktionen hinzufügen</string>
 
+    <string name="icon_picker_title">Symbol auswählen</string>
+    <string name="cd_change_icon">Symbol ändern</string>
+    <string name="tap_icon_to_change">Tippe auf das Symbol, um es zu ändern</string>
+
     <string name="error_receipt_analysis">Beleg konnte nicht analysiert werden</string>
     <string name="category_default_other">Sonstiges</string>
     <string name="gemini_empty_response">Leere Antwort der KI</string>

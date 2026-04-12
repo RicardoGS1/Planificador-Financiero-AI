@@ -29,8 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.FilterList
+import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -326,7 +326,7 @@ fun ExpenseBudgetItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Outlined.AccountBalanceWallet,
+                    imageVector = CategoryIcons.getIcon(category.iconName),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer

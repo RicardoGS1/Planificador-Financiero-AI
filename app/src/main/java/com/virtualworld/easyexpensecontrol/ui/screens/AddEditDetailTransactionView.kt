@@ -7,9 +7,11 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -54,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,6 +73,8 @@ import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
+import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
+import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
@@ -89,6 +95,8 @@ fun AddEditDetailTransactionView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var categoryName by remember { mutableStateOf("") }
+    var selectedIconKey by remember { mutableStateOf<String?>(null) }
+    var showIconPicker by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
@@ -143,6 +151,7 @@ fun AddEditDetailTransactionView(
         LaunchedEffect(category.value) {
             category.value?.let {
                 categoryName = it.name
+                selectedIconKey = it.iconName
                 categoryViewModel.categoryNameState = it.name
                 categoryViewModel.categoryTypeState = it.type
             }
@@ -328,10 +337,38 @@ fun AddEditDetailTransactionView(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        AppTextField(
-                            label = stringResource(R.string.hint_category),
-                            value = categoryName,
-                            onValueChange = { categoryName = it }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                                    .clickable { showIconPicker = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = CategoryIcons.getIcon(selectedIconKey),
+                                    contentDescription = stringResource(R.string.cd_change_icon),
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                AppTextField(
+                                    label = stringResource(R.string.hint_category),
+                                    value = categoryName,
+                                    onValueChange = { categoryName = it }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.tap_icon_to_change),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (categoriesByType.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(12.dp))
@@ -351,13 +388,25 @@ fun AddEditDetailTransactionView(
                                 categoriesByType.forEach { cat ->
                                     CategoryChip(
                                         name = cat.name,
+                                        iconKey = cat.iconName,
                                         isSelected = categoryName.equals(cat.name, ignoreCase = true),
-                                        onClick = { categoryName = cat.name }
+                                        onClick = {
+                                            categoryName = cat.name
+                                            selectedIconKey = cat.iconName
+                                        }
                                     )
                                 }
                             }
                         }
                     }
+                }
+
+                if (showIconPicker) {
+                    IconPickerDialog(
+                        selectedIconKey = selectedIconKey,
+                        onIconSelected = { key -> selectedIconKey = key },
+                        onDismiss = { showIconPicker = false }
+                    )
                 }
 
                 val category by categoryViewModel.getCategoryByName(categoryName).collectAsState(initial = null)
@@ -456,6 +505,7 @@ fun AddEditDetailTransactionView(
                                     id = id,
                                     categoryName = categoryName,
                                     category = category,
+                                    iconName = selectedIconKey,
                                     onError = { error ->
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
@@ -561,6 +611,7 @@ fun TransactionTypeSelector(
 @Composable
 private fun CategoryChip(
     name: String,
+    iconKey: String?,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -573,14 +624,26 @@ private fun CategoryChip(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = CategoryIcons.getIcon(iconKey),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

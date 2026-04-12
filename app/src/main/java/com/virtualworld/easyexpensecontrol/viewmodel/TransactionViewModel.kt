@@ -115,6 +115,7 @@ class TransactionViewModel(
         id: Long,
         categoryName: String,
         category: Category?,
+        iconName: String?,
         onError: suspend (String) -> Unit,
         onSuccess: suspend () -> Unit
     ) {
@@ -127,6 +128,7 @@ class TransactionViewModel(
                 categoryName = categoryName,
                 category = category,
                 date = transactionDateState,
+                iconName = iconName,
                 onError = { msg -> viewModelScope.launch(Dispatchers.Main) { onError(msg) } },
                 onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } }
             )
