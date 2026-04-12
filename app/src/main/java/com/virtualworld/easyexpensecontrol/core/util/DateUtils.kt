@@ -21,8 +21,8 @@ fun getStartOfDay(epochMillis: Long): Long {
     return cal.timeInMillis
 }
 
-/** Últimos 3 días: etiqueta corta (ej. "Hoy", "Ayer", "15/02") y start-of-day en ms, del más reciente al más antiguo. */
-fun getLastThreeDays(): List<Pair<String, Long>> {
+/** Últimos 3 días: etiqueta corta y start-of-day en ms, del más reciente al más antiguo. */
+fun getLastThreeDays(todayLabel: String, yesterdayLabel: String): List<Pair<String, Long>> {
     val cal = Calendar.getInstance()
     cal.set(Calendar.HOUR_OF_DAY, 0)
     cal.set(Calendar.MINUTE, 0)
@@ -35,8 +35,8 @@ fun getLastThreeDays(): List<Pair<String, Long>> {
     val dayBeforeStart = cal.timeInMillis
     val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
     return listOf(
-        "Hoy" to todayStart,
-        "Ayer" to yesterdayStart,
+        todayLabel to todayStart,
+        yesterdayLabel to yesterdayStart,
         formatter.format(Date(dayBeforeStart)) to dayBeforeStart
     )
 }
@@ -53,7 +53,7 @@ fun getEndOfDay(startOfDayMs: Long): Long {
 }
 
 /** Lista de los últimos N días: (etiqueta, startMs). Del más reciente al más antiguo. */
-fun getLastNDays(n: Int): List<Pair<String, Long>> {
+fun getLastNDays(n: Int, todayLabel: String, yesterdayLabel: String): List<Pair<String, Long>> {
     val cal = Calendar.getInstance()
     cal.set(Calendar.HOUR_OF_DAY, 0)
     cal.set(Calendar.MINUTE, 0)
@@ -63,8 +63,8 @@ fun getLastNDays(n: Int): List<Pair<String, Long>> {
     return (0 until n).map { i ->
         val start = cal.timeInMillis
         val label = when (i) {
-            0 -> "Hoy"
-            1 -> "Ayer"
+            0 -> todayLabel
+            1 -> yesterdayLabel
             else -> formatter.format(Date(start))
         }
         cal.add(Calendar.DAY_OF_MONTH, -1)
@@ -116,8 +116,3 @@ fun getEndOfYear(year: Int): Long {
     return cal.timeInMillis
 }
 
-/** Nombres de meses cortos en español. */
-fun getMonthNamesShort(): List<String> = listOf(
-    "Ene", "Feb", "Mar", "Abr", "May", "Jun",
-    "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
-)

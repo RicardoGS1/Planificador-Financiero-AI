@@ -25,7 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ShoppingCart
+import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.AlertDialog
@@ -46,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -97,9 +98,9 @@ fun HistoryScreen(
                 .collectAsState(initial = emptyList())
 
             if (transactionList.value.isEmpty()) {
-                ScreenHeader(title = "Transacciones", showBackArrow = false)
+                ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 Text(
-                    text = "No hay transacciones disponibles.",
+                    text = stringResource(R.string.no_transactions),
                     modifier = Modifier
                         .fillMaxSize()
                         .wrapContentHeight(Alignment.CenterVertically),
@@ -114,7 +115,7 @@ fun HistoryScreen(
                     .padding(paddingValues)
             ) {
                 item {
-                    ScreenHeader(title = "Transacciones", showBackArrow = false)
+                    ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 }
                 items(transactionList.value, key = { transaction -> transaction.id }) { transaction ->
                     val dismissState = rememberSwipeToDismissBoxState(
@@ -146,7 +147,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Delete Icon",
+                                        contentDescription = stringResource(R.string.cd_delete),
                                         tint = colorResource(R.color.blue_white)
                                     )
                                 }
@@ -160,7 +161,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Delete,
-                                        contentDescription = "Delete Icon",
+                                        contentDescription = stringResource(R.string.cd_delete),
                                         tint = colorResource(R.color.blue_white)
                                     )
                                 }
@@ -183,10 +184,10 @@ fun HistoryScreen(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("¿Desea eliminar esta transacción?") },
+            title = { Text(stringResource(R.string.delete_transaction_title)) },
             text = {
                 Text(
-                    "Esta acción conlleva que esta transacción y toda la información relacionada con ella se elimine permanentemente de la aplicación."
+                    stringResource(R.string.delete_transaction_message)
                 )
             },
             confirmButton = {
@@ -222,14 +223,14 @@ fun HistoryScreen(
                         showDialog = false
                     }
                 ) {
-                    Text("Aceptar", color = colorResource(R.color.red_transaction))
+                    Text(stringResource(R.string.accept), color = colorResource(R.color.red_transaction))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDialog = false }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -275,6 +276,7 @@ fun TransactionItem(
     val isIngreso = transaction.type == TransactionType.Ingreso
     val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
     val category = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso)).value
+    val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
 
     Card(
         modifier = Modifier
@@ -298,7 +300,7 @@ fun TransactionItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isIngreso) Icons.Default.ArrowDownward else Icons.Default.ShoppingCart,
+                    imageVector = displayIcon,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
@@ -307,7 +309,7 @@ fun TransactionItem(
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = transaction.description.ifEmpty { "Sin descripción" },
+                    text = transaction.description.ifEmpty { stringResource(R.string.no_description) },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
@@ -316,7 +318,7 @@ fun TransactionItem(
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
-                    text = category.name.ifEmpty { "Sin categoría" },
+                    text = category.name.ifEmpty { stringResource(R.string.no_category) },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1

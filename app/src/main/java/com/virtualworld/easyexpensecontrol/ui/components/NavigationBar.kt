@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,10 +23,10 @@ import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 @Composable
 fun NavigationBar(navController: NavController) {
     val items = listOf(
-        NavItem(Screen.DashboardScreen.route, "Inicio", R.drawable.home),
-        NavItem(Screen.HistoryScreen.route, "Historial", R.drawable.transaccion),
-        NavItem(Screen.StaticsScreen.route, "Estadísticas", R.drawable.grafica),
-        NavItem(Screen.BudgetScreen.route, "Presupuestos", R.drawable.budget)
+        NavItem(Screen.DashboardScreen.route, stringResource(R.string.nav_home), R.drawable.home),
+        NavItem(Screen.HistoryScreen.route, stringResource(R.string.nav_history), R.drawable.transaccion),
+        NavItem(Screen.StaticsScreen.route, stringResource(R.string.nav_statistics), R.drawable.grafica),
+        NavItem(Screen.BudgetScreen.route, stringResource(R.string.nav_budgets), R.drawable.budget)
     )
 
     NavigationBar(

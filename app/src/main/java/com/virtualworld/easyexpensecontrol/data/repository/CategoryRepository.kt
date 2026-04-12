@@ -12,6 +12,10 @@ class CategoryRepository(private val categoryDao: CategoryDao) : CategoryReposit
         return categoryDao.addCategory(category)
     }
 
+    override suspend fun updateCategory(category: Category) {
+        categoryDao.updateCategory(category)
+    }
+
     override fun getCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
 
     override fun getCategoryById(id: Long): Flow<Category> {

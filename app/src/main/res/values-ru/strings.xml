@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Контроль расходов с ИИ</string>
+    <string name="update_transaction">Обновить операцию</string>
+    <string name="add_transaction">Добавить операцию</string>
+    <string name="update_budget">Обновить бюджет</string>
+    <string name="add_budget">Добавить бюджет</string>
+
+    <string name="nav_home">Главная</string>
+    <string name="nav_history">История</string>
+    <string name="nav_statistics">Статистика</string>
+    <string name="nav_budgets">Бюджеты</string>
+
+    <string name="screen_financial_planner">Финансовый планировщик</string>
+    <string name="screen_transactions">Операции</string>
+    <string name="screen_statistics">Статистика</string>
+    <string name="screen_budget">Бюджет</string>
+
+    <string name="total_balance">Общий баланс</string>
+    <string name="last_entries">Последние записи</string>
+    <string name="last_3_days">Последние 3 дня</string>
+    <string name="no_recent_transactions">Нет недавних операций</string>
+    <string name="no_description">Нет описания</string>
+    <string name="no_category">Нет категории</string>
+
+    <string name="day_today">Сегодня</string>
+    <string name="day_yesterday">Вчера</string>
+
+    <string name="statistics_no_data">Нет данных. Добавьте операции, чтобы увидеть статистику.</string>
+    <string name="period_day">День</string>
+    <string name="period_month">Месяц</string>
+    <string name="period_year">Год</string>
+    <string name="select_day">Выберите день</string>
+    <string name="cd_day_previous">Предыдущий день</string>
+    <string name="cd_day_next">Следующий день</string>
+    <string name="month_year">Месяц и год</string>
+    <string name="cd_month_next">Следующий месяц</string>
+    <string name="cd_month_previous">Предыдущий месяц</string>
+    <string name="cd_year_next">Следующий год</string>
+    <string name="cd_year_previous">Предыдущий год</string>
+    <string name="year_label">Год</string>
+
+    <string name="chart_subtitle_day">Доходы и расходы за день</string>
+    <string name="chart_subtitle_month">Доходы и расходы по дням</string>
+    <string name="chart_subtitle_year">Доходы и расходы по месяцам</string>
+    <string name="comparison_euro">Сравнение (€)</string>
+    <string name="chart_no_data_period">Нет данных за этот период</string>
+    <string name="label_income">Доходы</string>
+    <string name="label_expense">Расходы</string>
+
+    <string name="budget_no_categories_message">Нет категорий расходов. Создайте категории типа «расход», чтобы вести бюджет.</string>
+    <string name="add_button">Добавить</string>
+    <string name="budget_attention">ВНИМАНИЕ</string>
+    <string name="budget_remaining">Осталось %1$.2f €</string>
+    <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
+    <string name="set_budget">Задать бюджет</string>
+    <string name="increase_budget">Увеличить бюджет</string>
+    <string name="budget_list_visibility_title">Категории в списке бюджета</string>
+    <string name="budget_list_visibility_hint">Снимите флажок с категории, чтобы скрыть её в этом списке. Выбор сохраняется на этом устройстве.</string>
+    <string name="budget_list_visibility_apply">Применить</string>
+    <string name="budget_list_visibility_show_all">Показать все</string>
+    <string name="cd_budget_list_visibility">Выберите категории для списка бюджета</string>
+    <string name="budget_list_all_hidden_message">Ни одна категория не отображается. Нажмите кнопку списка, чтобы выбрать, какие категории показывать.</string>
+
+    <string name="no_transactions">Нет доступных операций.</string>
+    <string name="delete_transaction_title">Удалить эту операцию?</string>
+    <string name="delete_transaction_message">Это навсегда удалит операцию и все связанные данные из приложения.</string>
+    <string name="accept">Принять</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">OK</string>
+    <string name="cd_delete">Удалить</string>
+
+    <string name="transaction_type">Тип операции</string>
+    <string name="transaction_type_income">Доход</string>
+    <string name="transaction_type_expense">Расход</string>
+    <string name="take_photo">Сделать фото</string>
+    <string name="analyzing">Анализ…</string>
+    <string name="amount_label">Сумма</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">Описание</string>
+    <string name="hint_description">Напр.: покупка в магазине</string>
+    <string name="category_label">Категория</string>
+    <string name="hint_category">Введите новую или выберите ниже</string>
+    <string name="existing_categories">Существующие категории</string>
+    <string name="date_label">Дата</string>
+    <string name="tap_pick_date">Нажмите, чтобы выбрать дату</string>
+    <string name="cd_hide_calendar">Скрыть календарь</string>
+    <string name="cd_change_date">Изменить дату</string>
+    <string name="receipt_analyzed">Чек проанализирован</string>
+    <string name="err_amount_gt_zero">Сумма должна быть больше 0.</string>
+    <string name="err_description_empty">Описание не может быть пустым.</string>
+    <string name="err_category_empty">Категория не может быть пустой.</string>
+    <string name="err_date_required">Нужно выбрать дату.</string>
+    <string name="error_prefix">Ошибка: %1$s</string>
+    <string name="success_operation">Операция выполнена успешно</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+
+    <string name="tap_pick_month_year">Нажмите, чтобы выбрать месяц и год</string>
+    <string name="cd_hide_picker">Скрыть выбор</string>
+    <string name="cd_change_month_year">Изменить месяц и год</string>
+    <string name="monthly_limit">Месячный лимит</string>
+    <string name="err_select_category">Выберите категорию, чтобы продолжить.</string>
+    <string name="err_select_month_year">Выберите месяц и год, чтобы продолжить.</string>
+    <string name="err_monthly_limit_empty">Месячный лимит не может быть пустым.</string>
+    <string name="err_duplicate_budget">Нельзя добавить два одинаковых бюджета.</string>
+    <string name="apply_month_year">Применить месяц и год</string>
+    <string name="select_category">Выберите категорию</string>
+    <string name="cd_pick_category">Выбрать категорию</string>
+    <string name="cd_year_decrease">Предыдущий год</string>
+    <string name="cd_year_increase">Следующий год</string>
+
+    <string name="cd_back">Назад</string>
+    <string name="cd_navigate_back">Перейти назад</string>
+    <string name="cd_add_entry">Добавить запись</string>
+    <string name="cd_add_transactions">Добавить операции</string>
+
+    <string name="icon_picker_title">Выберите значок</string>
+    <string name="cd_change_icon">Изменить значок</string>
+    <string name="tap_icon_to_change">Нажмите на значок, чтобы изменить</string>
+
+    <string name="error_receipt_analysis">Не удалось проанализировать чек</string>
+    <string name="category_default_other">Прочее</string>
+    <string name="gemini_empty_response">Пустой ответ ИИ</string>
+    <string name="gemini_parse_error">Не удалось разобрать ответ ИИ</string>
+    <string name="gemini_error_403">Gemini API: доступ запрещён (403). Проверьте ключ и включение Generative Language API в Google Cloud.</string>
+    <string name="gemini_error_401">Gemini API: неверный ключ (401). Проверьте GEMINI_API_KEY в local.properties.</string>
+    <string name="gemini_error_429">Gemini API: лимит запросов (429). Подождите и повторите.</string>
+    <string name="gemini_error_other">Ошибка Gemini API %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>Январь</item>
+        <item>Февраль</item>
+        <item>Март</item>
+        <item>Апрель</item>
+        <item>Май</item>
+        <item>Июнь</item>
+        <item>Июль</item>
+        <item>Август</item>
+        <item>Сентябрь</item>
+        <item>Октябрь</item>
+        <item>Ноябрь</item>
+        <item>Декабрь</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>янв</item>
+        <item>фев</item>
+        <item>мар</item>
+        <item>апр</item>
+        <item>май</item>
+        <item>июн</item>
+        <item>июл</item>
+        <item>авг</item>
+        <item>сен</item>
+        <item>окт</item>
+        <item>ноя</item>
+        <item>дек</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>ЯНВ</item>
+        <item>ФЕВ</item>
+        <item>МАР</item>
+        <item>АПР</item>
+        <item>МАЙ</item>
+        <item>ИЮН</item>
+        <item>ИЮЛ</item>
+        <item>АВГ</item>
+        <item>СЕН</item>
+        <item>ОКТ</item>
+        <item>НОЯ</item>
+        <item>ДЕК</item>
+    </string-array>
+</resources>

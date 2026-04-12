@@ -33,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,10 +48,7 @@ fun MonthPicker(
     confirmButtonCLicked: (Int, Int) -> Unit,
     cancelClicked: () -> Unit
 ) {
-    val months = listOf(
-        "ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
-        "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"
-    )
+    val months = stringArrayResource(R.array.month_names_upper).toList()
 
     var selectedMonthIndex by remember { mutableIntStateOf(currentMonth - 1) }
     var year by remember { mutableIntStateOf(currentYear) }
@@ -145,7 +144,7 @@ fun MonthPicker(
                         modifier = Modifier.padding(end = 20.dp)
                     ) {
                         Text(
-                            text = "Cancelar",
+                            text = stringResource(R.string.cancel),
                             color = colorResource(R.color.bold_from_palette),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Medium
@@ -162,7 +161,7 @@ fun MonthPicker(
                         modifier = Modifier.padding(end = 20.dp)
                     ) {
                         Text(
-                            text = "OK",
+                            text = stringResource(R.string.ok),
                             color = colorResource(R.color.blue_dark),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Medium

@@ -1,7 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Easy Expense Control</string>
-    <string name="update_transaction">Actualizar transaccion</string>
-    <string name="add_transaction">Añadir transaccion</string>
-    <string name="update_budget">Actualizar presupuesto</string>
-    <string name="add_budget">Añadir presupuesto</string>
+    <string name="admob_app_id" translatable="false">ca-app-pub-7595196761874810~3205761801</string>
+    <string name="admob_interstitial_camera" translatable="false">ca-app-pub-7595196761874810/4843314519</string>
+    <string name="admob_app_open" translatable="false">ca-app-pub-7595196761874810/6869674643</string>
+
+    <string name="app_name">AI-Powered Expense Control</string>
+    <string name="update_transaction">Update transaction</string>
+    <string name="add_transaction">Add transaction</string>
+    <string name="update_budget">Update budget</string>
+    <string name="add_budget">Add budget</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_statistics">Statistics</string>
+    <string name="nav_budgets">Budgets</string>
+
+    <string name="screen_financial_planner">Financial planner</string>
+    <string name="screen_transactions">Transactions</string>
+    <string name="screen_statistics">Statistics</string>
+    <string name="screen_budget">Budget</string>
+
+    <string name="total_balance">Total balance</string>
+    <string name="last_entries">Latest entries</string>
+    <string name="last_3_days">Last 3 days</string>
+    <string name="no_recent_transactions">No recent transactions</string>
+    <string name="no_description">No description</string>
+    <string name="no_category">No category</string>
+
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+
+    <string name="statistics_no_data">No data yet. Add transactions to see statistics.</string>
+    <string name="period_day">Day</string>
+    <string name="period_month">Month</string>
+    <string name="period_year">Year</string>
+    <string name="select_day">Select day</string>
+    <string name="cd_day_previous">Previous day</string>
+    <string name="cd_day_next">Next day</string>
+    <string name="month_year">Month and year</string>
+    <string name="cd_month_next">Next month</string>
+    <string name="cd_month_previous">Previous month</string>
+    <string name="cd_year_next">Next year</string>
+    <string name="cd_year_previous">Previous year</string>
+    <string name="year_label">Year</string>
+
+    <string name="chart_subtitle_day">Income vs expenses for the day</string>
+    <string name="chart_subtitle_month">Income and expenses by day</string>
+    <string name="chart_subtitle_year">Income and expenses by month</string>
+    <string name="comparison_euro">Comparison (€)</string>
+    <string name="chart_no_data_period">No data for this period</string>
+    <string name="label_income">Income</string>
+    <string name="label_expense">Expenses</string>
+
+    <string name="budget_no_categories_message">No expense categories available. Create expense-type categories to manage your budget.</string>
+    <string name="add_button">Add</string>
+    <string name="budget_attention">WARNING</string>
+    <string name="budget_remaining">%1$.2f € left</string>
+    <string name="budget_spent_limit">%1$.2f € / %2$.2f €</string>
+    <string name="set_budget">Set budget</string>
+    <string name="increase_budget">Increase budget</string>
+    <string name="budget_list_visibility_title">Categories in budget list</string>
+    <string name="budget_list_visibility_hint">Uncheck a category to hide it from this list. Your choice is saved on this device.</string>
+    <string name="budget_list_visibility_apply">Apply</string>
+    <string name="budget_list_visibility_show_all">Show all</string>
+    <string name="cd_budget_list_visibility">Choose which categories appear in the budget list</string>
+    <string name="budget_list_all_hidden_message">No categories are shown. Use the list button to choose which categories you want to see.</string>
+
+    <string name="no_transactions">No transactions available.</string>
+    <string name="delete_transaction_title">Delete this transaction?</string>
+    <string name="delete_transaction_message">This will permanently delete this transaction and all related information from the app.</string>
+    <string name="accept">Accept</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="cd_delete">Delete</string>
+
+    <string name="transaction_type">Transaction type</string>
+    <string name="transaction_type_income">Income</string>
+    <string name="transaction_type_expense">Expense</string>
+    <string name="take_photo">Take photo</string>
+    <string name="analyzing">Analyzing…</string>
+    <string name="amount_label">Amount</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">Description</string>
+    <string name="hint_description">e.g. Grocery shopping</string>
+    <string name="category_label">Category</string>
+    <string name="hint_category">Type a new one or choose below</string>
+    <string name="existing_categories">Existing categories</string>
+    <string name="date_label">Date</string>
+    <string name="tap_pick_date">Tap to pick a date</string>
+    <string name="cd_hide_calendar">Hide calendar</string>
+    <string name="cd_change_date">Change date</string>
+    <string name="receipt_analyzed">Receipt analyzed</string>
+    <string name="err_amount_gt_zero">Amount must be greater than 0.</string>
+    <string name="err_description_empty">Description cannot be empty.</string>
+    <string name="err_category_empty">Category cannot be empty.</string>
+    <string name="err_date_required">You must select a date.</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="success_operation">Operation completed successfully</string>
+    <string name="error_unknown">Unknown error</string>
+
+    <string name="tap_pick_month_year">Tap to choose month and year</string>
+    <string name="cd_hide_picker">Hide selector</string>
+    <string name="cd_change_month_year">Change month and year</string>
+    <string name="monthly_limit">Monthly limit</string>
+    <string name="err_select_category">Please select a category to continue.</string>
+    <string name="err_select_month_year">Please select a month and year to continue.</string>
+    <string name="err_monthly_limit_empty">Monthly limit cannot be empty.</string>
+    <string name="err_duplicate_budget">You cannot add two identical budgets.</string>
+    <string name="apply_month_year">Apply month and year</string>
+    <string name="select_category">Select a category</string>
+    <string name="cd_pick_category">Choose category</string>
+    <string name="cd_year_decrease">Previous year</string>
+    <string name="cd_year_increase">Next year</string>
+
+    <string name="cd_back">Back</string>
+    <string name="cd_navigate_back">Navigate back</string>
+    <string name="cd_add_entry">Add entry</string>
+    <string name="cd_add_transactions">Add transactions</string>
+
+    <string name="icon_picker_title">Choose an icon</string>
+    <string name="cd_change_icon">Change icon</string>
+    <string name="tap_icon_to_change">Tap the icon to change it</string>
+
+    <string name="error_receipt_analysis">Could not analyze the receipt</string>
+    <string name="category_default_other">Other</string>
+    <string name="gemini_empty_response">Empty response from AI</string>
+    <string name="gemini_parse_error">Could not interpret the AI response</string>
+    <string name="gemini_error_403">Gemini API: access denied (403). Check your API key and that Generative Language API is enabled in Google Cloud.</string>
+    <string name="gemini_error_401">Gemini API: invalid key (401). Check GEMINI_API_KEY in local.properties.</string>
+    <string name="gemini_error_429">Gemini API: rate limit (429). Wait a moment and try again.</string>
+    <string name="gemini_error_other">Gemini API error %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>JAN</item>
+        <item>FEB</item>
+        <item>MAR</item>
+        <item>APR</item>
+        <item>MAY</item>
+        <item>JUN</item>
+        <item>JUL</item>
+        <item>AUG</item>
+        <item>SEP</item>
+        <item>OCT</item>
+        <item>NOV</item>
+        <item>DEC</item>
+    </string-array>
 </resources>

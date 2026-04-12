@@ -1,6 +1,7 @@
 package com.virtualworld.easyexpensecontrol.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.virtualworld.easyexpensecontrol.R
 
 /**
  * Cabecera integrada en la pantalla: botón atrás opcional + título.
@@ -35,7 +38,8 @@ import androidx.compose.ui.unit.dp
 fun ScreenHeader(
     title: String,
     showBackArrow: Boolean = false,
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    trailingContent: (@Composable RowScope.() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -55,7 +59,7 @@ fun ScreenHeader(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(R.string.cd_back),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
@@ -66,9 +70,11 @@ fun ScreenHeader(
         }
         Text(
             text = title,
+            modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground
         )
+        trailingContent?.invoke(this)
     }
 }

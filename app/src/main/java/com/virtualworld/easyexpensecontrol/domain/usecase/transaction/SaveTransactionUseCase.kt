@@ -24,11 +24,12 @@ class SaveTransactionUseCase(
         categoryName: String,
         category: Category?,
         date: Long,
+        iconName: String?,
         onError: (String) -> Unit,
         onSuccess: () -> Unit
     ) {
         try {
-            val categoryId = resolveCategoryId(categoryName.trim(), category, type)
+            val categoryId = resolveCategoryId(categoryName.trim(), category, type, iconName)
             val transaction = Transaction(
                 id = id,
                 type = type,
@@ -46,19 +47,29 @@ class SaveTransactionUseCase(
             }
             onSuccess()
         } catch (e: Exception) {
-            onError(e.message ?: "Error desconocido")
+            onError(e.message.orEmpty())
         }
     }
 
-    private suspend fun resolveCategoryId(categoryName: String, existingCategory: Category?, type: TransactionType): Long =
+    private suspend fun resolveCategoryId(
+        categoryName: String,
+        existingCategory: Category?,
+        type: TransactionType,
+        iconName: String?
+    ): Long =
         when {
             existingCategory == null -> {
-                categoryRepository.addCategory(Category(name = categoryName, type = type))
+                categoryRepository.addCategory(Category(name = categoryName, type = type, iconName = iconName))
             }
             existingCategory.type != type -> {
-                categoryRepository.addCategory(Category(name = categoryName, type = type))
+                categoryRepository.addCategory(Category(name = categoryName, type = type, iconName = iconName))
             }
-            else -> existingCategory.id
+            else -> {
+                if (iconName != existingCategory.iconName) {
+                    categoryRepository.updateCategory(existingCategory.copy(iconName = iconName))
+                }
+                existingCategory.id
+            }
         }
 
     private suspend fun updateTransactionAndBudget(oldTransaction: Transaction, newTransaction: Transaction) {
