@@ -3,6 +3,7 @@ package com.virtualworld.easyexpensecontrol.ads
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -62,6 +63,7 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
             AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
+                    Log.d(TAG, "App open ad loaded successfully")
                     isLoadingAd = false
                     appOpenAd = ad
                     loadTime = Date().time
@@ -72,6 +74,7 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Log.e(TAG, "App open ad failed to load: code=${loadAdError.code}, message=${loadAdError.message}, domain=${loadAdError.domain}")
                     isLoadingAd = false
                 }
             }
@@ -99,6 +102,7 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                Log.e(TAG, "App open ad failed to show: code=${adError.code}, message=${adError.message}")
                 lastDismissTimeMs = System.currentTimeMillis()
                 pendingShowWhenLoaded = false
                 appOpenAd?.fullScreenContentCallback = null
@@ -108,6 +112,7 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
             }
 
             override fun onAdShowedFullScreenContent() {
+                Log.d(TAG, "App open ad shown")
             }
         }
         isShowingAd = true
@@ -136,6 +141,7 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
     }
 
     companion object {
+        private const val TAG = "AppOpenAdManager"
         private const val DISMISS_COOLDOWN_MS = 1_000L
     }
 }

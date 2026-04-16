@@ -3,6 +3,7 @@ package com.virtualworld.easyexpensecontrol.ads
 import android.app.Activity
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -20,22 +21,27 @@ import com.virtualworld.easyexpensecontrol.R
  */
 object CameraInterstitialAdHelper {
 
+    private const val TAG = "CameraInterstitialAd"
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun showThenContinue(activity: Activity, onContinue: () -> Unit) {
+        Log.d(TAG, "Loading interstitial ad...")
         InterstitialAd.load(
             activity,
             activity.getString(R.string.admob_interstitial_camera),
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
+                    Log.d(TAG, "Interstitial ad loaded, showing...")
                     ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                         override fun onAdDismissedFullScreenContent() {
+                            Log.d(TAG, "Interstitial ad dismissed")
                             ad.fullScreenContentCallback = null
                             continueOnUiAfterAd(activity, onContinue)
                         }
 
                         override fun onAdFailedToShowFullScreenContent(error: AdError) {
+                            Log.e(TAG, "Interstitial ad failed to show: code=${error.code}, message=${error.message}")
                             ad.fullScreenContentCallback = null
                             continueOnUiAfterAd(activity, onContinue)
                         }
@@ -44,6 +50,7 @@ object CameraInterstitialAdHelper {
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
+                    Log.e(TAG, "Interstitial ad failed to load: code=${error.code}, message=${error.message}, domain=${error.domain}")
                     continueOnUiAfterAd(activity, onContinue)
                 }
             }
