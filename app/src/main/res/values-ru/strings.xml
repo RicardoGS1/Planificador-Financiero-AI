@@ -88,6 +88,11 @@
     <string name="transaction_type_income">Доход</string>
     <string name="transaction_type_expense">Расход</string>
     <string name="take_photo">Сделать фото</string>
+    <string name="record_audio">Записать аудио</string>
+    <string name="recording_in_progress">Идёт запись… нажмите, чтобы остановить</string>
+    <string name="cd_record_audio">Записать аудио, чтобы заполнить форму</string>
+    <string name="error_audio_record">Не удалось записать аудио</string>
+    <string name="audio_analyzed">Аудио проанализировано</string>
     <string name="analyzing">Анализ…</string>
     <string name="amount_label">Сумма</string>
     <string name="hint_amount">0.00</string>

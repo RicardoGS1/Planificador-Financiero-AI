@@ -88,6 +88,11 @@
     <string name="transaction_type_income">आय</string>
     <string name="transaction_type_expense">खर्च</string>
     <string name="take_photo">फोटो लें</string>
+    <string name="record_audio">ऑडियो रिकॉर्ड करें</string>
+    <string name="recording_in_progress">रिकॉर्डिंग हो रही है… रोकने के लिए टैप करें</string>
+    <string name="cd_record_audio">फॉर्म भरने के लिए ऑडियो रिकॉर्ड करें</string>
+    <string name="error_audio_record">ऑडियो रिकॉर्ड नहीं किया जा सका</string>
+    <string name="audio_analyzed">ऑडियो का विश्लेषण हो गया</string>
     <string name="analyzing">विश्लेषण हो रहा है…</string>
     <string name="amount_label">राशि</string>
     <string name="hint_amount">0.00</string>

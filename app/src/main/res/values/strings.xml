@@ -95,6 +95,11 @@
     <string name="transaction_type_income">Income</string>
     <string name="transaction_type_expense">Expense</string>
     <string name="take_photo">Take photo</string>
+    <string name="record_audio">Record audio</string>
+    <string name="recording_in_progress">Recording… tap to stop</string>
+    <string name="cd_record_audio">Record audio to fill the form</string>
+    <string name="error_audio_record">Could not record audio</string>
+    <string name="audio_analyzed">Audio analyzed</string>
     <string name="analyzing">Analyzing…</string>
     <string name="amount_label">Amount</string>
     <string name="hint_amount">0.00</string>

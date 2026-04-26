@@ -88,6 +88,11 @@
     <string name="transaction_type_income">Einnahme</string>
     <string name="transaction_type_expense">Ausgabe</string>
     <string name="take_photo">Foto aufnehmen</string>
+    <string name="record_audio">Audio aufnehmen</string>
+    <string name="recording_in_progress">Aufnahme läuft… zum Stoppen tippen</string>
+    <string name="cd_record_audio">Audio aufnehmen, um das Formular auszufüllen</string>
+    <string name="error_audio_record">Audio konnte nicht aufgenommen werden</string>
+    <string name="audio_analyzed">Audio analysiert</string>
     <string name="analyzing">Wird analysiert…</string>
     <string name="amount_label">Betrag</string>
     <string name="hint_amount">0,00</string>

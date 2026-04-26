@@ -24,6 +24,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategories
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionByIdUseCase
@@ -91,6 +92,7 @@ val appModule = module {
     single { ReceiptRemoteDataSource(get(), BuildConfig.GEMINI_API_KEY, get(), androidContext()) }
     single<ReceiptAnalysisRepository> { ReceiptAnalysisRepositoryImpl(get()) }
     single { ProcessReceiptUseCase(get(), get()) }
+    single { ProcessAudioUseCase(get(), get()) }
 
     // Casos de uso - Budget
     single { GetBudgetsUseCase(get()) }
@@ -109,6 +111,7 @@ val appModule = module {
             saveTransactionUseCase = get(),
             deleteTransactionUseCase = get(),
             processReceiptUseCase = get(),
+            processAudioUseCase = get(),
             getCategoryByNameUseCase = get(),
             appContext = androidContext()
         )
