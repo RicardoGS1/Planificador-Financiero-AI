@@ -2,11 +2,13 @@ package com.virtualworld.easyexpensecontrol
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.virtualworld.easyexpensecontrol.ads.AppOpenAdManager
+import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
 import com.virtualworld.easyexpensecontrol.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -17,6 +19,10 @@ class FinancialApp : Application() {
 
     private var appOpenAdManager: AppOpenAdManager? = null
     private val mobileAdsInitialized = AtomicBoolean(false)
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(LocaleHelper.applySavedLocale(base))
+    }
 
     override fun onCreate() {
         super.onCreate()

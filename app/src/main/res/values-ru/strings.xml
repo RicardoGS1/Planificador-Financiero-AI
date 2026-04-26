@@ -137,6 +137,23 @@
     <string name="cd_change_icon">Изменить значок</string>
     <string name="tap_icon_to_change">Нажмите на значок, чтобы изменить</string>
 
+    <string name="screen_settings">Настройки</string>
+    <string name="cd_open_settings">Открыть настройки</string>
+    <string name="settings_section_general">Общие</string>
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_subtitle">Выберите язык приложения</string>
+    <string name="settings_share">Поделиться приложением</string>
+    <string name="settings_share_subtitle">Порекомендуйте это приложение друзьям</string>
+    <string name="language_system">Системный по умолчанию</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">Контроль расходов с ИИ</string>
+    <string name="share_text">Возьмите финансы под контроль с приложением «Контроль расходов с ИИ». Скачать здесь: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
     <string name="error_receipt_analysis">Не удалось проанализировать чек</string>
     <string name="category_default_other">Прочее</string>
     <string name="gemini_empty_response">Пустой ответ ИИ</string>

@@ -14,6 +14,7 @@ import com.virtualworld.easyexpensecontrol.ui.screens.AddEditDetailTransactionVi
 import com.virtualworld.easyexpensecontrol.ui.screens.BudgetScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.DashboardScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.HistoryScreen
+import com.virtualworld.easyexpensecontrol.ui.screens.SettingsScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.StaticsScreen
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
@@ -100,6 +101,9 @@ fun Navigation(
                 transactionViewModel = transactionViewModel,
                 categoryViewModel = categoryViewModel
             )
+        }
+        composable(route = Screen.SettingsScreen.route) {
+            SettingsScreen(navController = navController)
         }
     }
 }

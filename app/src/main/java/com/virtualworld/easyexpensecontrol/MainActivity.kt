@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol
 
+import android.content.Context
 import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,10 +11,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.ads.ConsentManager
+import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
 import com.virtualworld.easyexpensecontrol.ui.navigation.Navigation
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applySavedLocale(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

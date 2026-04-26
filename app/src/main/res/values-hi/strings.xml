@@ -137,6 +137,23 @@
     <string name="cd_change_icon">आइकन बदलें</string>
     <string name="tap_icon_to_change">बदलने के लिए आइकन पर टैप करें</string>
 
+    <string name="screen_settings">सेटिंग्स</string>
+    <string name="cd_open_settings">सेटिंग्स खोलें</string>
+    <string name="settings_section_general">सामान्य</string>
+    <string name="settings_section_about">के बारे में</string>
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_subtitle">ऐप की भाषा चुनें</string>
+    <string name="settings_share">ऐप साझा करें</string>
+    <string name="settings_share_subtitle">अपने दोस्तों को यह ऐप सुझाएँ</string>
+    <string name="language_system">सिस्टम डिफ़ॉल्ट</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">AI-संचालित खर्च नियंत्रण</string>
+    <string name="share_text">AI-संचालित खर्च नियंत्रण के साथ अपनी वित्तीय स्थिति पर काबू पाएँ। यहाँ डाउनलोड करें: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
     <string name="error_receipt_analysis">रसीद का विश्लेषण नहीं हो सका</string>
     <string name="category_default_other">अन्य</string>
     <string name="gemini_empty_response">AI से खाली प्रतिक्रिया</string>

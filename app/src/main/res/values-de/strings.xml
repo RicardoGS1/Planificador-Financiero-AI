@@ -138,6 +138,23 @@
     <string name="cd_change_icon">Symbol ändern</string>
     <string name="tap_icon_to_change">Tippe auf das Symbol, um es zu ändern</string>
 
+    <string name="screen_settings">Einstellungen</string>
+    <string name="cd_open_settings">Einstellungen öffnen</string>
+    <string name="settings_section_general">Allgemein</string>
+    <string name="settings_section_about">Über</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_language_subtitle">Wähle die App-Sprache</string>
+    <string name="settings_share">App teilen</string>
+    <string name="settings_share_subtitle">Empfehle diese App deinen Freunden</string>
+    <string name="language_system">Systemstandard</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">KI-gestützte Ausgabenkontrolle</string>
+    <string name="share_text">Behalte deine Finanzen mit KI-gestützter Ausgabenkontrolle im Griff. Hier herunterladen: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
     <string name="error_receipt_analysis">Beleg konnte nicht analysiert werden</string>
     <string name="category_default_other">Sonstiges</string>
     <string name="gemini_empty_response">Leere Antwort der KI</string>

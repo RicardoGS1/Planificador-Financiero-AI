@@ -138,6 +138,23 @@
     <string name="cd_change_icon">Cambiar icono</string>
     <string name="tap_icon_to_change">Toca el icono para cambiarlo</string>
 
+    <string name="screen_settings">Ajustes</string>
+    <string name="cd_open_settings">Abrir ajustes</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_about">Acerca de</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_subtitle">Elige el idioma de la app</string>
+    <string name="settings_share">Compartir app</string>
+    <string name="settings_share_subtitle">Recomienda esta app a tus amigos</string>
+    <string name="language_system">Predeterminado del sistema</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">Control de gastos con IA</string>
+    <string name="share_text">Toma el control de tus finanzas con Control de gastos con IA. Descárgala aquí: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
     <string name="error_receipt_analysis">Error al analizar el comprobante</string>
     <string name="category_default_other">Otros</string>
     <string name="gemini_empty_response">Respuesta vacía de la IA</string>
