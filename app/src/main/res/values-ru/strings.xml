@@ -48,6 +48,12 @@
     <string name="chart_no_data_period">Нет данных за этот период</string>
     <string name="label_income">Доходы</string>
     <string name="label_expense">Расходы</string>
+    <string name="chart_subtitle_categories">Расходы по категориям</string>
+    <string name="chart_subtitle_income_categories">Доходы по категориям</string>
+    <string name="chart_categories_breakdown">Распределение по категориям</string>
+    <string name="chart_no_expenses_period">Нет расходов за этот период</string>
+    <string name="chart_no_income_period">Нет доходов за этот период</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">Нет категорий расходов. Создайте категории типа «расход», чтобы вести бюджет.</string>
     <string name="add_button">Добавить</string>

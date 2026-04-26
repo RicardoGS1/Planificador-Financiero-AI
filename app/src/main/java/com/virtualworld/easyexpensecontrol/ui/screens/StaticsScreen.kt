@@ -49,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.colorResource
@@ -66,22 +67,73 @@ import com.virtualworld.easyexpensecontrol.core.util.getEndOfYear
 import com.virtualworld.easyexpensecontrol.core.util.getLastNDays
 import com.virtualworld.easyexpensecontrol.core.util.getStartOfMonth
 import com.virtualworld.easyexpensecontrol.core.util.getStartOfYear
+import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
+import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 private enum class PeriodType { Day, Month, Year }
 
 private data class ChartBarGroup(val label: String, val income: Double, val expense: Double)
 
+private data class CategoryExpenseSlice(
+    val categoryId: Long,
+    val name: String,
+    val amount: Double
+)
+
+private val ExpenseCategoryPalette: List<Color> = listOf(
+    Color(0xFFEF4444),
+    Color(0xFFF59E0B),
+    Color(0xFFEC4899),
+    Color(0xFF8B5CF6),
+    Color(0xFFF97316),
+    Color(0xFF6366F1),
+    Color(0xFFE33974),
+    Color(0xFFA855F7),
+    Color(0xFF11A5BF),
+    Color(0xFF3B82F6),
+    Color(0xFF14B8A6),
+    Color(0xFF22C55E),
+    Color(0xFF0EA5E9),
+    Color(0xFF84CC16),
+    Color(0xFF10B981)
+)
+
+private val IncomeCategoryPalette: List<Color> = listOf(
+    Color(0xFF22C55E),
+    Color(0xFF10B981),
+    Color(0xFF14B8A6),
+    Color(0xFF11A5BF),
+    Color(0xFF0EA5E9),
+    Color(0xFF3B82F6),
+    Color(0xFF6366F1),
+    Color(0xFF84CC16),
+    Color(0xFF06B6D4),
+    Color(0xFF8B5CF6),
+    Color(0xFFA855F7),
+    Color(0xFF4ADE80),
+    Color(0xFF2DD4BF),
+    Color(0xFF38BDF8),
+    Color(0xFF818CF8)
+)
+
 @Composable
-fun StaticsScreen(navController: NavController, transactionViewModel: TransactionViewModel) {
+fun StaticsScreen(
+    navController: NavController,
+    transactionViewModel: TransactionViewModel,
+    categoryViewModel: CategoryViewModel
+) {
     val transactions = transactionViewModel.getAllTransactions
+        .collectAsState(initial = emptyList()).value
+    val categories = categoryViewModel.getAllCategories
         .collectAsState(initial = emptyList()).value
 
     var periodType by remember { mutableStateOf(PeriodType.Day) }
@@ -218,6 +270,78 @@ fun StaticsScreen(navController: NavController, transactionViewModel: Transactio
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
+                )
+
+                val (rangeStart, rangeEnd) = when (periodType) {
+                    PeriodType.Day -> selectedDayStart to selectedDayEnd
+                    PeriodType.Month -> getStartOfMonth(selectedYear, selectedMonth) to
+                        getEndOfMonth(selectedYear, selectedMonth)
+                    PeriodType.Year -> getStartOfYear(selectedYear) to getEndOfYear(selectedYear)
+                }
+
+                val noCategoryLabel = stringResource(R.string.no_category)
+                val categoryById = remember(categories) { categories.associateBy { it.id } }
+
+                val categoryExpenses: List<CategoryExpenseSlice> = if (rangeStart == 0L) {
+                    emptyList()
+                } else {
+                    transactions
+                        .asSequence()
+                        .filter { it.type == TransactionType.Gasto && it.date in rangeStart..rangeEnd }
+                        .groupBy { it.category }
+                        .map { (categoryId, txList) ->
+                            val name = categoryById[categoryId]?.name ?: noCategoryLabel
+                            CategoryExpenseSlice(
+                                categoryId = categoryId,
+                                name = name,
+                                amount = txList.sumOf { it.amount }
+                            )
+                        }
+                        .filter { it.amount > 0.0 }
+                        .sortedByDescending { it.amount }
+                }
+
+                val categoryIncomes: List<CategoryExpenseSlice> = if (rangeStart == 0L) {
+                    emptyList()
+                } else {
+                    transactions
+                        .asSequence()
+                        .filter { it.type == TransactionType.Ingreso && it.date in rangeStart..rangeEnd }
+                        .groupBy { it.category }
+                        .map { (categoryId, txList) ->
+                            val name = categoryById[categoryId]?.name ?: noCategoryLabel
+                            CategoryExpenseSlice(
+                                categoryId = categoryId,
+                                name = name,
+                                amount = txList.sumOf { it.amount }
+                            )
+                        }
+                        .filter { it.amount > 0.0 }
+                        .sortedByDescending { it.amount }
+                }
+
+                CategoryPieChartCard(
+                    title = stringResource(R.string.chart_subtitle_categories),
+                    subtitle = stringResource(R.string.chart_categories_breakdown),
+                    centerLabel = stringResource(R.string.label_expense),
+                    emptyMessage = stringResource(R.string.chart_no_expenses_period),
+                    slices = categoryExpenses,
+                    palette = ExpenseCategoryPalette,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                )
+
+                CategoryPieChartCard(
+                    title = stringResource(R.string.chart_subtitle_income_categories),
+                    subtitle = stringResource(R.string.chart_categories_breakdown),
+                    centerLabel = stringResource(R.string.label_income),
+                    emptyMessage = stringResource(R.string.chart_no_income_period),
+                    slices = categoryIncomes,
+                    palette = IncomeCategoryPalette,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                 )
             }
         }
@@ -710,5 +834,192 @@ fun LineChart(
                 strokeWidth = strokeWidth.toPx()
             )
         }
+    }
+}
+
+@Composable
+private fun CategoryPieChartCard(
+    title: String,
+    subtitle: String,
+    centerLabel: String,
+    emptyMessage: String,
+    slices: List<CategoryExpenseSlice>,
+    palette: List<Color>,
+    modifier: Modifier = Modifier
+) {
+    val labelColor = colorResource(R.color.bold_from_palette)
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val total = slices.sumOf { it.amount }
+    val sliceColors = remember(slices, palette) {
+        slices.mapIndexed { index, _ -> palette[index % palette.size] }
+    }
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = labelColor,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            if (slices.isEmpty() || total <= 0.0) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = emptyMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PieChartCanvas(
+                        slices = slices,
+                        colors = sliceColors,
+                        ringColor = surfaceColor,
+                        modifier = Modifier
+                            .size(220.dp)
+                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = centerLabel,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f €", total),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = labelColor
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    slices.forEachIndexed { index, slice ->
+                        val percent = if (total > 0.0) (slice.amount / total * 100.0).toFloat() else 0f
+                        CategoryLegendRow(
+                            color = sliceColors[index],
+                            name = slice.name,
+                            amount = slice.amount,
+                            percent = percent
+                        )
+                        if (index < slices.lastIndex) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PieChartCanvas(
+    slices: List<CategoryExpenseSlice>,
+    colors: List<Color>,
+    ringColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val total = slices.sumOf { it.amount }.coerceAtLeast(0.0001)
+
+    Canvas(modifier = modifier) {
+        val diameter = min(size.width, size.height)
+        val topLeft = Offset(
+            x = (size.width - diameter) / 2f,
+            y = (size.height - diameter) / 2f
+        )
+        val arcSize = Size(diameter, diameter)
+        val gapDeg = if (slices.size > 1) 1.5f else 0f
+        var startAngle = -90f
+
+        slices.forEachIndexed { index, slice ->
+            val rawSweep = ((slice.amount / total) * 360.0).toFloat()
+            val sweep = (rawSweep - gapDeg).coerceAtLeast(0.5f)
+            drawArc(
+                color = colors[index],
+                startAngle = startAngle,
+                sweepAngle = sweep,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = Stroke(width = diameter * 0.18f)
+            )
+            startAngle += rawSweep
+        }
+
+        drawCircle(
+            color = ringColor,
+            radius = diameter * 0.34f,
+            center = Offset(size.width / 2f, size.height / 2f)
+        )
+    }
+}
+
+@Composable
+private fun CategoryLegendRow(
+    color: Color,
+    name: String,
+    amount: Double,
+    percent: Float
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1
+        )
+        Text(
+            text = stringResource(
+                R.string.chart_category_amount_percent,
+                amount,
+                percent
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }

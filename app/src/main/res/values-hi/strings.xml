@@ -48,6 +48,12 @@
     <string name="chart_no_data_period">इस अवधि के लिए कोई डेटा नहीं</string>
     <string name="label_income">आय</string>
     <string name="label_expense">खर्च</string>
+    <string name="chart_subtitle_categories">श्रेणी के अनुसार खर्च</string>
+    <string name="chart_subtitle_income_categories">श्रेणी के अनुसार आय</string>
+    <string name="chart_categories_breakdown">श्रेणी के अनुसार विवरण</string>
+    <string name="chart_no_expenses_period">इस अवधि में कोई खर्च नहीं</string>
+    <string name="chart_no_income_period">इस अवधि में कोई आय नहीं</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">कोई व्यय श्रेणी उपलब्ध नहीं। अपना बजट प्रबंधित करने के लिए व्यय-प्रकार की श्रेणियाँ बनाएँ।</string>
     <string name="add_button">जोड़ें</string>

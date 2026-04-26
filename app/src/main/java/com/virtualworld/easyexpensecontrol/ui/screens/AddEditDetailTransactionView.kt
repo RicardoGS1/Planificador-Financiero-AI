@@ -281,6 +281,18 @@ fun AddEditDetailTransactionView(
                 }
 
                 // Importe
+                var amountText by remember { mutableStateOf("") }
+                LaunchedEffect(transactionViewModel.transactionAmountState) {
+                    val modelAmount = transactionViewModel.transactionAmountState
+                    val textAmount = amountText.toDoubleOrNull() ?: 0.0
+                    if (modelAmount != textAmount) {
+                        amountText = if (modelAmount > 0) {
+                            if (modelAmount == modelAmount.toLong().toDouble())
+                                modelAmount.toLong().toString()
+                            else modelAmount.toString()
+                        } else ""
+                    }
+                }
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -296,12 +308,22 @@ fun AddEditDetailTransactionView(
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
                             label = stringResource(R.string.hint_amount),
-                            value = if (transactionViewModel.transactionAmountState > 0)
-                                transactionViewModel.transactionAmountState.toString() else "",
+                            value = amountText,
                             onValueChange = { value ->
-                                transactionViewModel.onTransactionAmountChanged(value.toDoubleOrNull() ?: 0.0)
+                                val normalized = value.replace(',', '.')
+                                val filtered = normalized.filter { it.isDigit() || it == '.' }
+                                val sanitized = run {
+                                    val firstDot = filtered.indexOf('.')
+                                    if (firstDot == -1) filtered
+                                    else filtered.substring(0, firstDot + 1) +
+                                        filtered.substring(firstDot + 1).replace(".", "")
+                                }
+                                amountText = sanitized
+                                transactionViewModel.onTransactionAmountChanged(
+                                    sanitized.toDoubleOrNull() ?: 0.0
+                                )
                             },
-                            keyboardType = KeyboardType.Number
+                            keyboardType = KeyboardType.Decimal
                         )
                     }
                 }

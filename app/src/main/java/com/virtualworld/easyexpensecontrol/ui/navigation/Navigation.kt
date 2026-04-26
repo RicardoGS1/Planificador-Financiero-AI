@@ -97,7 +97,8 @@ fun Navigation(
         composable(route = Screen.StaticsScreen.route) {
             StaticsScreen(
                 navController = navController,
-                transactionViewModel = transactionViewModel
+                transactionViewModel = transactionViewModel,
+                categoryViewModel = categoryViewModel
             )
         }
     }

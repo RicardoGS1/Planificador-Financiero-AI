@@ -55,6 +55,12 @@
     <string name="chart_no_data_period">No data for this period</string>
     <string name="label_income">Income</string>
     <string name="label_expense">Expenses</string>
+    <string name="chart_subtitle_categories">Expenses by category</string>
+    <string name="chart_subtitle_income_categories">Income by category</string>
+    <string name="chart_categories_breakdown">Breakdown by category</string>
+    <string name="chart_no_expenses_period">No expenses in this period</string>
+    <string name="chart_no_income_period">No income in this period</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">No expense categories available. Create expense-type categories to manage your budget.</string>
     <string name="add_button">Add</string>

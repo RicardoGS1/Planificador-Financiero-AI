@@ -48,6 +48,12 @@
     <string name="chart_no_data_period">Keine Daten für diesen Zeitraum</string>
     <string name="label_income">Einnahmen</string>
     <string name="label_expense">Ausgaben</string>
+    <string name="chart_subtitle_categories">Ausgaben nach Kategorie</string>
+    <string name="chart_subtitle_income_categories">Einnahmen nach Kategorie</string>
+    <string name="chart_categories_breakdown">Aufschlüsselung nach Kategorie</string>
+    <string name="chart_no_expenses_period">Keine Ausgaben in diesem Zeitraum</string>
+    <string name="chart_no_income_period">Keine Einnahmen in diesem Zeitraum</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">Keine Ausgabenkategorien vorhanden. Erstellen Sie Ausgaben-Kategorien, um Ihr Budget zu verwalten.</string>
     <string name="add_button">Hinzufügen</string>
