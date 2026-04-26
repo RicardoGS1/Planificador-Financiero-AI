@@ -70,6 +70,13 @@
     <string name="budget_list_all_hidden_message">No se muestra ninguna categoría. Pulsa el botón de la lista para elegir cuáles quieres ver.</string>
 
     <string name="no_transactions">No hay transacciones disponibles.</string>
+    <string name="sort_by_label">Ordenar por</string>
+    <string name="sort_by_date">Fecha</string>
+    <string name="sort_by_amount">Importe</string>
+    <string name="sort_by_type">Tipo</string>
+    <string name="sort_by_category">Categoría</string>
+    <string name="cd_sort_options">Opciones de orden</string>
+    <string name="cd_sort_invert">Invertir orden</string>
     <string name="delete_transaction_title">¿Desea eliminar esta transacción?</string>
     <string name="delete_transaction_message">Esta acción eliminará permanentemente esta transacción y toda la información relacionada de la aplicación.</string>
     <string name="accept">Aceptar</string>

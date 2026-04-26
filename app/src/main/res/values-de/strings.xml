@@ -70,6 +70,13 @@
     <string name="budget_list_all_hidden_message">Es werden keine Kategorien angezeigt. Tippe auf das Listen-Symbol, um auszuwählen, welche du sehen möchtest.</string>
 
     <string name="no_transactions">Keine Transaktionen vorhanden.</string>
+    <string name="sort_by_label">Sortieren nach</string>
+    <string name="sort_by_date">Datum</string>
+    <string name="sort_by_amount">Betrag</string>
+    <string name="sort_by_type">Typ</string>
+    <string name="sort_by_category">Kategorie</string>
+    <string name="cd_sort_options">Sortieroptionen</string>
+    <string name="cd_sort_invert">Reihenfolge umkehren</string>
     <string name="delete_transaction_title">Diese Transaktion löschen?</string>
     <string name="delete_transaction_message">Dies löscht die Transaktion und alle zugehörigen Daten dauerhaft aus der App.</string>
     <string name="accept">Akzeptieren</string>

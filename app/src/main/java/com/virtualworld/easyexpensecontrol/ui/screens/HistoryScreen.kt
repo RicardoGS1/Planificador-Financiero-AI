@@ -24,14 +24,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -85,6 +90,8 @@ fun HistoryScreen(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
+    var sortOption by remember { mutableStateOf(SortOption.DATE) }
+    var sortAscending by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -96,6 +103,30 @@ fun HistoryScreen(
         content = { paddingValues ->
             val transactionList = transactionViewModel.getAllTransactions
                 .collectAsState(initial = emptyList())
+            val categories = categoryViewModel.getAllCategories
+                .collectAsState(initial = emptyList())
+
+            val categoryNameMap = remember(categories.value) {
+                categories.value.associate { it.id to it.name }
+            }
+
+            val sortedTransactions = remember(
+                transactionList.value,
+                sortOption,
+                sortAscending,
+                categoryNameMap
+            ) {
+                val list = transactionList.value
+                val base = when (sortOption) {
+                    SortOption.DATE -> list.sortedBy { it.date }
+                    SortOption.AMOUNT -> list.sortedBy { it.amount }
+                    SortOption.TYPE -> list.sortedBy { it.type.ordinal }
+                    SortOption.CATEGORY -> list.sortedBy {
+                        (categoryNameMap[it.category] ?: "").lowercase(Locale.getDefault())
+                    }
+                }
+                if (sortAscending) base else base.reversed()
+            }
 
             if (transactionList.value.isEmpty()) {
                 ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
@@ -117,7 +148,17 @@ fun HistoryScreen(
                 item {
                     ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 }
-                items(transactionList.value, key = { transaction -> transaction.id }) { transaction ->
+                if (transactionList.value.isNotEmpty()) {
+                    item {
+                        SortControls(
+                            sortOption = sortOption,
+                            ascending = sortAscending,
+                            onSortOptionChange = { sortOption = it },
+                            onToggleDirection = { sortAscending = !sortAscending }
+                        )
+                    }
+                }
+                items(sortedTransactions, key = { transaction -> transaction.id }) { transaction -> 
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart || value == SwipeToDismissBoxValue.StartToEnd) {
@@ -337,6 +378,93 @@ fun TransactionItem(
                 fontWeight = FontWeight.Bold,
                 color = if (isIngreso) IncomeGreen else ExpenseRed
             )
+        }
+    }
+}
+
+enum class SortOption { DATE, AMOUNT, TYPE, CATEGORY }
+
+private fun sortOptionLabelRes(option: SortOption): Int = when (option) {
+    SortOption.DATE -> R.string.sort_by_date
+    SortOption.AMOUNT -> R.string.sort_by_amount
+    SortOption.TYPE -> R.string.sort_by_type
+    SortOption.CATEGORY -> R.string.sort_by_category
+}
+
+@Composable
+private fun SortControls(
+    sortOption: SortOption,
+    ascending: Boolean,
+    onSortOptionChange: (SortOption) -> Unit,
+    onToggleDirection: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            Surface(
+                onClick = { expanded = true },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.sort_by_label) +
+                            ": " +
+                            stringResource(sortOptionLabelRes(sortOption)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.cd_sort_options),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                SortOption.values().forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(sortOptionLabelRes(option))) },
+                        onClick = {
+                            onSortOptionChange(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Surface(
+            onClick = onToggleDirection,
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp,
+            modifier = Modifier.size(44.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = if (ascending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                    contentDescription = stringResource(R.string.cd_sort_invert),
+                    tint = AccentBlue
+                )
+            }
         }
     }
 }

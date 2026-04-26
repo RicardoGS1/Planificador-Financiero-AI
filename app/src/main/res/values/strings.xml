@@ -77,6 +77,13 @@
     <string name="budget_list_all_hidden_message">No categories are shown. Use the list button to choose which categories you want to see.</string>
 
     <string name="no_transactions">No transactions available.</string>
+    <string name="sort_by_label">Sort by</string>
+    <string name="sort_by_date">Date</string>
+    <string name="sort_by_amount">Amount</string>
+    <string name="sort_by_type">Type</string>
+    <string name="sort_by_category">Category</string>
+    <string name="cd_sort_options">Sort options</string>
+    <string name="cd_sort_invert">Reverse order</string>
     <string name="delete_transaction_title">Delete this transaction?</string>
     <string name="delete_transaction_message">This will permanently delete this transaction and all related information from the app.</string>
     <string name="accept">Accept</string>

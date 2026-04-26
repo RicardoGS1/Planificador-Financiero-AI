@@ -70,6 +70,13 @@
     <string name="budget_list_all_hidden_message">कोई श्रेणी नहीं दिख रही। सूची बटन दबाकर चुनें कि कौन सी श्रेणियाँ देखनी हैं।</string>
 
     <string name="no_transactions">कोई लेनदेन उपलब्ध नहीं।</string>
+    <string name="sort_by_label">इसके अनुसार क्रमित करें</string>
+    <string name="sort_by_date">तारीख</string>
+    <string name="sort_by_amount">राशि</string>
+    <string name="sort_by_type">प्रकार</string>
+    <string name="sort_by_category">श्रेणी</string>
+    <string name="cd_sort_options">क्रम विकल्प</string>
+    <string name="cd_sort_invert">क्रम उलटें</string>
     <string name="delete_transaction_title">इस लेनदेन को हटाएँ?</string>
     <string name="delete_transaction_message">यह इस लेनदेन और संबंधित सभी जानकारी को स्थायी रूप से हटा देगा।</string>
     <string name="accept">स्वीकार करें</string>
