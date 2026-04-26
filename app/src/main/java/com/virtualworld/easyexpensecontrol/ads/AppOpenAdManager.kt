@@ -12,13 +12,21 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.virtualworld.easyexpensecontrol.BuildConfig
 import com.virtualworld.easyexpensecontrol.R
 import java.util.Date
 
 /**
  * App Open al volver al primer plano (incluye arranque en frío cuando el anuncio ya cargó).
+ *
+ * Para evitar que el App Open interrumpa flujos iniciados por el usuario que abren un Intent
+ * externo (cámara, picker, share, etc.) llama a [suppressNextAppOpen] justo antes de lanzar
+ * el Intent. Tras la duración indicada, si la app vuelve al primer plano no se mostrará el ad.
  */
-class AppOpenAdManager(private val application: Application) : Application.ActivityLifecycleCallbacks {
+class AppOpenAdManager(
+    private val application: Application,
+    initialActivity: Activity? = null,
+) : Application.ActivityLifecycleCallbacks {
 
     private var appOpenAd: AppOpenAd? = null
     private var isLoadingAd = false
@@ -29,15 +37,42 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
     /** Solo mostrar al terminar de cargar si antes pedimos mostrar (p. ej. app al primer plano sin caché). */
     private var pendingShowWhenLoaded = false
 
+    /**
+     * En arranque en frío el manager se construye DESPUÉS de que MainActivity ya recibió
+     * `onActivityStarted`, por lo que `currentActivity` puede quedar `null` cuando el observer
+     * de [ProcessLifecycleOwner] dispare su `onStart` inicial. Esta marca permite que el primer
+     * `onActivityStarted` posterior dispare la muestra del App Open.
+     */
+    private var pendingShowOnNextActivity = false
+
     /** Tras cerrar el anuncio, ProcessLifecycleOwner vuelve a disparar onStart; ignoramos ese lapso. */
     private var lastDismissTimeMs: Long = 0
 
+    /** Marca temporal hasta la cual no se debe mostrar el App Open (p. ej. al lanzar la cámara). */
+    @Volatile
+    private var suppressUntilMs: Long = 0
+
     init {
+        instance = this
+        // Capturamos la Activity en primer plano en cold start para que el observer de
+        // ProcessLifecycleOwner —que se dispara inmediatamente al añadirse si el lifecycle
+        // ya está STARTED— pueda mostrar el ad sin esperar a otro evento de Activity.
+        currentActivity = initialActivity
         application.registerActivityLifecycleCallbacks(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                if (System.currentTimeMillis() - lastDismissTimeMs < DISMISS_COOLDOWN_MS) return
-                currentActivity?.let { showAdIfAvailable(it) }
+                val now = System.currentTimeMillis()
+                if (now - lastDismissTimeMs < DISMISS_COOLDOWN_MS) return
+                if (now < suppressUntilMs) {
+                    suppressUntilMs = 0
+                    return
+                }
+                val activity = currentActivity
+                if (activity != null) {
+                    showAdIfAvailable(activity)
+                } else {
+                    pendingShowOnNextActivity = true
+                }
             }
         })
         loadAd()
@@ -56,11 +91,15 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
         if (isLoadingAd || isAdAvailable()) return
         isLoadingAd = true
         appOpenAd = null
+        val adUnitId = if (BuildConfig.DEBUG) {
+            application.getString(R.string.admob_app_open_test)
+        } else {
+            application.getString(R.string.admob_app_open)
+        }
         AppOpenAd.load(
             application,
-            application.getString(R.string.admob_app_open),
+            adUnitId,
             AdRequest.Builder().build(),
-            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
                     Log.d(TAG, "App open ad loaded successfully")
@@ -76,6 +115,7 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                     Log.e(TAG, "App open ad failed to load: code=${loadAdError.code}, message=${loadAdError.message}, domain=${loadAdError.domain}")
                     isLoadingAd = false
+                    pendingShowWhenLoaded = false
                 }
             }
         )
@@ -83,6 +123,10 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
 
     private fun showAdIfAvailable(activity: Activity) {
         if (isShowingAd) return
+        if (System.currentTimeMillis() < suppressUntilMs) {
+            suppressUntilMs = 0
+            return
+        }
         if (!isAdAvailable()) {
             pendingShowWhenLoaded = true
             loadAd()
@@ -124,6 +168,16 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
     override fun onActivityStarted(activity: Activity) {
         if (activity.javaClass.name.startsWith("com.google.android.gms.ads")) return
         currentActivity = activity
+        if (pendingShowOnNextActivity) {
+            pendingShowOnNextActivity = false
+            val now = System.currentTimeMillis()
+            if (now - lastDismissTimeMs < DISMISS_COOLDOWN_MS) return
+            if (now < suppressUntilMs) {
+                suppressUntilMs = 0
+                return
+            }
+            showAdIfAvailable(activity)
+        }
     }
 
     override fun onActivityResumed(activity: Activity) {}
@@ -142,6 +196,21 @@ class AppOpenAdManager(private val application: Application) : Application.Activ
 
     companion object {
         private const val TAG = "AppOpenAdManager"
-        private const val DISMISS_COOLDOWN_MS = 1_000L
+        private const val DISMISS_COOLDOWN_MS = 2_000L
+        private const val DEFAULT_SUPPRESS_DURATION_MS = 60_000L
+
+        @Volatile
+        private var instance: AppOpenAdManager? = null
+
+        /**
+         * Suprime el App Open Ad en el siguiente regreso al primer plano dentro del intervalo dado.
+         * Llamar antes de lanzar Intents externos (cámara, picker, share, etc.) que harán que la app
+         * pase a background y vuelva inmediatamente — así evitamos un App Open intrusivo y posibles
+         * incumplimientos de la política de AdMob.
+         */
+        fun suppressNextAppOpen(durationMs: Long = DEFAULT_SUPPRESS_DURATION_MS) {
+            val mgr = instance ?: return
+            mgr.suppressUntilMs = System.currentTimeMillis() + durationMs
+        }
     }
 }

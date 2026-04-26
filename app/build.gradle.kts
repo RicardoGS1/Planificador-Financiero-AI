@@ -18,6 +18,23 @@ if (localPropertiesFile.exists()) {
 val geminiKey = localProperties.getProperty("GEMINI_API_KEY", "")
     .ifEmpty { (project.findProperty("GEMINI_API_KEY") as String?) ?: "" }
 
+// Signing config para release. Lee credenciales desde local.properties o variables de entorno.
+// Si no están configuradas, el release NO se firma con la key de debug (lo que impediría
+// publicar en Google Play). En su lugar, queda sin firmar y Gradle avisa.
+fun secret(key: String): String? =
+    localProperties.getProperty(key)?.takeIf { it.isNotBlank() }
+        ?: System.getenv(key)?.takeIf { it.isNotBlank() }
+
+val releaseStorePath = secret("RELEASE_KEYSTORE_PATH")
+val releaseStorePassword = secret("RELEASE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = secret("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = secret("RELEASE_KEY_PASSWORD")
+val releaseSigningReady = releaseStorePath != null &&
+    releaseStorePassword != null &&
+    releaseKeyAlias != null &&
+    releaseKeyPassword != null &&
+    rootProject.file(releaseStorePath).exists()
+
 android {
     namespace = "com.virtualworld.easyexpensecontrol"
     compileSdk = 35
@@ -26,7 +43,7 @@ android {
         applicationId = "com.virtualworld.easyexpensecontrol"
         minSdk = 24
         targetSdk = 35
-        versionCode = 100200
+        versionCode = 100201
         versionName = "1.2"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
@@ -37,6 +54,17 @@ android {
         }
     }
 
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = rootProject.file(releaseStorePath!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -44,7 +72,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            if (releaseSigningReady) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                logger.warn(
+                    "⚠️  Release signing config no encontrada. " +
+                        "Define RELEASE_KEYSTORE_PATH, RELEASE_KEYSTORE_PASSWORD, " +
+                        "RELEASE_KEY_ALIAS y RELEASE_KEY_PASSWORD en local.properties o " +
+                        "variables de entorno. El AAB/APK release saldrá SIN FIRMAR."
+                )
+            }
         }
     }
     compileOptions {
@@ -114,6 +151,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
 
     implementation("com.google.android.gms:play-services-ads:23.6.0")
+    implementation("com.google.android.ump:user-messaging-platform:4.0.0")
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)

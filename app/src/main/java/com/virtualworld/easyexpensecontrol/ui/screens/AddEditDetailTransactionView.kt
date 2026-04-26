@@ -118,6 +118,13 @@ fun AddEditDetailTransactionView(
     }
 
     val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
+
+    // Precargar el intersticial en cuanto el usuario entra add transaction, para que
+    // al pulsar "Tomar foto" no haya latencia de red.
+    LaunchedEffect(transactionViewModel.transactionTypeState) {
+            CameraInterstitialAdHelper.preload(context)
+    }
+
     LaunchedEffect(receiptState) {
         when (receiptState) {
             is ReceiptProcessingState.Success -> {

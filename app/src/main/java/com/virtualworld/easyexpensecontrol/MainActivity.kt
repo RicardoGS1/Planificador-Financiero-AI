@@ -9,6 +9,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
+import com.virtualworld.easyexpensecontrol.ads.ConsentManager
 import com.virtualworld.easyexpensecontrol.ui.navigation.Navigation
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 
@@ -24,6 +25,21 @@ class MainActivity : ComponentActivity() {
         )
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        // Si en lanzamientos previos ya tenemos consentimiento (o no es necesario en esta
+        // región), inicializa MobileAds de inmediato para que el App Open en frío esté listo.
+        if (ConsentManager.canRequestAds(this)) {
+            (application as FinancialApp).initializeMobileAdsIfNeeded(this)
+        }
+
+        // Solicita / actualiza el consentimiento UMP. Cuando el usuario decida (o el SDK
+        // resuelva sin formulario), si se pueden pedir anuncios, arranca MobileAds.
+        ConsentManager.gatherConsent(this) { canRequestAds ->
+            if (canRequestAds) {
+                (application as FinancialApp).initializeMobileAdsIfNeeded(this)
+            }
+        }
+
         setContent {
             val navController = rememberNavController()
             EasyExpenseControlTheme {

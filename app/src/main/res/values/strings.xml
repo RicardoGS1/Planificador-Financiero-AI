@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="admob_app_id" translatable="false">ca-app-pub-7595196761874810~3205761801</string>
+    <string name="admob_app_id_test" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
     <string name="admob_interstitial_camera" translatable="false">ca-app-pub-7595196761874810/4843314519</string>
+    <string name="admob_interstitial_camera_test" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
     <string name="admob_app_open" translatable="false">ca-app-pub-7595196761874810/6869674643</string>
+    <string name="admob_app_open_test" translatable="false">ca-app-pub-3940256099942544/9257395921</string>
 
     <string name="app_name">AI-Powered Expense Control</string>
     <string name="update_transaction">Update transaction</string>
