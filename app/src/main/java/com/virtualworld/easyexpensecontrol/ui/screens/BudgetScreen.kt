@@ -1,5 +1,8 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -394,6 +398,16 @@ fun ExpenseBudgetItem(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val remainingVisibleState = remember {
+                            MutableTransitionState(!isOverBudget)
+                        }
+                        LaunchedEffect(isOverBudget) {
+                            remainingVisibleState.targetState = !isOverBudget
+                        }
+                        val canShowAttention = isOverBudget &&
+                            !remainingVisibleState.currentState &&
+                            remainingVisibleState.isIdle
+
                         Text(
                             text = stringResource(
                                 R.string.budget_spent_limit,
@@ -404,14 +418,23 @@ fun ExpenseBudgetItem(
                             fontWeight = FontWeight.Bold,
                             color = if (isOverBudget) BudgetProgressRed else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (isOverBudget) {
+                        AnimatedVisibility(
+                            visible = canShowAttention,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
                             Text(
                                 text = stringResource(R.string.budget_attention),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = BudgetProgressRed
                             )
-                        } else {
+                        }
+                        AnimatedVisibility(
+                            visibleState = remainingVisibleState,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
                             Text(
                                 text = stringResource(R.string.budget_remaining, remaining),
                                 style = MaterialTheme.typography.bodySmall,
@@ -422,8 +445,7 @@ fun ExpenseBudgetItem(
                     Spacer(Modifier.height(8.dp))
                     BudgetSplitBar(
                         spentFraction = spentFraction,
-                        isOverBudget = isOverBudget,
-                        animationProgress = safeProgress
+                        isOverBudget = isOverBudget
                     )
                 }
                 Spacer(Modifier.height(10.dp))
@@ -453,9 +475,9 @@ fun ExpenseBudgetItem(
 @Composable
 private fun BudgetSplitBar(
     spentFraction: Float,
-    isOverBudget: Boolean,
-    animationProgress: Float = 1f
+    isOverBudget: Boolean
 ) {
+    val clampedSpentFraction = spentFraction.coerceIn(0f, 1f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -466,7 +488,7 @@ private fun BudgetSplitBar(
         if (isOverBudget) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(animationProgress.coerceIn(0f, 1f))
+                    .fillMaxWidth(clampedSpentFraction)
                     .fillMaxSize()
                     .background(BudgetProgressRed)
             )
@@ -474,13 +496,13 @@ private fun BudgetSplitBar(
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = Modifier
-                        .weight(spentFraction.coerceIn(0f, 1f).coerceAtLeast(0.0001f))
+                        .weight(clampedSpentFraction.coerceAtLeast(0.0001f))
                         .fillMaxSize()
                         .background(BudgetProgressRed)
                 )
                 Box(
                     modifier = Modifier
-                        .weight((1f - spentFraction).coerceIn(0f, 1f).coerceAtLeast(0.0001f))
+                        .weight((1f - clampedSpentFraction).coerceIn(0f, 1f).coerceAtLeast(0.0001f))
                         .fillMaxSize()
                         .background(BudgetProgressGreen)
                 )

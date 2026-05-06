@@ -54,7 +54,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDayPeriods
 import com.virtualworld.easyexpensecontrol.core.util.getLastThreeMonthPeriods
@@ -85,6 +89,24 @@ fun DashboardScreen(
     transactionViewModel: TransactionViewModel,
     categoryViewModel: CategoryViewModel
 ) {
+    val listaTransacciones by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
+    val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+
+    DashboardScreen(
+        navController = navController,
+        transactions = listaTransacciones,
+        categories = categories,
+        onSettingsClick = { navController.navigate(Screen.SettingsScreen.route) }
+    )
+}
+
+@Composable
+fun DashboardScreen(
+    navController: NavController,
+    transactions: List<Transaction>,
+    categories: List<Category>,
+    onSettingsClick: () -> Unit
+) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -92,12 +114,9 @@ fun DashboardScreen(
         bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        val listaTransacciones = transactionViewModel.getAllTransactions
-            .collectAsState(initial = emptyList()).value
-
         var income = 0.0
         var expenses = 0.0
-        listaTransacciones.forEach { t ->
+        transactions.forEach { t ->
             if (t.type == TransactionType.Ingreso) income += t.amount
             else if (t.type == TransactionType.Gasto) expenses += t.amount
         }
@@ -114,7 +133,7 @@ fun DashboardScreen(
                 showBackArrow = false,
                 trailingContent = {
                     IconButton(
-                        onClick = { navController.navigate(Screen.SettingsScreen.route) },
+                        onClick = onSettingsClick,
                         modifier = Modifier
                             .padding(end = 12.dp)
                             .size(40.dp)
@@ -133,7 +152,7 @@ fun DashboardScreen(
             TotalBalanceSection(balance = balance)
             Spacer(modifier = Modifier.height(12.dp))
             PeriodChart(
-                transactions = listaTransacciones,
+                transactions = transactions,
                 todayLabel = stringResource(R.string.day_today),
                 yesterdayLabel = stringResource(R.string.day_yesterday),
                 modifier = Modifier
@@ -152,8 +171,8 @@ fun DashboardScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             LatestTransactionsList(
-                transactions = listaTransacciones,
-                categoryViewModel = categoryViewModel,
+                transactions = transactions,
+                categories = categories,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -419,6 +438,20 @@ fun LatestTransactionsList(
     categoryViewModel: CategoryViewModel,
     modifier: Modifier = Modifier
 ) {
+    val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+    LatestTransactionsList(
+        transactions = transactions,
+        categories = categories,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun LatestTransactionsList(
+    transactions: List<Transaction>,
+    categories: List<Category>,
+    modifier: Modifier = Modifier
+) {
     val sorted = transactions.sortedByDescending { it.date }.take(MAX_ULTIMAS_ENTRADAS)
     Card(
         modifier = modifier,
@@ -445,9 +478,11 @@ fun LatestTransactionsList(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 itemsIndexed(sorted, key = { _, t -> t.id }) { index, transaction ->
+                    val category = categories.find { it.id == transaction.category }
+                        ?: Category(0L, "", TransactionType.Ingreso)
                     LatestTransactionRow(
                         transaction = transaction,
-                        categoryViewModel = categoryViewModel
+                        category = category
                     )
                     if (index < sorted.size - 1) {
                         HorizontalDivider(
@@ -466,8 +501,19 @@ fun LatestTransactionRow(
     transaction: Transaction,
     categoryViewModel: CategoryViewModel
 ) {
-    val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
-    val category = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso)).value
+    val category by categoryViewModel.getCategoryById(transaction.category)
+        .collectAsState(initial = Category(0L, "", TransactionType.Ingreso))
+    LatestTransactionRow(
+        transaction = transaction,
+        category = category
+    )
+}
+
+@Composable
+fun LatestTransactionRow(
+    transaction: Transaction,
+    category: Category
+) {
     val isIngreso = transaction.type == TransactionType.Ingreso
     val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
     Row(
@@ -514,3 +560,100 @@ fun LatestTransactionRow(
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    val sampleCategories = listOf(
+        Category(1, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2, "Sueldo", TransactionType.Ingreso, "payments"),
+        Category(3, "Vivienda", TransactionType.Gasto, "home"),
+        Category(4, "Transporte", TransactionType.Gasto, "directions_bus"),
+        Category(5, "Ocio", TransactionType.Gasto, "movie")
+    )
+
+    val now = System.currentTimeMillis()
+    val dayMs = 24 * 60 * 60 * 1000L
+
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 2500.0, 2, now, "Sueldo Mensual"),
+        Transaction(2, TransactionType.Gasto, 45.50, 1, now, "Cena fuera"),
+        Transaction(3, TransactionType.Gasto, 800.0, 3, now - dayMs, "Alquiler"),
+        Transaction(4, TransactionType.Gasto, 20.0, 4, now - 2 * dayMs, "Bono Metro"),
+        Transaction(5, TransactionType.Gasto, 15.0, 5, now - 3 * dayMs, "Cine"),
+        Transaction(6, TransactionType.Gasto, 60.0, 1, now - 5 * dayMs, "Compra supermercado")
+    )
+
+    EasyExpenseControlTheme {
+        DashboardScreen(
+            navController = rememberNavController(),
+            transactions = sampleTransactions,
+            categories = sampleCategories,
+            onSettingsClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TotalBalanceSectionPreview() {
+    EasyExpenseControlTheme {
+        TotalBalanceSection(balance = 1250.75)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PeriodChartPreview() {
+    val now = System.currentTimeMillis()
+    val dayMs = 24 * 60 * 60 * 1000L
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 500.0, 1, now, "Income"),
+        Transaction(2, TransactionType.Gasto, 200.0, 2, now, "Expense"),
+        Transaction(3, TransactionType.Ingreso, 300.0, 1, now - 30 * dayMs, "Past Income"),
+        Transaction(4, TransactionType.Gasto, 150.0, 2, now - 30 * dayMs, "Past Expense")
+    )
+    EasyExpenseControlTheme {
+        PeriodChart(
+            transactions = sampleTransactions,
+            todayLabel = "Today",
+            yesterdayLabel = "Yesterday",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LatestTransactionsListPreview() {
+    val sampleCategories = listOf(
+        Category(1, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2, "Sueldo", TransactionType.Ingreso, "payments")
+    )
+    val now = System.currentTimeMillis()
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 2500.0, 2, now, "Sueldo Mensual"),
+        Transaction(2, TransactionType.Gasto, 45.50, 1, now, "Cena fuera")
+    )
+    EasyExpenseControlTheme {
+        LatestTransactionsList(
+            transactions = sampleTransactions,
+            categories = sampleCategories,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LatestTransactionRowPreview() {
+    val sampleCategory = Category(1, "Alimentos", TransactionType.Gasto, "restaurant")
+    val sampleTransaction = Transaction(2, TransactionType.Gasto, 45.50, 1, System.currentTimeMillis(), "Cena fuera")
+    EasyExpenseControlTheme {
+        LatestTransactionRow(
+            transaction = sampleTransaction,
+            category = sampleCategory
+        )
+    }
+}
+
