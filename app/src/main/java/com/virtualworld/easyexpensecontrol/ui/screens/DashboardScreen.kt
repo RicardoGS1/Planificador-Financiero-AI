@@ -32,9 +32,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,10 +69,14 @@ import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import java.util.Locale
+import kotlin.random.Random
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 private enum class ChartPeriod { DAY, WEEK, MONTH }
 
 private const val MAX_ULTIMAS_ENTRADAS = 15
+private var hasAnimatedDashboardBarsInSession = false
 
 @Composable
 fun DashboardScreen(
@@ -205,6 +213,33 @@ fun PeriodChart(
 
     val maxVal = periodData.flatMap { listOf(it.second, it.third) }.maxOrNull() ?: 1.0
     val maxHeight = maxVal.coerceAtLeast(1.0)
+    val barCount = periodData.size * 2
+    val barProgresses = remember { mutableStateListOf<Float>() }
+
+    LaunchedEffect(barCount) {
+        barProgresses.clear()
+        repeat(barCount) {
+            barProgresses.add(if (hasAnimatedDashboardBarsInSession) 1f else 0f)
+        }
+
+        if (!hasAnimatedDashboardBarsInSession) {
+            coroutineScope {
+                repeat(barCount) { barIndex ->
+                    launch {
+                        val animatable = Animatable(0f)
+                        val randomDuration = Random.nextInt(500, 1301)
+                        animatable.animateTo(
+                            targetValue = 1f,
+                            animationSpec = tween(durationMillis = randomDuration)
+                        ) {
+                            barProgresses[barIndex] = value
+                        }
+                    }
+                }
+            }
+            hasAnimatedDashboardBarsInSession = true
+        }
+    }
 
     val dayLabel = stringResource(R.string.period_day)
     val weekLabel = stringResource(R.string.period_week)
@@ -260,19 +295,23 @@ fun PeriodChart(
                     val groupLeft = index * barGroupWidth
                     val ingHeight = (ing / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
                     val gasHeight = (gas / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
+                    val ingProgress = barProgresses.getOrNull(index * 2) ?: 1f
+                    val gasProgress = barProgresses.getOrNull(index * 2 + 1) ?: 1f
+                    val animatedIngHeight = ingHeight + (chartHeight - ingHeight) * (1f - ingProgress)
+                    val animatedGasHeight = gasHeight + (chartHeight - gasHeight) * (1f - gasProgress)
 
                     val bar1Left = groupLeft + gap
                     val bar2Left = groupLeft + barWidth + gap * 2
 
                     drawRect(
                         color = Color(0xFF4CAF50),
-                        topLeft = Offset(bar1Left, chartHeight - ingHeight),
-                        size = Size(barWidth - gap, ingHeight.coerceAtLeast(4f))
+                        topLeft = Offset(bar1Left, chartHeight - animatedIngHeight),
+                        size = Size(barWidth - gap, animatedIngHeight.coerceAtLeast(4f))
                     )
                     drawRect(
                         color = Color(0xFFE33936),
-                        topLeft = Offset(bar2Left, chartHeight - gasHeight),
-                        size = Size(barWidth - gap, gasHeight.coerceAtLeast(4f))
+                        topLeft = Offset(bar2Left, chartHeight - animatedGasHeight),
+                        size = Size(barWidth - gap, animatedGasHeight.coerceAtLeast(4f))
                     )
                 }
             }
