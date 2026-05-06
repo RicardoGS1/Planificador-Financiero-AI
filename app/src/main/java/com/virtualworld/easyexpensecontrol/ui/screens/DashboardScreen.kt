@@ -77,6 +77,7 @@ private enum class ChartPeriod { DAY, WEEK, MONTH }
 
 private const val MAX_ULTIMAS_ENTRADAS = 15
 private var hasAnimatedDashboardBarsInSession = false
+private var hasAnimatedBalanceInSession = false
 
 @Composable
 fun DashboardScreen(
@@ -164,6 +165,22 @@ fun DashboardScreen(
 
 @Composable
 fun TotalBalanceSection(balance: Double) {
+    val animatedBalance = remember { Animatable(0f) }
+
+    LaunchedEffect(balance) {
+        if (!hasAnimatedBalanceInSession) {
+            val startValue = if (balance == 0.0) 1000f else 0f
+            animatedBalance.snapTo(startValue)
+            animatedBalance.animateTo(
+                targetValue = balance.toFloat(),
+                animationSpec = tween(durationMillis = 1000)
+            )
+            hasAnimatedBalanceInSession = true
+        } else {
+            animatedBalance.snapTo(balance.toFloat())
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -177,7 +194,7 @@ fun TotalBalanceSection(balance: Double) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "%.2f €".format(Locale.getDefault(), balance),
+            text = "%.2f €".format(Locale.getDefault(), animatedBalance.value),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold
