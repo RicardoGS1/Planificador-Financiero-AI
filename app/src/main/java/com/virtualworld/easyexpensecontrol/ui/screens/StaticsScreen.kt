@@ -59,8 +59,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.data.model.Transaction
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfDay
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfMonth
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfYear
@@ -131,10 +135,24 @@ fun StaticsScreen(
     transactionViewModel: TransactionViewModel,
     categoryViewModel: CategoryViewModel
 ) {
-    val transactions = transactionViewModel.getAllTransactions
-        .collectAsState(initial = emptyList()).value
-    val categories = categoryViewModel.getAllCategories
-        .collectAsState(initial = emptyList()).value
+    val transactions by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
+    val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+
+    StaticsScreen(
+        navController = navController,
+        transactions = transactions,
+        categories = categories
+    )
+}
+
+@Composable
+fun StaticsScreen(
+    navController: NavController,
+    transactions: List<Transaction>,
+    categories: List<Category>
+) {
+    val transactionsList = transactions // Rename to avoid confusion with parameter name in lambdas if any
+    val categoriesList = categories
 
     var periodType by remember { mutableStateOf(PeriodType.Month) }
     var selectedDayIndex by remember { mutableIntStateOf(0) }
@@ -193,7 +211,7 @@ fun StaticsScreen(
                 )
             }
 
-            if (transactions.isEmpty()) {
+            if (transactionsList.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -213,10 +231,10 @@ fun StaticsScreen(
                     PeriodType.Day -> {
                         if (selectedDayStart == 0L) emptyList()
                         else {
-                            val ing = transactions
+                            val ing = transactionsList
                                 .filter { it.type == TransactionType.Ingreso && it.date in selectedDayStart..selectedDayEnd }
                                 .sumOf { it.amount }
-                            val gas = transactions
+                            val gas = transactionsList
                                 .filter { it.type == TransactionType.Gasto && it.date in selectedDayStart..selectedDayEnd }
                                 .sumOf { it.amount }
                             val label = days.getOrNull(selectedDayIndex)?.first ?: ""
@@ -240,10 +258,10 @@ fun StaticsScreen(
                             cal.set(Calendar.SECOND, 59)
                             cal.set(Calendar.MILLISECOND, 999)
                             val dEnd = cal.timeInMillis
-                            val ing = transactions
+                            val ing = transactionsList
                                 .filter { it.type == TransactionType.Ingreso && it.date in dStart..dEnd }
                                 .sumOf { it.amount }
-                            val gas = transactions
+                            val gas = transactionsList
                                 .filter { it.type == TransactionType.Gasto && it.date in dStart..dEnd }
                                 .sumOf { it.amount }
                             ChartBarGroup(day.toString(), ing, gas)
@@ -253,10 +271,10 @@ fun StaticsScreen(
                         (1..12).map { month ->
                             val mStart = getStartOfMonth(selectedYear, month)
                             val mEnd = getEndOfMonth(selectedYear, month)
-                            val ing = transactions
+                            val ing = transactionsList
                                 .filter { it.type == TransactionType.Ingreso && it.date in mStart..mEnd }
                                 .sumOf { it.amount }
-                            val gas = transactions
+                            val gas = transactionsList
                                 .filter { it.type == TransactionType.Gasto && it.date in mStart..mEnd }
                                 .sumOf { it.amount }
                             ChartBarGroup(monthNamesShort[month - 1], ing, gas)
@@ -280,12 +298,12 @@ fun StaticsScreen(
                 }
 
                 val noCategoryLabel = stringResource(R.string.no_category)
-                val categoryById = remember(categories) { categories.associateBy { it.id } }
+                val categoryById = remember(categoriesList) { categoriesList.associateBy { it.id } }
 
                 val categoryExpenses: List<CategoryExpenseSlice> = if (rangeStart == 0L) {
                     emptyList()
                 } else {
-                    transactions
+                    transactionsList
                         .asSequence()
                         .filter { it.type == TransactionType.Gasto && it.date in rangeStart..rangeEnd }
                         .groupBy { it.category }
@@ -304,7 +322,7 @@ fun StaticsScreen(
                 val categoryIncomes: List<CategoryExpenseSlice> = if (rangeStart == 0L) {
                     emptyList()
                 } else {
-                    transactions
+                    transactionsList
                         .asSequence()
                         .filter { it.type == TransactionType.Ingreso && it.date in rangeStart..rangeEnd }
                         .groupBy { it.category }
@@ -354,10 +372,12 @@ private fun PeriodTypeSelector(
     onSelect: (PeriodType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val primary = colorResource(R.color.blue_dark)
+    val primary = MaterialTheme.colorScheme.primary
     val surface = MaterialTheme.colorScheme.surface
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onPrimary = Color.White
+    val outline = MaterialTheme.colorScheme.outlineVariant
+    val cornerRadius = 6.dp
 
     SingleChoiceSegmentedButtonRow(
         modifier = modifier
@@ -365,12 +385,19 @@ private fun PeriodTypeSelector(
         SegmentedButton(
             selected = selected == PeriodType.Day,
             onClick = { onSelect(PeriodType.Day) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+            shape = RoundedCornerShape(
+                topStart = cornerRadius,
+                bottomStart = cornerRadius,
+                topEnd = 0.dp,
+                bottomEnd = 0.dp
+            ),
             colors = SegmentedButtonDefaults.colors(
                 activeContainerColor = primary,
                 activeContentColor = onPrimary,
                 inactiveContainerColor = surface,
-                inactiveContentColor = onSurface
+                inactiveContentColor = onSurface,
+                activeBorderColor = primary,
+                inactiveBorderColor = outline
             )
         ) {
             Text(stringResource(R.string.period_day))
@@ -378,12 +405,14 @@ private fun PeriodTypeSelector(
         SegmentedButton(
             selected = selected == PeriodType.Month,
             onClick = { onSelect(PeriodType.Month) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+            shape = RoundedCornerShape(0.dp),
             colors = SegmentedButtonDefaults.colors(
                 activeContainerColor = primary,
                 activeContentColor = onPrimary,
                 inactiveContainerColor = surface,
-                inactiveContentColor = onSurface
+                inactiveContentColor = onSurface,
+                activeBorderColor = primary,
+                inactiveBorderColor = outline
             )
         ) {
             Text(stringResource(R.string.period_month))
@@ -391,12 +420,19 @@ private fun PeriodTypeSelector(
         SegmentedButton(
             selected = selected == PeriodType.Year,
             onClick = { onSelect(PeriodType.Year) },
-            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+            shape = RoundedCornerShape(
+                topStart = 0.dp,
+                bottomStart = 0.dp,
+                topEnd = cornerRadius,
+                bottomEnd = cornerRadius
+            ),
             colors = SegmentedButtonDefaults.colors(
                 activeContainerColor = primary,
                 activeContentColor = onPrimary,
                 inactiveContainerColor = surface,
-                inactiveContentColor = onSurface
+                inactiveContentColor = onSurface,
+                activeBorderColor = primary,
+                inactiveBorderColor = outline
             )
         ) {
             Text(stringResource(R.string.period_year))
@@ -473,14 +509,14 @@ private fun MonthYearSelector(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = {
-                    if (month >= 12) {
-                        onYearChange(year + 1)
-                        onMonthChange(1)
+                    if (month <= 1) {
+                        onYearChange(year - 1)
+                        onMonthChange(12)
                     } else {
-                        onMonthChange(month + 1)
+                        onMonthChange(month - 1)
                     }
                 }) {
-                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_month_next), modifier = Modifier.rotate(-90f))
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_month_previous))
                 }
                 Text(
                     text = monthNames.getOrNull(month - 1) ?: "",
@@ -491,19 +527,20 @@ private fun MonthYearSelector(
                     textAlign = TextAlign.Center
                 )
                 IconButton(onClick = {
-                    if (month <= 1) {
-                        onYearChange(year - 1)
-                        onMonthChange(12)
+                    if (month >= 12) {
+                        onYearChange(year + 1)
+                        onMonthChange(1)
                     } else {
-                        onMonthChange(month - 1)
+                        onMonthChange(month + 1)
                     }
                 }) {
-                    Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_month_previous), modifier = Modifier.rotate(90f))
+                    Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_month_next))
                 }
+
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { onYearChange(year + 1) }) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_next))
+                IconButton(onClick = { onYearChange(year - 1) }) {
+                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_previous))
                 }
                 Text(
                     text = year.toString(),
@@ -513,9 +550,10 @@ private fun MonthYearSelector(
                     modifier = Modifier.width(56.dp),
                     textAlign = TextAlign.Center
                 )
-                IconButton(onClick = { onYearChange(year - 1) }) {
-                    Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_previous))
+                IconButton(onClick = { onYearChange(year + 1) }) {
+                    Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_next))
                 }
+
             }
         }
     }
@@ -544,7 +582,7 @@ private fun YearSelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { onYearChange(year - 1) }) {
-                Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_previous))
+                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_previous))
             }
             Text(
                 text = year.toString(),
@@ -554,7 +592,7 @@ private fun YearSelector(
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
             IconButton(onClick = { onYearChange(year + 1) }) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_next))
+                Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_next))
             }
         }
     }
@@ -605,7 +643,7 @@ private fun StatisticsChart(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(220.dp),
+                        .height(180.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -621,7 +659,7 @@ private fun StatisticsChart(
                     colorExpense = colorRed,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(if (data.size <= 2) 260.dp else 280.dp)
+                        .height(if (data.size <= 2) 180.dp else 200.dp)
                 )
 
                 Row(
@@ -1020,6 +1058,38 @@ private fun CategoryLegendRow(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StaticsScreenPreview() {
+    val sampleCategories = listOf(
+        Category(1, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2, "Sueldo", TransactionType.Ingreso, "payments"),
+        Category(3, "Vivienda", TransactionType.Gasto, "home"),
+        Category(4, "Transporte", TransactionType.Gasto, "directions_bus"),
+        Category(5, "Ocio", TransactionType.Gasto, "movie")
+    )
+
+    val now = System.currentTimeMillis()
+    val dayMs = 24 * 60 * 60 * 1000L
+
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 2500.0, 2, now, "Sueldo Mensual"),
+        Transaction(2, TransactionType.Gasto, 45.50, 1, now, "Cena fuera"),
+        Transaction(3, TransactionType.Gasto, 800.0, 3, now - dayMs, "Alquiler"),
+        Transaction(4, TransactionType.Gasto, 20.0, 4, now - 2 * dayMs, "Bono Metro"),
+        Transaction(5, TransactionType.Gasto, 15.0, 5, now - 3 * dayMs, "Cine"),
+        Transaction(6, TransactionType.Gasto, 60.0, 1, now - 5 * dayMs, "Compra supermercado")
+    )
+
+    EasyExpenseControlTheme {
+        StaticsScreen(
+            navController = rememberNavController(),
+            transactions = sampleTransactions,
+            categories = sampleCategories
         )
     }
 }
