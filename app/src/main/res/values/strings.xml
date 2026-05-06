@@ -75,6 +75,9 @@
     <string name="budget_list_visibility_show_all">Show all</string>
     <string name="cd_budget_list_visibility">Choose which categories appear in the budget list</string>
     <string name="budget_list_all_hidden_message">No categories are shown. Use the list button to choose which categories you want to see.</string>
+    <string name="budget_history_title">Previous budgets</string>
+    <string name="budget_history_empty_message">No budgets were found before the current month.</string>
+    <string name="cd_open_budget_history">Open previous budgets list</string>
 
     <string name="no_transactions">No transactions available.</string>
     <string name="sort_by_label">Sort by</string>

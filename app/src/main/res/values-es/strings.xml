@@ -68,6 +68,9 @@
     <string name="budget_list_visibility_show_all">Mostrar todas</string>
     <string name="cd_budget_list_visibility">Elegir qué categorías aparecen en la lista de presupuesto</string>
     <string name="budget_list_all_hidden_message">No se muestra ninguna categoría. Pulsa el botón de la lista para elegir cuáles quieres ver.</string>
+    <string name="budget_history_title">Presupuestos anteriores</string>
+    <string name="budget_history_empty_message">No se encontraron presupuestos anteriores al mes actual.</string>
+    <string name="cd_open_budget_history">Abrir lista de presupuestos anteriores</string>
 
     <string name="no_transactions">No hay transacciones disponibles.</string>
     <string name="sort_by_label">Ordenar por</string>

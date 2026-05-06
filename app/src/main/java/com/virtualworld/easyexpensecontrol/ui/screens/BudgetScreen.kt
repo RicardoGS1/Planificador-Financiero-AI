@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.FilterList
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.AlertDialog
@@ -135,17 +136,30 @@ fun BudgetScreen(
                         title = stringResource(R.string.screen_budget),
                         showBackArrow = false,
                         trailingContent = {
-                            IconButton(
-                                onClick = {
-                                    draftHiddenIds = hiddenCategoryIds
-                                    showVisibilityDialog = true
-                                }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.FilterList,
-                                    contentDescription = stringResource(R.string.cd_budget_list_visibility),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                                IconButton(
+                                    onClick = { navController.navigate(Screen.BudgetHistoryScreen.route) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DateRange,
+                                        contentDescription = stringResource(R.string.cd_open_budget_history),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        draftHiddenIds = hiddenCategoryIds
+                                        showVisibilityDialog = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FilterList,
+                                        contentDescription = stringResource(R.string.cd_budget_list_visibility),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     )
@@ -295,7 +309,9 @@ fun ExpenseBudgetItem(
     category: Category,
     budget: Budget?,
     spent: Double,
-    onActionClick: () -> Unit
+    onActionClick: () -> Unit,
+    isActionEnabled: Boolean = true,
+    showActionButton: Boolean = true
 ) {
     val hasBudget = budget != null
     val limit = budget?.monthlyLimit ?: 0.0
@@ -307,7 +323,7 @@ fun ExpenseBudgetItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable { onActionClick() },
+            .clickable(enabled = isActionEnabled) { onActionClick() },
         shape = BudgetCardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -376,21 +392,23 @@ fun ExpenseBudgetItem(
                     BudgetSplitBar(spentFraction = spentFraction, isOverBudget = isOverBudget)
                 }
                 Spacer(Modifier.height(10.dp))
-                FilledTonalButton(
-                    onClick = onActionClick,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        if (hasBudget) stringResource(R.string.increase_budget)
-                        else stringResource(R.string.set_budget)
-                    )
+                if (showActionButton) {
+                    FilledTonalButton(
+                        onClick = onActionClick,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            if (hasBudget) stringResource(R.string.increase_budget)
+                            else stringResource(R.string.set_budget)
+                        )
+                    }
                 }
             }
         }

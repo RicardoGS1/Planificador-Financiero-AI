@@ -12,6 +12,7 @@ import com.virtualworld.easyexpensecontrol.core.SetStatusBarColor
 import com.virtualworld.easyexpensecontrol.ui.screens.AddEditDetailBudgetView
 import com.virtualworld.easyexpensecontrol.ui.screens.AddEditDetailTransactionView
 import com.virtualworld.easyexpensecontrol.ui.screens.BudgetScreen
+import com.virtualworld.easyexpensecontrol.ui.screens.BudgetHistoryScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.DashboardScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.HistoryScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.SettingsScreen
@@ -47,6 +48,13 @@ fun Navigation(
                 budgetViewModel = budgetViewModel,
                 categoryViewModel = categoryViewModel,
                 transactionViewModel = transactionViewModel
+            )
+        }
+        composable(route = Screen.BudgetHistoryScreen.route) {
+            BudgetHistoryScreen(
+                navController = navController,
+                budgetViewModel = budgetViewModel,
+                categoryViewModel = categoryViewModel
             )
         }
         composable(
