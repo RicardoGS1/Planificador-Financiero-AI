@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,6 +61,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -77,6 +79,7 @@ import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
+import com.virtualworld.easyexpensecontrol.ui.components.GeminiAnalysisLoadingOverlay
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
@@ -164,8 +167,8 @@ fun AddEditDetailTransactionView(
 
     val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
 
-    // Precargar el intersticial en cuanto el usuario entra add transaction, para que
-    // al pulsar "Tomar foto" no haya latencia de red.
+    // Precargar el intersticial al entrar en añadir transacción, para que al pulsar
+    // "Tomar foto" o "Grabar audio" no haya latencia de red.
     LaunchedEffect(transactionViewModel.transactionTypeState) {
             CameraInterstitialAdHelper.preload(context)
     }
@@ -243,10 +246,14 @@ fun AddEditDetailTransactionView(
             .padding(WindowInsets.systemBars.asPaddingValues()),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
-                .fillMaxWidth()
+                .fillMaxSize()
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -304,14 +311,17 @@ fun AddEditDetailTransactionView(
                         if (isRecordingAudio) {
                             stopRecordingAndAnalyze()
                         } else {
-                            if (ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.RECORD_AUDIO
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                startRecordingAudio()
-                            } else {
-                                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            val activity = context as? Activity ?: return@onMicClick
+                            CameraInterstitialAdHelper.showThenContinue(activity) {
+                                if (ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.RECORD_AUDIO
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    startRecordingAudio()
+                                } else {
+                                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                }
                             }
                         }
                     }
@@ -652,6 +662,11 @@ fun AddEditDetailTransactionView(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+
+            if (receiptState is ReceiptProcessingState.Loading) {
+                GeminiAnalysisLoadingOverlay()
+            }
+        }
     }
 }
 
@@ -771,18 +786,13 @@ private fun CameraActionButton(
         shape = RoundedCornerShape(14.dp),
         enabled = isEnabled
     ) {
-        if (isAnalyzing) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(22.dp),
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.CameraAlt,
+            contentDescription = null,
+            modifier = Modifier
+                .size(22.dp)
+                .alpha(if (isAnalyzing) 0.5f else 1f)
+        )
         Spacer(modifier = Modifier.size(8.dp))
         Text(
             text = if (isAnalyzing) stringResource(R.string.analyzing)
@@ -806,9 +816,12 @@ private fun MicActionButton(
         enabled = isEnabled
     ) {
         when {
-            isAnalyzing -> CircularProgressIndicator(
-                modifier = Modifier.size(22.dp),
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+            isAnalyzing -> Icon(
+                imageVector = Icons.Default.Mic,
+                contentDescription = stringResource(R.string.cd_record_audio),
+                modifier = Modifier
+                    .size(22.dp)
+                    .alpha(0.5f)
             )
             isRecording -> Icon(
                 imageVector = Icons.Default.Stop,

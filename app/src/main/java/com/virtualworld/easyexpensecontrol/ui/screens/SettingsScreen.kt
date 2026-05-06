@@ -1,7 +1,10 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +29,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -122,6 +126,16 @@ fun SettingsScreen(navController: NavHostController) {
                     }
                     context.startActivity(Intent.createChooser(sendIntent, shareChooserTitle))
                 }
+            )
+
+            SettingsItemCard(
+                icon = Icons.Filled.Star,
+                iconBackground = Brush.linearGradient(
+                    listOf(Color(0xFFFFB347), Color(0xFFFF9800))
+                ),
+                title = stringResource(R.string.settings_rate_app),
+                subtitle = stringResource(R.string.settings_rate_app_subtitle),
+                onClick = { openPlayStoreListing(context) }
             )
         }
     }
@@ -282,6 +296,24 @@ private fun languageDisplayName(tag: String): String = when (tag) {
     "hi" -> stringResource(R.string.language_hi)
     "ru" -> stringResource(R.string.language_ru)
     else -> tag
+}
+
+private fun openPlayStoreListing(context: Context) {
+    val id = context.packageName
+    val marketIntent = Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("market://details?id=$id")
+    )
+    try {
+        context.startActivity(marketIntent)
+    } catch (_: ActivityNotFoundException) {
+        context.startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://play.google.com/store/apps/details?id=$id")
+            )
+        )
+    }
 }
 
 private fun languageFlag(tag: String): String = when (tag) {

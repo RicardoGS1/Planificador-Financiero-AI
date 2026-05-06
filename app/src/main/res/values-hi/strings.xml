@@ -145,6 +145,8 @@
     <string name="settings_language_subtitle">ऐप की भाषा चुनें</string>
     <string name="settings_share">ऐप साझा करें</string>
     <string name="settings_share_subtitle">अपने दोस्तों को यह ऐप सुझाएँ</string>
+    <string name="settings_rate_app">ऐप को रेट करें</string>
+    <string name="settings_rate_app_subtitle">Google Play पर समीक्षा लिखें</string>
     <string name="language_system">सिस्टम डिफ़ॉल्ट</string>
     <string name="language_en">English</string>
     <string name="language_es">Español</string>

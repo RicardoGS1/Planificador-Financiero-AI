@@ -136,7 +136,7 @@ fun StaticsScreen(
     val categories = categoryViewModel.getAllCategories
         .collectAsState(initial = emptyList()).value
 
-    var periodType by remember { mutableStateOf(PeriodType.Day) }
+    var periodType by remember { mutableStateOf(PeriodType.Month) }
     var selectedDayIndex by remember { mutableIntStateOf(0) }
     var selectedMonth by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
     var selectedYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }

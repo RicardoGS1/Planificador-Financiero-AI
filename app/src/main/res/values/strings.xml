@@ -153,6 +153,8 @@
     <string name="settings_language_subtitle">Choose the app language</string>
     <string name="settings_share">Share app</string>
     <string name="settings_share_subtitle">Recommend this app to your friends</string>
+    <string name="settings_rate_app">Rate the app</string>
+    <string name="settings_rate_app_subtitle">Leave a review on Google Play</string>
     <string name="language_system">System default</string>
     <string name="language_en">English</string>
     <string name="language_es">Español</string>

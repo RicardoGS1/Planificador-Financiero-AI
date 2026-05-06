@@ -107,6 +107,7 @@ fun DashboardScreen(
                     IconButton(
                         onClick = { navController.navigate(Screen.SettingsScreen.route) },
                         modifier = Modifier
+                            .padding(end = 12.dp)
                             .size(40.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant)

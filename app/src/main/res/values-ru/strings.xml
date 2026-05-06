@@ -145,6 +145,8 @@
     <string name="settings_language_subtitle">Выберите язык приложения</string>
     <string name="settings_share">Поделиться приложением</string>
     <string name="settings_share_subtitle">Порекомендуйте это приложение друзьям</string>
+    <string name="settings_rate_app">Оценить приложение</string>
+    <string name="settings_rate_app_subtitle">Оставьте отзыв в Google Play</string>
     <string name="language_system">Системный по умолчанию</string>
     <string name="language_en">English</string>
     <string name="language_es">Español</string>
