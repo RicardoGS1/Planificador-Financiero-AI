@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,9 +35,12 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +56,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -82,8 +87,14 @@ import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 private enum class PeriodType { Day, Month, Year }
+private const val STATICS_PREFS_NAME = "statistics_screen_preferences"
+private const val KEY_PERIOD_TYPE = "period_type"
+private const val KEY_SELECTED_DAY_INDEX = "selected_day_index"
+private const val KEY_SELECTED_MONTH = "selected_month"
+private const val KEY_SELECTED_YEAR = "selected_year"
 
 private data class ChartBarGroup(val label: String, val income: Double, val expense: Double)
 
@@ -92,6 +103,8 @@ private data class CategoryExpenseSlice(
     val name: String,
     val amount: Double
 )
+
+private var hasPlayedDashboardBarDropAnimation = false
 
 private val ExpenseCategoryPalette: List<Color> = listOf(
     Color(0xFFEF4444),
@@ -151,18 +164,63 @@ fun StaticsScreen(
     transactions: List<Transaction>,
     categories: List<Category>
 ) {
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.applicationContext.getSharedPreferences(STATICS_PREFS_NAME, Context.MODE_PRIVATE)
+    }
+    val currentCalendar = remember { Calendar.getInstance() }
     val transactionsList = transactions // Rename to avoid confusion with parameter name in lambdas if any
     val categoriesList = categories
 
-    var periodType by remember { mutableStateOf(PeriodType.Month) }
-    var selectedDayIndex by remember { mutableIntStateOf(0) }
-    var selectedMonth by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
-    var selectedYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+    var periodType by remember {
+        mutableStateOf(
+            preferences.getString(KEY_PERIOD_TYPE, PeriodType.Month.name)
+                ?.let { stored -> PeriodType.entries.firstOrNull { it.name == stored } }
+                ?: PeriodType.Month
+        )
+    }
+    var selectedDayIndex by remember {
+        mutableIntStateOf(preferences.getInt(KEY_SELECTED_DAY_INDEX, 0).coerceAtLeast(0))
+    }
+    var selectedMonth by remember {
+        mutableIntStateOf(
+            preferences.getInt(
+                KEY_SELECTED_MONTH,
+                currentCalendar.get(Calendar.MONTH) + 1
+            ).coerceIn(1, 12)
+        )
+    }
+    var selectedYear by remember {
+        mutableIntStateOf(
+            preferences.getInt(
+                KEY_SELECTED_YEAR,
+                currentCalendar.get(Calendar.YEAR)
+            )
+        )
+    }
 
     val todayLabel = stringResource(R.string.day_today)
     val yesterdayLabel = stringResource(R.string.day_yesterday)
     val monthNamesShort = stringArrayResource(R.array.month_names_short).toList()
     val days = remember(todayLabel, yesterdayLabel) { getLastNDays(30, todayLabel, yesterdayLabel) }
+
+    LaunchedEffect(days.size) {
+        if (days.isNotEmpty()) {
+            selectedDayIndex = selectedDayIndex.coerceIn(0, days.lastIndex)
+        } else {
+            selectedDayIndex = 0
+        }
+    }
+
+    LaunchedEffect(periodType, selectedDayIndex, selectedMonth, selectedYear) {
+        preferences.edit()
+            .putString(KEY_PERIOD_TYPE, periodType.name)
+            .putInt(KEY_SELECTED_DAY_INDEX, selectedDayIndex)
+            .putInt(KEY_SELECTED_MONTH, selectedMonth)
+            .putInt(KEY_SELECTED_YEAR, selectedYear)
+            .apply()
+    }
+
     val selectedDayStart = days.getOrNull(selectedDayIndex)?.second ?: 0L
     val selectedDayEnd = if (selectedDayStart > 0) getEndOfDay(selectedDayStart) else 0L
 
@@ -713,6 +771,31 @@ private fun AttractiveBarChart(
             color = android.graphics.Color.DKGRAY
         }
     }
+    val shouldPlayIntroAnimation = remember(data) { !hasPlayedDashboardBarDropAnimation && data.isNotEmpty() }
+    var barProgressTarget by remember(data) { mutableStateOf(if (shouldPlayIntroAnimation) 0f else 1f) }
+    val barAnimationDurations = remember(data) {
+        val seed = data.fold(17L) { acc, group ->
+            val incomePart = (group.income * 100).roundToInt().toLong()
+            val expensePart = (group.expense * 100).roundToInt().toLong()
+            acc * 31 + group.label.hashCode() + incomePart + expensePart
+        }
+        val random = Random(seed)
+        List(data.size * 2) { random.nextInt(from = 650, until = 1550) }
+    }
+    val barProgressValues = barAnimationDurations.mapIndexed { index, durationMillis ->
+        animateFloatAsState(
+            targetValue = barProgressTarget,
+            animationSpec = tween(durationMillis = durationMillis),
+            label = "dashboard_bar_drop_progress_$index"
+        ).value
+    }
+
+    LaunchedEffect(data) {
+        if (shouldPlayIntroAnimation) {
+            hasPlayedDashboardBarDropAnimation = true
+            barProgressTarget = 1f
+        }
+    }
 
     Column(modifier = modifier) {
         Canvas(
@@ -770,8 +853,22 @@ private fun AttractiveBarChart(
 
             data.forEachIndexed { index, group ->
                 val groupLeft = leftPadding + index * groupWidth
-                val ingHeight = (group.income.toFloat() / maxHeight).coerceIn(0f, 1f) * chartHeight
-                val gasHeight = (group.expense.toFloat() / maxHeight).coerceIn(0f, 1f) * chartHeight
+                val targetIncomeHeight =
+                    ((group.income.toFloat() / maxHeight).coerceIn(0f, 1f) * chartHeight).coerceAtLeast(4f)
+                val targetExpenseHeight =
+                    ((group.expense.toFloat() / maxHeight).coerceIn(0f, 1f) * chartHeight).coerceAtLeast(4f)
+                val incomeProgress = barProgressValues.getOrElse(index * 2) { 1f }
+                val expenseProgress = barProgressValues.getOrElse(index * 2 + 1) { 1f }
+                val ingHeight = if (shouldPlayIntroAnimation) {
+                    chartHeight + (targetIncomeHeight - chartHeight) * incomeProgress
+                } else {
+                    targetIncomeHeight
+                }
+                val gasHeight = if (shouldPlayIntroAnimation) {
+                    chartHeight + (targetExpenseHeight - chartHeight) * expenseProgress
+                } else {
+                    targetExpenseHeight
+                }
 
                 val bar1Left = groupLeft + barGap
                 val bar2Left = groupLeft + barGap + barWidth + barGap
@@ -779,13 +876,13 @@ private fun AttractiveBarChart(
                 drawRoundRect(
                     color = colorIncome,
                     topLeft = Offset(bar1Left, chartHeight - ingHeight),
-                    size = Size(barWidth, ingHeight.coerceAtLeast(4f)),
+                    size = Size(barWidth, ingHeight),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius)
                 )
                 drawRoundRect(
                     color = colorExpense,
                     topLeft = Offset(bar2Left, chartHeight - gasHeight),
-                    size = Size(barWidth, gasHeight.coerceAtLeast(4f)),
+                    size = Size(barWidth, gasHeight),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerRadius)
                 )
 
