@@ -43,8 +43,8 @@ android {
         applicationId = "com.virtualworld.easyexpensecontrol"
         minSdk = 24
         targetSdk = 35
-        versionCode = 100200001
-        versionName = "1.2.1"
+        versionCode = 100200200
+        versionName = "1.2.2"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
 
@@ -149,6 +149,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-config")
 
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")

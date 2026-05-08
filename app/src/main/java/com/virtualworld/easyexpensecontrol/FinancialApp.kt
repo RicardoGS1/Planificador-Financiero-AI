@@ -8,6 +8,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.virtualworld.easyexpensecontrol.ads.AppOpenAdManager
+import com.virtualworld.easyexpensecontrol.ads.RemoteConfigManager
 import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
 import com.virtualworld.easyexpensecontrol.di.appModule
 import org.koin.android.ext.koin.androidContext
@@ -48,6 +49,11 @@ class FinancialApp : Application() {
             androidContext(this@FinancialApp)
             modules(appModule)
         }
+
+        // Remote Config se inicializa en cuanto arranca la app para que el flag
+        // `app_open_ad_enabled` esté disponible antes de que se cargue el primer
+        // App Open Ad. No depende del consentimiento UMP.
+        RemoteConfigManager.initialize()
 
         // MobileAds.initialize NO se llama aquí: hay que esperar al consentimiento
         // (UMP) que se solicita desde MainActivity. Una vez resuelto, MainActivity

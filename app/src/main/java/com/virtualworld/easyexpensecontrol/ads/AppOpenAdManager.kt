@@ -89,6 +89,10 @@ class AppOpenAdManager(
 
     private fun loadAd() {
         if (isLoadingAd || isAdAvailable()) return
+        if (!RemoteConfigManager.isAppOpenAdEnabled()) {
+            Log.d(TAG, "App open ad disabled by Remote Config; skipping load")
+            return
+        }
         isLoadingAd = true
         appOpenAd = null
         val adUnitId = if (BuildConfig.DEBUG) {
@@ -125,6 +129,12 @@ class AppOpenAdManager(
         if (isShowingAd) return
         if (System.currentTimeMillis() < suppressUntilMs) {
             suppressUntilMs = 0
+            return
+        }
+        if (!RemoteConfigManager.isAppOpenAdEnabled()) {
+            Log.d(TAG, "App open ad disabled by Remote Config; skipping show")
+            pendingShowWhenLoaded = false
+            appOpenAd = null
             return
         }
         if (!isAdAvailable()) {

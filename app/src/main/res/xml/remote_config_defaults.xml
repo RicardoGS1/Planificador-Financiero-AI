@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Valores por defecto de Firebase Remote Config.
+    Se usan cuando aún no se ha hecho fetch (p. ej. primer arranque sin red)
+    o si el fetch falla.
+
+    Claves disponibles:
+      - app_open_ad_enabled: boolean. Si es false, AppOpenAdManager NO cargará ni
+        mostrará anuncios App Open. Permite desactivar el formato de forma remota
+        (sin actualizar la app) ante problemas de inventario, política o UX.
+-->
+<defaultsMap>
+    <entry>
+        <key>app_open_ad_enabled</key>
+        <value>true</value>
+    </entry>
+</defaultsMap>
