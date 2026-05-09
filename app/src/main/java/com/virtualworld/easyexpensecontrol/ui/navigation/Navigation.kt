@@ -1,6 +1,8 @@
 package com.virtualworld.easyexpensecontrol.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -20,6 +22,7 @@ import com.virtualworld.easyexpensecontrol.ui.screens.SplashScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.StaticsScreen
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
+import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -31,6 +34,11 @@ fun Navigation(
     navController: NavHostController,
     onPlaySound: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        InterstitialAdHelper.preload(context)
+    }
+
     SetStatusBarColor(
         statusBarColor = colorResource(R.color.app_bar_color),
         navigationBarColor = colorResource(R.color.bold_from_palette)

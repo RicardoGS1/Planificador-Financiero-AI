@@ -71,7 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import com.virtualworld.easyexpensecontrol.ads.CameraInterstitialAdHelper
+import com.virtualworld.easyexpensecontrol.ads.CameraRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
@@ -167,10 +167,8 @@ fun AddEditDetailTransactionView(
 
     val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
 
-    // Precargar el intersticial al entrar en añadir transacción, para que al pulsar
-    // "Tomar foto" o "Grabar audio" no haya latencia de red.
     LaunchedEffect(transactionViewModel.transactionTypeState) {
-            CameraInterstitialAdHelper.preload(context)
+            CameraRewardedAdHelper.preload(context)
     }
 
     LaunchedEffect(receiptState) {
@@ -287,7 +285,7 @@ fun AddEditDetailTransactionView(
                     val onCameraClick: () -> Unit = onCameraClick@{
                         if (isAnalyzingReceipt || isRecordingAudio) return@onCameraClick
                         val activity = context as? Activity ?: return@onCameraClick
-                        CameraInterstitialAdHelper.showThenContinue(activity) {
+                        CameraRewardedAdHelper.showThenContinue(activity) {
                             val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
                             val uri = FileProvider.getUriForFile(
                                 context,
@@ -312,7 +310,7 @@ fun AddEditDetailTransactionView(
                             stopRecordingAndAnalyze()
                         } else {
                             val activity = context as? Activity ?: return@onMicClick
-                            CameraInterstitialAdHelper.showThenContinue(activity) {
+                            CameraRewardedAdHelper.showThenContinue(activity) {
                                 if (ContextCompat.checkSelfPermission(
                                         context,
                                         Manifest.permission.RECORD_AUDIO

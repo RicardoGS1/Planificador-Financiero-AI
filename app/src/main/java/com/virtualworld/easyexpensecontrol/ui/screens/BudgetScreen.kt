@@ -50,6 +50,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +62,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -69,6 +71,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.data.local.BudgetListVisibilityRepository
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
@@ -94,6 +97,12 @@ fun BudgetScreen(
     categoryViewModel: CategoryViewModel,
     transactionViewModel: TransactionViewModel
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val activity = context as? Activity ?: return@LaunchedEffect
+        InterstitialAdHelper.show(activity)
+    }
+
     val currentCalendar = Calendar.getInstance()
     val currentMonth = (currentCalendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
     val currentYear = currentCalendar.get(Calendar.YEAR)
