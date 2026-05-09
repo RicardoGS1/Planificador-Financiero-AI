@@ -34,6 +34,7 @@ object InterstitialAdHelper {
     private var lastShownAtMs = 0L
 
     fun preload(context: Context) {
+        if (!RemoteConfigManager.isInterstitialAdEnabled()) return
         if (loadedAd != null || isLoading) return
         isLoading = true
         InterstitialAd.load(
@@ -57,6 +58,11 @@ object InterstitialAdHelper {
     }
 
     fun show(activity: Activity, onDone: () -> Unit = {}) {
+        if (!RemoteConfigManager.isInterstitialAdEnabled()) {
+            onDone()
+            return
+        }
+
         AppOpenAdManager.suppressNextAppOpen()
 
         val now = System.currentTimeMillis()

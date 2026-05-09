@@ -6,12 +6,25 @@
 
     Claves disponibles:
       - app_open_ad_enabled: boolean. Si es false, AppOpenAdManager NO cargará ni
-        mostrará anuncios App Open. Permite desactivar el formato de forma remota
-        (sin actualizar la app) ante problemas de inventario, política o UX.
+        mostrará anuncios App Open.
+      - interstitial_ad_enabled: boolean. Si es false, InterstitialAdHelper NO
+        precargará ni mostrará intersticiales.
+      - rewarded_ad_enabled: boolean. Si es false, CameraRewardedAdHelper NO
+        precargará ni mostrará anuncios rewarded.
+      Permite desactivar cada formato de forma remota (sin actualizar la app)
+      ante problemas de inventario, política o UX.
 -->
 <defaultsMap>
     <entry>
         <key>app_open_ad_enabled</key>
+        <value>true</value>
+    </entry>
+    <entry>
+        <key>interstitial_ad_enabled</key>
+        <value>true</value>
+    </entry>
+    <entry>
+        <key>rewarded_ad_enabled</key>
         <value>true</value>
     </entry>
 </defaultsMap>

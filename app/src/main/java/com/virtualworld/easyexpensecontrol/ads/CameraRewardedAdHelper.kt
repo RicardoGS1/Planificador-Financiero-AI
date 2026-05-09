@@ -35,6 +35,7 @@ object CameraRewardedAdHelper {
     private var lastShownAtMs = 0L
 
     fun preload(context: Context) {
+        if (!RemoteConfigManager.isRewardedAdEnabled()) return
         if (preloadedAd != null || isLoading) return
         isLoading = true
         RewardedAd.load(
@@ -58,6 +59,11 @@ object CameraRewardedAdHelper {
     }
 
     fun showThenContinue(activity: Activity, onContinue: () -> Unit) {
+        if (!RemoteConfigManager.isRewardedAdEnabled()) {
+            onContinue()
+            return
+        }
+
         AppOpenAdManager.suppressNextAppOpen()
 
         val now = System.currentTimeMillis()

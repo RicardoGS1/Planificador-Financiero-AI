@@ -17,13 +17,16 @@ import com.virtualworld.easyexpensecontrol.R
  *
  * Claves expuestas:
  *  - [KEY_APP_OPEN_AD_ENABLED]: activa/desactiva el App Open Ad de forma remota.
+ *  - [KEY_INTERSTITIAL_AD_ENABLED]: activa/desactiva el intersticial de forma remota.
+ *  - [KEY_REWARDED_AD_ENABLED]: activa/desactiva el rewarded ad de forma remota.
  */
 object RemoteConfigManager {
 
     private const val TAG = "RemoteConfigManager"
 
-    /** Clave en Firebase Remote Config para activar/desactivar el App Open Ad. */
     const val KEY_APP_OPEN_AD_ENABLED = "app_open_ad_enabled"
+    const val KEY_INTERSTITIAL_AD_ENABLED = "interstitial_ad_enabled"
+    const val KEY_REWARDED_AD_ENABLED = "rewarded_ad_enabled"
 
     /**
      * En DEBUG refrescamos cada vez (0s) para poder probar cambios al instante.
@@ -61,16 +64,18 @@ object RemoteConfigManager {
             }
     }
 
-    /**
-     * @return true si el App Open Ad está habilitado remotamente. Si Remote Config aún
-     * no se ha inicializado o no hay valor cacheado, devuelve el default `true`.
-     */
-    fun isAppOpenAdEnabled(): Boolean {
+    fun isAppOpenAdEnabled(): Boolean = getBoolean(KEY_APP_OPEN_AD_ENABLED)
+
+    fun isInterstitialAdEnabled(): Boolean = getBoolean(KEY_INTERSTITIAL_AD_ENABLED)
+
+    fun isRewardedAdEnabled(): Boolean = getBoolean(KEY_REWARDED_AD_ENABLED)
+
+    private fun getBoolean(key: String, default: Boolean = true): Boolean {
         return try {
-            Firebase.remoteConfig.getBoolean(KEY_APP_OPEN_AD_ENABLED)
+            Firebase.remoteConfig.getBoolean(key)
         } catch (t: Throwable) {
-            Log.w(TAG, "Error leyendo $KEY_APP_OPEN_AD_ENABLED, usando default true", t)
-            true
+            Log.w(TAG, "Error leyendo $key, usando default $default", t)
+            default
         }
     }
 }
