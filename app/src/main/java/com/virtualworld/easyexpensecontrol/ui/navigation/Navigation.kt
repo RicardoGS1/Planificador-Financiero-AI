@@ -16,6 +16,7 @@ import com.virtualworld.easyexpensecontrol.ui.screens.BudgetHistoryScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.DashboardScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.HistoryScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.SettingsScreen
+import com.virtualworld.easyexpensecontrol.ui.screens.SplashScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.StaticsScreen
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
@@ -37,8 +38,11 @@ fun Navigation(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.DashboardScreen.route
+        startDestination = Screen.SplashScreen.route
     ) {
+        composable(route = Screen.SplashScreen.route) {
+            SplashScreen(navController = navController)
+        }
         composable(route = Screen.DashboardScreen.route) {
             DashboardScreen(navController, transactionViewModel, categoryViewModel)
         }

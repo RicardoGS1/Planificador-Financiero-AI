@@ -3,6 +3,8 @@ package com.virtualworld.easyexpensecontrol
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
@@ -20,6 +22,8 @@ class FinancialApp : Application() {
 
     private var appOpenAdManager: AppOpenAdManager? = null
     private val mobileAdsInitialized = AtomicBoolean(false)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val pendingManagerCallbacks = mutableListOf<(AppOpenAdManager) -> Unit>()
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(LocaleHelper.applySavedLocale(base))
@@ -74,7 +78,32 @@ class FinancialApp : Application() {
         if (!mobileAdsInitialized.compareAndSet(false, true)) return
         MobileAds.initialize(this) { initializationStatus ->
             Log.d(TAG, "AdMob SDK initialized: $initializationStatus")
-            appOpenAdManager = AppOpenAdManager(this, activityRef?.get())
+            val manager = AppOpenAdManager(this, activityRef?.get())
+            appOpenAdManager = manager
+            synchronized(pendingManagerCallbacks) {
+                pendingManagerCallbacks.forEach { cb -> mainHandler.post { cb(manager) } }
+                pendingManagerCallbacks.clear()
+            }
+        }
+    }
+
+    /**
+     * Ejecuta [callback] en cuanto el [AppOpenAdManager] esté creado.
+     * Si ya existe, se invoca de inmediato en el hilo principal.
+     */
+    fun runWhenAppOpenAdManagerReady(callback: (AppOpenAdManager) -> Unit) {
+        val manager = appOpenAdManager
+        if (manager != null) {
+            mainHandler.post { callback(manager) }
+            return
+        }
+        synchronized(pendingManagerCallbacks) {
+            val managerAgain = appOpenAdManager
+            if (managerAgain != null) {
+                mainHandler.post { callback(managerAgain) }
+            } else {
+                pendingManagerCallbacks.add(callback)
+            }
         }
     }
 

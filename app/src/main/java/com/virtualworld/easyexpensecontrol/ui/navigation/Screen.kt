@@ -1,6 +1,7 @@
 package com.virtualworld.easyexpensecontrol.ui.navigation
 
 sealed class Screen(val route: String) {
+    data object SplashScreen : Screen("splash")
     data object DashboardScreen : Screen("dashboard")
     data object HistoryScreen : Screen("history")
     data object AddEditTransactionScreen : Screen("add")

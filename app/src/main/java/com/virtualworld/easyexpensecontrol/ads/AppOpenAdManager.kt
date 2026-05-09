@@ -52,6 +52,16 @@ class AppOpenAdManager(
     @Volatile
     private var suppressUntilMs: Long = 0
 
+    /**
+     * Mientras sea `true`, [ProcessLifecycleOwner] NO mostrará el App Open automáticamente.
+     * El SplashScreen controla la primera muestra a través de [showStartupAdIfAvailable].
+     */
+    @Volatile
+    private var startupHandledBySplash = true
+
+    /** Callback del SplashScreen pendiente de ser invocado cuando el ad cargue (o falle). */
+    private var startupOnDone: (() -> Unit)? = null
+
     init {
         instance = this
         // Capturamos la Activity en primer plano en cold start para que el observer de
@@ -61,6 +71,7 @@ class AppOpenAdManager(
         application.registerActivityLifecycleCallbacks(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
+                if (startupHandledBySplash) return
                 val now = System.currentTimeMillis()
                 if (now - lastDismissTimeMs < DISMISS_COOLDOWN_MS) return
                 if (now < suppressUntilMs) {
@@ -110,6 +121,15 @@ class AppOpenAdManager(
                     isLoadingAd = false
                     appOpenAd = ad
                     loadTime = Date().time
+
+                    val onDone = startupOnDone
+                    if (onDone != null) {
+                        startupOnDone = null
+                        currentActivity?.let { showStartupAd(it, onDone) }
+                            ?: run { finishStartup(onDone) }
+                        return
+                    }
+
                     if (pendingShowWhenLoaded) {
                         pendingShowWhenLoaded = false
                         currentActivity?.let { showAdIfAvailable(it) }
@@ -120,6 +140,12 @@ class AppOpenAdManager(
                     Log.e(TAG, "App open ad failed to load: code=${loadAdError.code}, message=${loadAdError.message}, domain=${loadAdError.domain}")
                     isLoadingAd = false
                     pendingShowWhenLoaded = false
+
+                    val onDone = startupOnDone
+                    if (onDone != null) {
+                        startupOnDone = null
+                        finishStartup(onDone)
+                    }
                 }
             }
         )
@@ -171,6 +197,74 @@ class AppOpenAdManager(
         }
         isShowingAd = true
         ad.show(activity)
+    }
+
+    /**
+     * Llamado desde el SplashScreen. Muestra el App Open Ad si está disponible (o espera a que
+     * cargue). Invoca [onDone] una sola vez cuando el ad se cierra, falla o no hay ad disponible.
+     */
+    fun showStartupAdIfAvailable(activity: Activity, onDone: () -> Unit) {
+        if (!RemoteConfigManager.isAppOpenAdEnabled()) {
+            finishStartup(onDone)
+            return
+        }
+        if (isAdAvailable()) {
+            showStartupAd(activity, onDone)
+        } else if (isLoadingAd) {
+            startupOnDone = onDone
+        } else {
+            startupOnDone = onDone
+            loadAd()
+        }
+    }
+
+    private fun showStartupAd(activity: Activity, onDone: () -> Unit) {
+        if (isShowingAd || activity.isFinishing || activity.isDestroyed) {
+            finishStartup(onDone)
+            return
+        }
+        val ad = appOpenAd ?: run { finishStartup(onDone); return }
+
+        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                lastDismissTimeMs = System.currentTimeMillis()
+                appOpenAd?.fullScreenContentCallback = null
+                appOpenAd = null
+                isShowingAd = false
+                loadAd()
+                finishStartup(onDone)
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                Log.e(TAG, "Startup app open ad failed to show: code=${adError.code}, message=${adError.message}")
+                lastDismissTimeMs = System.currentTimeMillis()
+                appOpenAd?.fullScreenContentCallback = null
+                appOpenAd = null
+                isShowingAd = false
+                loadAd()
+                finishStartup(onDone)
+            }
+
+            override fun onAdShowedFullScreenContent() {
+                Log.d(TAG, "Startup app open ad shown")
+            }
+        }
+        isShowingAd = true
+        ad.show(activity)
+    }
+
+    private fun finishStartup(onDone: () -> Unit) {
+        startupHandledBySplash = false
+        startupOnDone = null
+        onDone()
+    }
+
+    /** Libera el bloqueo de startup sin mostrar ad (para timeout del SplashScreen). */
+    fun cancelStartup() {
+        startupHandledBySplash = false
+        val onDone = startupOnDone
+        startupOnDone = null
+        onDone?.invoke()
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
