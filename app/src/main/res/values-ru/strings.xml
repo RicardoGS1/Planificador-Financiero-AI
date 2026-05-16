@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">Нет данных. Добавьте операции, чтобы увидеть статистику.</string>
     <string name="period_day">День</string>
+    <string name="period_week">Неделя</string>
     <string name="period_month">Месяц</string>
     <string name="period_year">Год</string>
     <string name="select_day">Выберите день</string>
@@ -47,6 +48,12 @@
     <string name="chart_no_data_period">Нет данных за этот период</string>
     <string name="label_income">Доходы</string>
     <string name="label_expense">Расходы</string>
+    <string name="chart_subtitle_categories">Расходы по категориям</string>
+    <string name="chart_subtitle_income_categories">Доходы по категориям</string>
+    <string name="chart_categories_breakdown">Распределение по категориям</string>
+    <string name="chart_no_expenses_period">Нет расходов за этот период</string>
+    <string name="chart_no_income_period">Нет доходов за этот период</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">Нет категорий расходов. Создайте категории типа «расход», чтобы вести бюджет.</string>
     <string name="add_button">Добавить</string>
@@ -63,6 +70,13 @@
     <string name="budget_list_all_hidden_message">Ни одна категория не отображается. Нажмите кнопку списка, чтобы выбрать, какие категории показывать.</string>
 
     <string name="no_transactions">Нет доступных операций.</string>
+    <string name="sort_by_label">Сортировать по</string>
+    <string name="sort_by_date">Дата</string>
+    <string name="sort_by_amount">Сумма</string>
+    <string name="sort_by_type">Тип</string>
+    <string name="sort_by_category">Категория</string>
+    <string name="cd_sort_options">Параметры сортировки</string>
+    <string name="cd_sort_invert">Изменить порядок</string>
     <string name="delete_transaction_title">Удалить эту операцию?</string>
     <string name="delete_transaction_message">Это навсегда удалит операцию и все связанные данные из приложения.</string>
     <string name="accept">Принять</string>
@@ -74,6 +88,11 @@
     <string name="transaction_type_income">Доход</string>
     <string name="transaction_type_expense">Расход</string>
     <string name="take_photo">Сделать фото</string>
+    <string name="record_audio">Записать аудио</string>
+    <string name="recording_in_progress">Идёт запись… нажмите, чтобы остановить</string>
+    <string name="cd_record_audio">Записать аудио, чтобы заполнить форму</string>
+    <string name="error_audio_record">Не удалось записать аудио</string>
+    <string name="audio_analyzed">Аудио проанализировано</string>
     <string name="analyzing">Анализ…</string>
     <string name="amount_label">Сумма</string>
     <string name="hint_amount">0.00</string>
@@ -117,6 +136,25 @@
     <string name="icon_picker_title">Выберите значок</string>
     <string name="cd_change_icon">Изменить значок</string>
     <string name="tap_icon_to_change">Нажмите на значок, чтобы изменить</string>
+
+    <string name="screen_settings">Настройки</string>
+    <string name="cd_open_settings">Открыть настройки</string>
+    <string name="settings_section_general">Общие</string>
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_subtitle">Выберите язык приложения</string>
+    <string name="settings_share">Поделиться приложением</string>
+    <string name="settings_share_subtitle">Порекомендуйте это приложение друзьям</string>
+    <string name="settings_rate_app">Оценить приложение</string>
+    <string name="settings_rate_app_subtitle">Оставьте отзыв в Google Play</string>
+    <string name="language_system">Системный по умолчанию</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">Контроль расходов с ИИ</string>
+    <string name="share_text">Возьмите финансы под контроль с приложением «Контроль расходов с ИИ». Скачать здесь: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Не удалось проанализировать чек</string>
     <string name="category_default_other">Прочее</string>

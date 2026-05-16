@@ -12,6 +12,7 @@ import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionByIdUseCase
@@ -35,10 +36,11 @@ class TransactionViewModel(
     private val saveTransactionUseCase: SaveTransactionUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val processReceiptUseCase: ProcessReceiptUseCase,
+    private val processAudioUseCase: ProcessAudioUseCase,
     private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
     private val appContext: Context
 ) : ViewModel() {
-    var transactionTypeState by mutableStateOf(TransactionType.Ingreso)
+    var transactionTypeState by mutableStateOf<TransactionType?>(null)
     var transactionAmountState by mutableDoubleStateOf(0.0)
     var transactionCategoryState by mutableLongStateOf(0L)
     var transactionDateState by mutableLongStateOf(0L)
@@ -47,7 +49,7 @@ class TransactionViewModel(
     private val _receiptProcessingState = MutableStateFlow<ReceiptProcessingState>(ReceiptProcessingState.Idle)
     val receiptProcessingState: StateFlow<ReceiptProcessingState> = _receiptProcessingState.asStateFlow()
 
-    fun onTransactionTypeChanged(newType: TransactionType) {
+    fun onTransactionTypeChanged(newType: TransactionType?) {
         transactionTypeState = newType
     }
 
@@ -79,32 +81,43 @@ class TransactionViewModel(
     fun processReceiptImage(imageBytes: ByteArray) {
         viewModelScope.launch(Dispatchers.IO) {
             _receiptProcessingState.value = ReceiptProcessingState.Loading
-            processReceiptUseCase(imageBytes)
-                .onSuccess { result ->
-                    val category = getCategoryByNameUseCase(result.suggestedCategoryName).firstOrNull()
-                    val categoryNameForUi = if (category != null) {
-                        withContext(Dispatchers.Main) {
-                            transactionAmountState = result.amount
-                            transactionDescriptionState = result.description
-                            transactionCategoryState = category.id
-                        }
-                        category.name
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            transactionAmountState = result.amount
-                            transactionDescriptionState = result.description
-                            transactionCategoryState = 0L
-                        }
-                        result.suggestedCategoryName
-                    }
-                    _receiptProcessingState.value = ReceiptProcessingState.Success(categoryNameForUi)
-                }
-                .onFailure { e ->
-                    _receiptProcessingState.value = ReceiptProcessingState.Error(
-                        e.message ?: appContext.getString(R.string.error_receipt_analysis)
-                    )
-                }
+            handleAnalysisResult(processReceiptUseCase(imageBytes))
         }
+    }
+
+    fun processAudio(audioBytes: ByteArray, type: TransactionType, mimeType: String = "audio/aac") {
+        viewModelScope.launch(Dispatchers.IO) {
+            _receiptProcessingState.value = ReceiptProcessingState.Loading
+            handleAnalysisResult(processAudioUseCase(audioBytes, type, mimeType))
+        }
+    }
+
+    private suspend fun handleAnalysisResult(result: Result<com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult>) {
+        result
+            .onSuccess { data ->
+                val category = getCategoryByNameUseCase(data.suggestedCategoryName).firstOrNull()
+                val categoryNameForUi = if (category != null) {
+                    withContext(Dispatchers.Main) {
+                        transactionAmountState = data.amount
+                        transactionDescriptionState = data.description
+                        transactionCategoryState = category.id
+                    }
+                    category.name
+                } else {
+                    withContext(Dispatchers.Main) {
+                        transactionAmountState = data.amount
+                        transactionDescriptionState = data.description
+                        transactionCategoryState = 0L
+                    }
+                    data.suggestedCategoryName
+                }
+                _receiptProcessingState.value = ReceiptProcessingState.Success(categoryNameForUi)
+            }
+            .onFailure { e ->
+                _receiptProcessingState.value = ReceiptProcessingState.Error(
+                    e.message ?: appContext.getString(R.string.error_receipt_analysis)
+                )
+            }
     }
 
     fun clearReceiptProcessingState() {
@@ -122,7 +135,7 @@ class TransactionViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             saveTransactionUseCase(
                 id = id,
-                type = transactionTypeState,
+                type = transactionTypeState ?: return@launch,
                 amount = transactionAmountState,
                 description = transactionDescriptionState.trim(),
                 categoryName = categoryName,

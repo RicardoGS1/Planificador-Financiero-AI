@@ -2,6 +2,7 @@ package com.virtualworld.easyexpensecontrol.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,45 +22,90 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.outlined.Settings
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.R
-import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDays
+import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDayPeriods
+import com.virtualworld.easyexpensecontrol.core.util.getLastThreeMonthPeriods
+import com.virtualworld.easyexpensecontrol.core.util.getLastThreeWeekPeriods
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
+import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import java.util.Locale
+import kotlin.random.Random
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+
+private enum class ChartPeriod { DAY, WEEK, MONTH }
 
 private const val MAX_ULTIMAS_ENTRADAS = 15
+private var hasAnimatedDashboardBarsInSession = false
+private var hasAnimatedBalanceInSession = false
 
 @Composable
 fun DashboardScreen(
     navController: NavHostController,
     transactionViewModel: TransactionViewModel,
     categoryViewModel: CategoryViewModel
+) {
+    val listaTransacciones by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
+    val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+
+    DashboardScreen(
+        navController = navController,
+        transactions = listaTransacciones,
+        categories = categories,
+        onSettingsClick = { navController.navigate(Screen.SettingsScreen.route) }
+    )
+}
+
+@Composable
+fun DashboardScreen(
+    navController: NavController,
+    transactions: List<Transaction>,
+    categories: List<Category>,
+    onSettingsClick: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier
@@ -68,12 +114,9 @@ fun DashboardScreen(
         bottomBar = { CurvedBottomBar(navController = navController) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        val listaTransacciones = transactionViewModel.getAllTransactions
-            .collectAsState(initial = emptyList()).value
-
         var income = 0.0
         var expenses = 0.0
-        listaTransacciones.forEach { t ->
+        transactions.forEach { t ->
             if (t.type == TransactionType.Ingreso) income += t.amount
             else if (t.type == TransactionType.Gasto) expenses += t.amount
         }
@@ -85,11 +128,31 @@ fun DashboardScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ScreenHeader(title = stringResource(R.string.screen_financial_planner), showBackArrow = false)
+            ScreenHeader(
+                title = stringResource(R.string.screen_financial_planner),
+                showBackArrow = false,
+                trailingContent = {
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.cd_open_settings),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+            )
             TotalBalanceSection(balance = balance)
             Spacer(modifier = Modifier.height(12.dp))
-            LastThreeDaysChart(
-                transactions = listaTransacciones,
+            PeriodChart(
+                transactions = transactions,
                 todayLabel = stringResource(R.string.day_today),
                 yesterdayLabel = stringResource(R.string.day_yesterday),
                 modifier = Modifier
@@ -108,8 +171,8 @@ fun DashboardScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             LatestTransactionsList(
-                transactions = listaTransacciones,
-                categoryViewModel = categoryViewModel,
+                transactions = transactions,
+                categories = categories,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -121,6 +184,22 @@ fun DashboardScreen(
 
 @Composable
 fun TotalBalanceSection(balance: Double) {
+    val animatedBalance = remember { Animatable(0f) }
+
+    LaunchedEffect(balance) {
+        if (!hasAnimatedBalanceInSession) {
+            val startValue = if (balance == 0.0) 1000f else 0f
+            animatedBalance.snapTo(startValue)
+            animatedBalance.animateTo(
+                targetValue = balance.toFloat(),
+                animationSpec = tween(durationMillis = 1000)
+            )
+            hasAnimatedBalanceInSession = true
+        } else {
+            animatedBalance.snapTo(balance.toFloat())
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -134,7 +213,7 @@ fun TotalBalanceSection(balance: Double) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "%.2f €".format(Locale.getDefault(), balance),
+            text = "%.2f €".format(Locale.getDefault(), animatedBalance.value),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold
@@ -143,25 +222,64 @@ fun TotalBalanceSection(balance: Double) {
 }
 
 @Composable
-fun LastThreeDaysChart(
+fun PeriodChart(
     transactions: List<Transaction>,
     todayLabel: String,
     yesterdayLabel: String,
     modifier: Modifier = Modifier
 ) {
-    val days = getLastThreeDays(todayLabel, yesterdayLabel)
-    val dayData = days.map { (label, dayStartMs) ->
-        val dayEndMs = dayStartMs + 86400000L
-        val ingresos = transactions
-            .filter { it.type == TransactionType.Ingreso && it.date >= dayStartMs && it.date < dayEndMs }
+    var selectedPeriod by remember { mutableStateOf(ChartPeriod.MONTH) }
+    val monthNamesShort = stringArrayResource(R.array.month_names_short)
+
+    val periods = when (selectedPeriod) {
+        ChartPeriod.DAY -> getLastThreeDayPeriods(todayLabel, yesterdayLabel)
+        ChartPeriod.WEEK -> getLastThreeWeekPeriods()
+        ChartPeriod.MONTH -> getLastThreeMonthPeriods(monthNamesShort)
+    }.reversed()
+
+    val periodData = periods.map { period ->
+        val income = transactions
+            .filter { it.type == TransactionType.Ingreso && it.date >= period.startMs && it.date < period.endMs }
             .sumOf { it.amount }
-        val gastos = transactions
-            .filter { it.type == TransactionType.Gasto && it.date >= dayStartMs && it.date < dayEndMs }
+        val expense = transactions
+            .filter { it.type == TransactionType.Gasto && it.date >= period.startMs && it.date < period.endMs }
             .sumOf { it.amount }
-        Triple(label, ingresos, gastos)
+        Triple(period.label, income, expense)
     }
-    val maxVal = dayData.flatMap { listOf(it.second, it.third) }.maxOrNull() ?: 1.0
+
+    val maxVal = periodData.flatMap { listOf(it.second, it.third) }.maxOrNull() ?: 1.0
     val maxHeight = maxVal.coerceAtLeast(1.0)
+    val barCount = periodData.size * 2
+    val barProgresses = remember { mutableStateListOf<Float>() }
+
+    LaunchedEffect(barCount) {
+        barProgresses.clear()
+        repeat(barCount) {
+            barProgresses.add(if (hasAnimatedDashboardBarsInSession) 1f else 0f)
+        }
+
+        if (!hasAnimatedDashboardBarsInSession) {
+            coroutineScope {
+                repeat(barCount) { barIndex ->
+                    launch {
+                        val animatable = Animatable(0f)
+                        val randomDuration = Random.nextInt(500, 1301)
+                        animatable.animateTo(
+                            targetValue = 1f,
+                            animationSpec = tween(durationMillis = randomDuration)
+                        ) {
+                            barProgresses[barIndex] = value
+                        }
+                    }
+                }
+            }
+            hasAnimatedDashboardBarsInSession = true
+        }
+    }
+
+    val dayLabel = stringResource(R.string.period_day)
+    val weekLabel = stringResource(R.string.period_week)
+    val monthLabel = stringResource(R.string.period_month)
 
     Card(
         modifier = modifier,
@@ -174,12 +292,29 @@ fun LastThreeDaysChart(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.last_3_days),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.label_income) + " / " + stringResource(R.string.label_expense),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                PeriodSelector(
+                    selected = selectedPeriod,
+                    onSelect = { selectedPeriod = it },
+                    dayLabel = dayLabel,
+                    weekLabel = weekLabel,
+                    monthLabel = monthLabel
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Canvas(
                 modifier = Modifier
@@ -192,23 +327,27 @@ fun LastThreeDaysChart(
                 val chartHeight = size.height - bottomPadding
                 val gap = barWidth * 0.2f
 
-                dayData.forEachIndexed { index, (_, ing, gas) ->
+                periodData.forEachIndexed { index, (_, ing, gas) ->
                     val groupLeft = index * barGroupWidth
                     val ingHeight = (ing / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
                     val gasHeight = (gas / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
+                    val ingProgress = barProgresses.getOrNull(index * 2) ?: 1f
+                    val gasProgress = barProgresses.getOrNull(index * 2 + 1) ?: 1f
+                    val animatedIngHeight = ingHeight + (chartHeight - ingHeight) * (1f - ingProgress)
+                    val animatedGasHeight = gasHeight + (chartHeight - gasHeight) * (1f - gasProgress)
 
                     val bar1Left = groupLeft + gap
                     val bar2Left = groupLeft + barWidth + gap * 2
 
                     drawRect(
                         color = Color(0xFF4CAF50),
-                        topLeft = Offset(bar1Left, chartHeight - ingHeight),
-                        size = Size(barWidth - gap, ingHeight.coerceAtLeast(4f))
+                        topLeft = Offset(bar1Left, chartHeight - animatedIngHeight),
+                        size = Size(barWidth - gap, animatedIngHeight.coerceAtLeast(4f))
                     )
                     drawRect(
                         color = Color(0xFFE33936),
-                        topLeft = Offset(bar2Left, chartHeight - gasHeight),
-                        size = Size(barWidth - gap, gasHeight.coerceAtLeast(4f))
+                        topLeft = Offset(bar2Left, chartHeight - animatedGasHeight),
+                        size = Size(barWidth - gap, animatedGasHeight.coerceAtLeast(4f))
                     )
                 }
             }
@@ -216,9 +355,9 @@ fun LastThreeDaysChart(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                days.forEach { (label, _) ->
+                periods.forEach { period ->
                     Text(
-                        text = label,
+                        text = period.label,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
@@ -256,9 +395,61 @@ fun LastThreeDaysChart(
 }
 
 @Composable
+private fun PeriodSelector(
+    selected: ChartPeriod,
+    onSelect: (ChartPeriod) -> Unit,
+    dayLabel: String,
+    weekLabel: String,
+    monthLabel: String
+) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+            .padding(2.dp)
+    ) {
+        listOf(
+            ChartPeriod.DAY to dayLabel,
+            ChartPeriod.WEEK to weekLabel,
+            ChartPeriod.MONTH to monthLabel
+        ).forEach { (period, label) ->
+            val isSelected = period == selected
+            Text(
+                text = label,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else Color.Transparent
+                    )
+                    .clickable { onSelect(period) }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+        }
+    }
+}
+
+@Composable
 fun LatestTransactionsList(
     transactions: List<Transaction>,
     categoryViewModel: CategoryViewModel,
+    modifier: Modifier = Modifier
+) {
+    val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+    LatestTransactionsList(
+        transactions = transactions,
+        categories = categories,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun LatestTransactionsList(
+    transactions: List<Transaction>,
+    categories: List<Category>,
     modifier: Modifier = Modifier
 ) {
     val sorted = transactions.sortedByDescending { it.date }.take(MAX_ULTIMAS_ENTRADAS)
@@ -287,9 +478,11 @@ fun LatestTransactionsList(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 itemsIndexed(sorted, key = { _, t -> t.id }) { index, transaction ->
+                    val category = categories.find { it.id == transaction.category }
+                        ?: Category(0L, "", TransactionType.Ingreso)
                     LatestTransactionRow(
                         transaction = transaction,
-                        categoryViewModel = categoryViewModel
+                        category = category
                     )
                     if (index < sorted.size - 1) {
                         HorizontalDivider(
@@ -308,8 +501,19 @@ fun LatestTransactionRow(
     transaction: Transaction,
     categoryViewModel: CategoryViewModel
 ) {
-    val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
-    val category = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso)).value
+    val category by categoryViewModel.getCategoryById(transaction.category)
+        .collectAsState(initial = Category(0L, "", TransactionType.Ingreso))
+    LatestTransactionRow(
+        transaction = transaction,
+        category = category
+    )
+}
+
+@Composable
+fun LatestTransactionRow(
+    transaction: Transaction,
+    category: Category
+) {
     val isIngreso = transaction.type == TransactionType.Ingreso
     val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
     Row(
@@ -356,3 +560,100 @@ fun LatestTransactionRow(
         )
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardScreenPreview() {
+    val sampleCategories = listOf(
+        Category(1, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2, "Sueldo", TransactionType.Ingreso, "payments"),
+        Category(3, "Vivienda", TransactionType.Gasto, "home"),
+        Category(4, "Transporte", TransactionType.Gasto, "directions_bus"),
+        Category(5, "Ocio", TransactionType.Gasto, "movie")
+    )
+
+    val now = System.currentTimeMillis()
+    val dayMs = 24 * 60 * 60 * 1000L
+
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 2500.0, 2, now, "Sueldo Mensual"),
+        Transaction(2, TransactionType.Gasto, 45.50, 1, now, "Cena fuera"),
+        Transaction(3, TransactionType.Gasto, 800.0, 3, now - dayMs, "Alquiler"),
+        Transaction(4, TransactionType.Gasto, 20.0, 4, now - 2 * dayMs, "Bono Metro"),
+        Transaction(5, TransactionType.Gasto, 15.0, 5, now - 3 * dayMs, "Cine"),
+        Transaction(6, TransactionType.Gasto, 60.0, 1, now - 5 * dayMs, "Compra supermercado")
+    )
+
+    EasyExpenseControlTheme {
+        DashboardScreen(
+            navController = rememberNavController(),
+            transactions = sampleTransactions,
+            categories = sampleCategories,
+            onSettingsClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TotalBalanceSectionPreview() {
+    EasyExpenseControlTheme {
+        TotalBalanceSection(balance = 1250.75)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PeriodChartPreview() {
+    val now = System.currentTimeMillis()
+    val dayMs = 24 * 60 * 60 * 1000L
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 500.0, 1, now, "Income"),
+        Transaction(2, TransactionType.Gasto, 200.0, 2, now, "Expense"),
+        Transaction(3, TransactionType.Ingreso, 300.0, 1, now - 30 * dayMs, "Past Income"),
+        Transaction(4, TransactionType.Gasto, 150.0, 2, now - 30 * dayMs, "Past Expense")
+    )
+    EasyExpenseControlTheme {
+        PeriodChart(
+            transactions = sampleTransactions,
+            todayLabel = "Today",
+            yesterdayLabel = "Yesterday",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LatestTransactionsListPreview() {
+    val sampleCategories = listOf(
+        Category(1, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2, "Sueldo", TransactionType.Ingreso, "payments")
+    )
+    val now = System.currentTimeMillis()
+    val sampleTransactions = listOf(
+        Transaction(1, TransactionType.Ingreso, 2500.0, 2, now, "Sueldo Mensual"),
+        Transaction(2, TransactionType.Gasto, 45.50, 1, now, "Cena fuera")
+    )
+    EasyExpenseControlTheme {
+        LatestTransactionsList(
+            transactions = sampleTransactions,
+            categories = sampleCategories,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LatestTransactionRowPreview() {
+    val sampleCategory = Category(1, "Alimentos", TransactionType.Gasto, "restaurant")
+    val sampleTransaction = Transaction(2, TransactionType.Gasto, 45.50, 1, System.currentTimeMillis(), "Cena fuera")
+    EasyExpenseControlTheme {
+        LatestTransactionRow(
+            transaction = sampleTransaction,
+            category = sampleCategory
+        )
+    }
+}
+

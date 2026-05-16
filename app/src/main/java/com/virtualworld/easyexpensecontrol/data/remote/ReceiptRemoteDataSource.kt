@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiContent
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiGenerationConfig
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiInlineData
@@ -24,16 +25,17 @@ class ReceiptRemoteDataSource(
     private val appContext: Context
 ) {
 
-    private val fallbackCategories = "Supermercado, Transporte, Restaurante, Farmacia, Ocio, Gasolina, Hogar, Otros"
+    private val fallbackExpenseCategories = "Supermercado, Transporte, Restaurante, Farmacia, Ocio, Gasolina, Hogar, Otros"
+    private val fallbackIncomeCategories = "Salario, Freelance, Inversiones, Ventas, Reembolso, Regalo, Otros"
 
     private fun buildReceiptPrompt(categoryNames: List<String>): String {
         val categoryList = if (categoryNames.isNotEmpty()) {
             categoryNames.joinToString(", ")
         } else {
-            fallbackCategories
+            fallbackExpenseCategories
         }
         val categoryInstruction = if (categoryNames.isNotEmpty()) {
-            "DEBES elegir UNA de estas categorías exactamente: $categoryList. Si ninguna encaja bien, como segunda opción puedes usar: $fallbackCategories."
+            "DEBES elegir UNA de estas categorías exactamente: $categoryList. Si ninguna encaja bien, como segunda opción puedes usar: $fallbackExpenseCategories."
         } else {
             "DEBES elegir UNA de estas categorías exactamente: $categoryList."
         }
@@ -47,9 +49,49 @@ class ReceiptRemoteDataSource(
         """.trimIndent()
     }
 
+    private fun buildAudioPrompt(type: TransactionType, categoryNames: List<String>): String {
+        val typeLabelEs = if (type == TransactionType.Gasto) "gasto" else "ingreso"
+        val fallback = if (type == TransactionType.Gasto) fallbackExpenseCategories else fallbackIncomeCategories
+        val categoryList = if (categoryNames.isNotEmpty()) categoryNames.joinToString(", ") else fallback
+        val categoryInstruction = if (categoryNames.isNotEmpty()) {
+            "DEBES elegir UNA de estas categorías exactamente: $categoryList. Si ninguna encaja bien, como segunda opción puedes usar: $fallback."
+        } else {
+            "DEBES elegir UNA de estas categorías exactamente: $categoryList."
+        }
+        return """
+            Eres un asistente que escucha una nota de voz del usuario describiendo un $typeLabelEs.
+            El audio puede estar en cualquier idioma; entiende el contenido y extrae la información.
+            Responde en JSON válido con exactamente estos tres campos:
+            - "amount": número (importe del $typeLabelEs, usar punto como decimal).
+            - "description": string breve que describa el $typeLabelEs (máximo 50 caracteres).
+            - "categoryName": string con la categoría del $typeLabelEs. $categoryInstruction
+            Si no puedes determinar el importe, usa 0.0.
+            Si no puedes determinar una descripción, deja "description" como string vacío.
+            Responde solo con el JSON, sin markdown ni texto adicional.
+        """.trimIndent()
+    }
+
     suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String> = emptyList()): Result<ReceiptResultDto> {
+        val prompt = buildReceiptPrompt(categoryNames)
+        return sendInlineDataRequest(prompt, "image/jpeg", imageBase64)
+    }
+
+    suspend fun analyzeAudio(
+        audioBase64: String,
+        type: TransactionType,
+        categoryNames: List<String> = emptyList(),
+        mimeType: String = "audio/aac"
+    ): Result<ReceiptResultDto> {
+        val prompt = buildAudioPrompt(type, categoryNames)
+        return sendInlineDataRequest(prompt, mimeType, audioBase64)
+    }
+
+    private suspend fun sendInlineDataRequest(
+        prompt: String,
+        mimeType: String,
+        dataBase64: String
+    ): Result<ReceiptResultDto> {
         return try {
-            val prompt = buildReceiptPrompt(categoryNames)
             val request = GeminiRequest(
                 contents = listOf(
                     GeminiContent(
@@ -57,8 +99,8 @@ class ReceiptRemoteDataSource(
                             GeminiPart(text = prompt),
                             GeminiPart(
                                 inlineData = GeminiInlineData(
-                                    mimeType = "image/jpeg",
-                                    data = imageBase64
+                                    mimeType = mimeType,
+                                    data = dataBase64
                                 )
                             )
                         )

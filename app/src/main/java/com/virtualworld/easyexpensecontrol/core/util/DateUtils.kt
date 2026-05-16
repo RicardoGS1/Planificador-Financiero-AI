@@ -116,3 +116,59 @@ fun getEndOfYear(year: Int): Long {
     return cal.timeInMillis
 }
 
+data class ChartPeriodData(
+    val label: String,
+    val startMs: Long,
+    val endMs: Long
+)
+
+fun getLastThreeDayPeriods(todayLabel: String, yesterdayLabel: String): List<ChartPeriodData> {
+    val cal = Calendar.getInstance()
+    cal.set(Calendar.HOUR_OF_DAY, 0)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
+    return (0 until 3).map { i ->
+        val start = cal.timeInMillis
+        val label = when (i) {
+            0 -> todayLabel
+            1 -> yesterdayLabel
+            else -> formatter.format(Date(start))
+        }
+        cal.add(Calendar.DAY_OF_MONTH, -1)
+        ChartPeriodData(label, start, start + 86_400_000L)
+    }
+}
+
+fun getLastThreeWeekPeriods(): List<ChartPeriodData> {
+    val cal = Calendar.getInstance()
+    cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+    cal.set(Calendar.HOUR_OF_DAY, 0)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
+    return (0 until 3).map { _ ->
+        val weekStart = cal.timeInMillis
+        val weekEnd = weekStart + 7 * 86_400_000L
+        val lastDay = Calendar.getInstance().apply { timeInMillis = weekEnd - 86_400_000L }
+        val label = "${formatter.format(Date(weekStart))}-${formatter.format(lastDay.time)}"
+        cal.add(Calendar.WEEK_OF_YEAR, -1)
+        ChartPeriodData(label, weekStart, weekEnd)
+    }
+}
+
+fun getLastThreeMonthPeriods(monthNames: Array<String>): List<ChartPeriodData> {
+    val cal = Calendar.getInstance()
+    return (0 until 3).map { _ ->
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH)
+        val startMs = getStartOfMonth(year, month + 1)
+        val endMs = getEndOfMonth(year, month + 1) + 1
+        val label = monthNames[month]
+        cal.add(Calendar.MONTH, -1)
+        ChartPeriodData(label, startMs, endMs)
+    }
+}
+

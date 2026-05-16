@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,8 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
@@ -48,6 +51,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +61,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -66,13 +71,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import com.virtualworld.easyexpensecontrol.ads.CameraInterstitialAdHelper
+import com.virtualworld.easyexpensecontrol.ads.CameraRewardedAdHelper
+import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
+import com.virtualworld.easyexpensecontrol.ui.components.GeminiAnalysisLoadingOverlay
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
@@ -117,7 +124,53 @@ fun AddEditDetailTransactionView(
         }
     }
 
+    val audioRecorder = remember { AudioRecorder(context) }
+    var isRecordingAudio by remember { mutableStateOf(false) }
+    DisposableEffect(audioRecorder) {
+        onDispose { audioRecorder.cancel() }
+    }
+
+    fun startRecordingAudio() {
+        try {
+            audioRecorder.start()
+            isRecordingAudio = true
+        } catch (e: Exception) {
+            isRecordingAudio = false
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.error_audio_record))
+            }
+        }
+    }
+
+    fun stopRecordingAndAnalyze() {
+        val type = transactionViewModel.transactionTypeState
+        val bytes = audioRecorder.stopAndRead()
+        isRecordingAudio = false
+        if (type != null && bytes != null && bytes.isNotEmpty()) {
+            transactionViewModel.processAudio(bytes, type)
+        } else if (type == null) {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
+            }
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.error_audio_record))
+            }
+        }
+    }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) startRecordingAudio()
+    }
+
     val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
+
+    LaunchedEffect(transactionViewModel.transactionTypeState) {
+            CameraRewardedAdHelper.preload(context)
+    }
+
     LaunchedEffect(receiptState) {
         when (receiptState) {
             is ReceiptProcessingState.Success -> {
@@ -160,7 +213,7 @@ fun AddEditDetailTransactionView(
         // Solo inicializar estado al entrar en pantalla "añadir", no en cada recomposición,
         // para no sobrescribir los valores que rellenó el análisis del comprobante (Gemini).
         LaunchedEffect(id) {
-            transactionViewModel.transactionTypeState = TransactionType.Ingreso
+            transactionViewModel.transactionTypeState = null
             transactionViewModel.transactionAmountState = 0.0
             transactionViewModel.transactionDescriptionState = ""
             transactionViewModel.transactionCategoryState = 0L
@@ -191,10 +244,14 @@ fun AddEditDetailTransactionView(
             .padding(WindowInsets.systemBars.asPaddingValues()),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
-                .fillMaxWidth()
+                .fillMaxSize()
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -223,57 +280,93 @@ fun AddEditDetailTransactionView(
                     onTypeChanged = transactionViewModel::onTransactionTypeChanged
                 )
 
-                if (transactionViewModel.transactionTypeState == TransactionType.Gasto) {
+                if (transactionViewModel.transactionTypeState != null) {
                     val isAnalyzingReceipt = receiptState is ReceiptProcessingState.Loading
-                    FilledTonalButton(
-                        onClick = {
-                            if (!isAnalyzingReceipt) {
-                                val activity = context as? Activity ?: return@FilledTonalButton
-                                CameraInterstitialAdHelper.showThenContinue(activity) {
-                                    val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
-                                    val uri = FileProvider.getUriForFile(
+                    val onCameraClick: () -> Unit = onCameraClick@{
+                        if (isAnalyzingReceipt || isRecordingAudio) return@onCameraClick
+                        val activity = context as? Activity ?: return@onCameraClick
+                        CameraRewardedAdHelper.showThenContinue(activity) {
+                            val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                file
+                            )
+                            tempPhotoUri = uri
+                            if (ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CAMERA
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                takePictureLauncher.launch(uri)
+                            } else {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }
+                    }
+                    val onMicClick: () -> Unit = onMicClick@{
+                        if (isAnalyzingReceipt) return@onMicClick
+                        if (isRecordingAudio) {
+                            stopRecordingAndAnalyze()
+                        } else {
+                            val activity = context as? Activity ?: return@onMicClick
+                            CameraRewardedAdHelper.showThenContinue(activity) {
+                                if (ContextCompat.checkSelfPermission(
                                         context,
-                                        "${context.packageName}.fileprovider",
-                                        file
-                                    )
-                                    tempPhotoUri = uri
-                                    if (ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.CAMERA
-                                        ) == PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        takePictureLauncher.launch(uri)
-                                    } else {
-                                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                                    }
+                                        Manifest.permission.RECORD_AUDIO
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    startRecordingAudio()
+                                } else {
+                                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                 }
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        enabled = !isAnalyzingReceipt
-                    ) {
-                        if (isAnalyzingReceipt) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                        }
+                    }
+
+                    if (transactionViewModel.transactionTypeState == TransactionType.Gasto) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            CameraActionButton(
+                                modifier = Modifier.weight(1f),
+                                isAnalyzing = isAnalyzingReceipt,
+                                isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                onClick = onCameraClick
                             )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.CameraAlt,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
+                            MicActionButton(
+                                modifier = Modifier.weight(1f),
+                                isAnalyzing = isAnalyzingReceipt,
+                                isRecording = isRecordingAudio,
+                                isEnabled = !isAnalyzingReceipt,
+                                onClick = onMicClick
                             )
                         }
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = if (isAnalyzingReceipt) stringResource(R.string.analyzing)
-                            else stringResource(R.string.take_photo)
+                    } else {
+                        MicActionButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            isAnalyzing = isAnalyzingReceipt,
+                            isRecording = isRecordingAudio,
+                            isEnabled = !isAnalyzingReceipt,
+                            onClick = onMicClick
                         )
                     }
                 }
 
                 // Importe
+                var amountText by remember { mutableStateOf("") }
+                LaunchedEffect(transactionViewModel.transactionAmountState) {
+                    val modelAmount = transactionViewModel.transactionAmountState
+                    val textAmount = amountText.toDoubleOrNull() ?: 0.0
+                    if (modelAmount != textAmount) {
+                        amountText = if (modelAmount > 0) {
+                            if (modelAmount == modelAmount.toLong().toDouble())
+                                modelAmount.toLong().toString()
+                            else modelAmount.toString()
+                        } else ""
+                    }
+                }
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -289,12 +382,22 @@ fun AddEditDetailTransactionView(
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
                             label = stringResource(R.string.hint_amount),
-                            value = if (transactionViewModel.transactionAmountState > 0)
-                                transactionViewModel.transactionAmountState.toString() else "",
+                            value = amountText,
                             onValueChange = { value ->
-                                transactionViewModel.onTransactionAmountChanged(value.toDoubleOrNull() ?: 0.0)
+                                val normalized = value.replace(',', '.')
+                                val filtered = normalized.filter { it.isDigit() || it == '.' }
+                                val sanitized = run {
+                                    val firstDot = filtered.indexOf('.')
+                                    if (firstDot == -1) filtered
+                                    else filtered.substring(0, firstDot + 1) +
+                                        filtered.substring(firstDot + 1).replace(".", "")
+                                }
+                                amountText = sanitized
+                                transactionViewModel.onTransactionAmountChanged(
+                                    sanitized.toDoubleOrNull() ?: 0.0
+                                )
                             },
-                            keyboardType = KeyboardType.Number
+                            keyboardType = KeyboardType.Decimal
                         )
                     }
                 }
@@ -322,8 +425,11 @@ fun AddEditDetailTransactionView(
                 }
 
                 // Categoría: escribir nueva o elegir existente
-                val categoriesByType by categoryViewModel.getCategoriesByType(transactionViewModel.transactionTypeState)
-                    .collectAsState(initial = emptyList())
+                val currentType = transactionViewModel.transactionTypeState
+                val categoriesByType by (
+                    if (currentType != null) categoryViewModel.getCategoriesByType(currentType)
+                    else kotlinx.coroutines.flow.flowOf(emptyList())
+                ).collectAsState(initial = emptyList())
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -479,6 +585,11 @@ fun AddEditDetailTransactionView(
                 FilledTonalButton(
                     onClick = {
                         when {
+                            transactionViewModel.transactionTypeState == null -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
+                                }
+                            }
                             transactionViewModel.transactionAmountState <= 0 -> {
                                 scope.launch {
                                     snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
@@ -549,12 +660,17 @@ fun AddEditDetailTransactionView(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+
+            if (receiptState is ReceiptProcessingState.Loading) {
+                GeminiAnalysisLoadingOverlay()
+            }
+        }
     }
 }
 
 @Composable
 fun TransactionTypeSelector(
-    selectedType: TransactionType,
+    selectedType: TransactionType?,
     onTypeChanged: (TransactionType) -> Unit
 ) {
     Row(
@@ -649,8 +765,80 @@ private fun CategoryChip(
 
 @Composable
 fun TransactionTypeDropdown(
-    selectedType: TransactionType,
+    selectedType: TransactionType?,
     onTypeChanged: (TransactionType) -> Unit
 ) {
     TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)
+}
+
+@Composable
+private fun CameraActionButton(
+    modifier: Modifier = Modifier,
+    isAnalyzing: Boolean,
+    isEnabled: Boolean,
+    onClick: () -> Unit
+) {
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        enabled = isEnabled
+    ) {
+        Icon(
+            imageVector = Icons.Default.CameraAlt,
+            contentDescription = null,
+            modifier = Modifier
+                .size(22.dp)
+                .alpha(if (isAnalyzing) 0.5f else 1f)
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = if (isAnalyzing) stringResource(R.string.analyzing)
+            else stringResource(R.string.take_photo)
+        )
+    }
+}
+
+@Composable
+private fun MicActionButton(
+    modifier: Modifier = Modifier,
+    isAnalyzing: Boolean,
+    isRecording: Boolean,
+    isEnabled: Boolean,
+    onClick: () -> Unit
+) {
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        enabled = isEnabled
+    ) {
+        when {
+            isAnalyzing -> Icon(
+                imageVector = Icons.Default.Mic,
+                contentDescription = stringResource(R.string.cd_record_audio),
+                modifier = Modifier
+                    .size(22.dp)
+                    .alpha(0.5f)
+            )
+            isRecording -> Icon(
+                imageVector = Icons.Default.Stop,
+                contentDescription = stringResource(R.string.cd_record_audio),
+                modifier = Modifier.size(22.dp)
+            )
+            else -> Icon(
+                imageVector = Icons.Default.Mic,
+                contentDescription = stringResource(R.string.cd_record_audio),
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = when {
+                isAnalyzing -> stringResource(R.string.analyzing)
+                isRecording -> stringResource(R.string.recording_in_progress)
+                else -> stringResource(R.string.record_audio)
+            }
+        )
+    }
 }

@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">No hay datos. Añade transacciones para ver estadísticas.</string>
     <string name="period_day">Día</string>
+    <string name="period_week">Semana</string>
     <string name="period_month">Mes</string>
     <string name="period_year">Año</string>
     <string name="select_day">Selecciona el día</string>
@@ -47,6 +48,12 @@
     <string name="chart_no_data_period">Sin datos en este período</string>
     <string name="label_income">Ingresos</string>
     <string name="label_expense">Gastos</string>
+    <string name="chart_subtitle_categories">Gastos por categoría</string>
+    <string name="chart_subtitle_income_categories">Ingresos por categoría</string>
+    <string name="chart_categories_breakdown">Desglose por categoría</string>
+    <string name="chart_no_expenses_period">Sin gastos en este período</string>
+    <string name="chart_no_income_period">Sin ingresos en este período</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">No hay categorías de gasto disponibles. Crea categorías de tipo gasto para gestionar tu presupuesto.</string>
     <string name="add_button">Añadir</string>
@@ -61,8 +68,18 @@
     <string name="budget_list_visibility_show_all">Mostrar todas</string>
     <string name="cd_budget_list_visibility">Elegir qué categorías aparecen en la lista de presupuesto</string>
     <string name="budget_list_all_hidden_message">No se muestra ninguna categoría. Pulsa el botón de la lista para elegir cuáles quieres ver.</string>
+    <string name="budget_history_title">Presupuestos anteriores</string>
+    <string name="budget_history_empty_message">No se encontraron presupuestos anteriores al mes actual.</string>
+    <string name="cd_open_budget_history">Abrir lista de presupuestos anteriores</string>
 
     <string name="no_transactions">No hay transacciones disponibles.</string>
+    <string name="sort_by_label">Ordenar por</string>
+    <string name="sort_by_date">Fecha</string>
+    <string name="sort_by_amount">Importe</string>
+    <string name="sort_by_type">Tipo</string>
+    <string name="sort_by_category">Categoría</string>
+    <string name="cd_sort_options">Opciones de orden</string>
+    <string name="cd_sort_invert">Invertir orden</string>
     <string name="delete_transaction_title">¿Desea eliminar esta transacción?</string>
     <string name="delete_transaction_message">Esta acción eliminará permanentemente esta transacción y toda la información relacionada de la aplicación.</string>
     <string name="accept">Aceptar</string>
@@ -74,6 +91,11 @@
     <string name="transaction_type_income">Ingreso</string>
     <string name="transaction_type_expense">Gasto</string>
     <string name="take_photo">Tomar foto</string>
+    <string name="record_audio">Grabar audio</string>
+    <string name="recording_in_progress">Grabando… toca para detener</string>
+    <string name="cd_record_audio">Grabar audio para rellenar el formulario</string>
+    <string name="error_audio_record">No se pudo grabar el audio</string>
+    <string name="audio_analyzed">Audio analizado</string>
     <string name="analyzing">Analizando…</string>
     <string name="amount_label">Importe</string>
     <string name="hint_amount">0.00</string>
@@ -87,6 +109,7 @@
     <string name="cd_hide_calendar">Ocultar calendario</string>
     <string name="cd_change_date">Cambiar fecha</string>
     <string name="receipt_analyzed">Comprobante analizado</string>
+    <string name="err_type_required">Selecciona un tipo de transacción.</string>
     <string name="err_amount_gt_zero">El importe debe ser mayor que 0.</string>
     <string name="err_description_empty">La descripción no puede estar vacía.</string>
     <string name="err_category_empty">El campo de categoría no puede estar vacío.</string>
@@ -117,6 +140,25 @@
     <string name="icon_picker_title">Elige un icono</string>
     <string name="cd_change_icon">Cambiar icono</string>
     <string name="tap_icon_to_change">Toca el icono para cambiarlo</string>
+
+    <string name="screen_settings">Ajustes</string>
+    <string name="cd_open_settings">Abrir ajustes</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_about">Acerca de</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_subtitle">Elige el idioma de la app</string>
+    <string name="settings_share">Compartir app</string>
+    <string name="settings_share_subtitle">Recomienda esta app a tus amigos</string>
+    <string name="settings_rate_app">Valorar la app</string>
+    <string name="settings_rate_app_subtitle">Deja una reseña en Google Play</string>
+    <string name="language_system">Predeterminado del sistema</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">Control de gastos con IA</string>
+    <string name="share_text">Toma el control de tus finanzas con Control de gastos con IA. Descárgala aquí: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Error al analizar el comprobante</string>
     <string name="category_default_other">Otros</string>

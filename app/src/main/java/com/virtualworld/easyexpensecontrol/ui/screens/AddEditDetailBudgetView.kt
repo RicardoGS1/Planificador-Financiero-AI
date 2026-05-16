@@ -258,6 +258,18 @@ fun AddEditDetailBudgetView(
                 }
 
                 // Límite mensual
+                var monthlyLimitText by remember { mutableStateOf("") }
+                LaunchedEffect(budgetViewModel.budgetMonthlyLimitState) {
+                    val modelAmount = budgetViewModel.budgetMonthlyLimitState
+                    val textAmount = monthlyLimitText.toDoubleOrNull() ?: 0.0
+                    if (modelAmount != textAmount) {
+                        monthlyLimitText = if (modelAmount > 0) {
+                            if (modelAmount == modelAmount.toLong().toDouble())
+                                modelAmount.toLong().toString()
+                            else modelAmount.toString()
+                        } else ""
+                    }
+                }
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -273,12 +285,22 @@ fun AddEditDetailBudgetView(
                         Spacer(modifier = Modifier.height(8.dp))
                         AppTextField(
                             label = stringResource(R.string.hint_amount),
-                            value = if (budgetViewModel.budgetMonthlyLimitState > 0)
-                                budgetViewModel.budgetMonthlyLimitState.toString() else "",
+                            value = monthlyLimitText,
                             onValueChange = { value ->
-                                budgetViewModel.onBudgetMonthlyLimitChanged(value.toDoubleOrNull() ?: 0.0)
+                                val normalized = value.replace(',', '.')
+                                val filtered = normalized.filter { it.isDigit() || it == '.' }
+                                val sanitized = run {
+                                    val firstDot = filtered.indexOf('.')
+                                    if (firstDot == -1) filtered
+                                    else filtered.substring(0, firstDot + 1) +
+                                        filtered.substring(firstDot + 1).replace(".", "")
+                                }
+                                monthlyLimitText = sanitized
+                                budgetViewModel.onBudgetMonthlyLimitChanged(
+                                    sanitized.toDoubleOrNull() ?: 0.0
+                                )
                             },
-                            keyboardType = KeyboardType.Number
+                            keyboardType = KeyboardType.Decimal
                         )
                     }
                 }

@@ -28,6 +28,7 @@
 
     <string name="statistics_no_data">Noch keine Daten. Fügen Sie Transaktionen hinzu, um Statistiken zu sehen.</string>
     <string name="period_day">Tag</string>
+    <string name="period_week">Woche</string>
     <string name="period_month">Monat</string>
     <string name="period_year">Jahr</string>
     <string name="select_day">Tag auswählen</string>
@@ -47,6 +48,12 @@
     <string name="chart_no_data_period">Keine Daten für diesen Zeitraum</string>
     <string name="label_income">Einnahmen</string>
     <string name="label_expense">Ausgaben</string>
+    <string name="chart_subtitle_categories">Ausgaben nach Kategorie</string>
+    <string name="chart_subtitle_income_categories">Einnahmen nach Kategorie</string>
+    <string name="chart_categories_breakdown">Aufschlüsselung nach Kategorie</string>
+    <string name="chart_no_expenses_period">Keine Ausgaben in diesem Zeitraum</string>
+    <string name="chart_no_income_period">Keine Einnahmen in diesem Zeitraum</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">Keine Ausgabenkategorien vorhanden. Erstellen Sie Ausgaben-Kategorien, um Ihr Budget zu verwalten.</string>
     <string name="add_button">Hinzufügen</string>
@@ -63,6 +70,13 @@
     <string name="budget_list_all_hidden_message">Es werden keine Kategorien angezeigt. Tippe auf das Listen-Symbol, um auszuwählen, welche du sehen möchtest.</string>
 
     <string name="no_transactions">Keine Transaktionen vorhanden.</string>
+    <string name="sort_by_label">Sortieren nach</string>
+    <string name="sort_by_date">Datum</string>
+    <string name="sort_by_amount">Betrag</string>
+    <string name="sort_by_type">Typ</string>
+    <string name="sort_by_category">Kategorie</string>
+    <string name="cd_sort_options">Sortieroptionen</string>
+    <string name="cd_sort_invert">Reihenfolge umkehren</string>
     <string name="delete_transaction_title">Diese Transaktion löschen?</string>
     <string name="delete_transaction_message">Dies löscht die Transaktion und alle zugehörigen Daten dauerhaft aus der App.</string>
     <string name="accept">Akzeptieren</string>
@@ -74,6 +88,11 @@
     <string name="transaction_type_income">Einnahme</string>
     <string name="transaction_type_expense">Ausgabe</string>
     <string name="take_photo">Foto aufnehmen</string>
+    <string name="record_audio">Audio aufnehmen</string>
+    <string name="recording_in_progress">Aufnahme läuft… zum Stoppen tippen</string>
+    <string name="cd_record_audio">Audio aufnehmen, um das Formular auszufüllen</string>
+    <string name="error_audio_record">Audio konnte nicht aufgenommen werden</string>
+    <string name="audio_analyzed">Audio analysiert</string>
     <string name="analyzing">Wird analysiert…</string>
     <string name="amount_label">Betrag</string>
     <string name="hint_amount">0,00</string>
@@ -87,6 +106,7 @@
     <string name="cd_hide_calendar">Kalender ausblenden</string>
     <string name="cd_change_date">Datum ändern</string>
     <string name="receipt_analyzed">Beleg analysiert</string>
+    <string name="err_type_required">Bitte wählen Sie einen Transaktionstyp.</string>
     <string name="err_amount_gt_zero">Der Betrag muss größer als 0 sein.</string>
     <string name="err_description_empty">Die Beschreibung darf nicht leer sein.</string>
     <string name="err_category_empty">Die Kategorie darf nicht leer sein.</string>
@@ -117,6 +137,25 @@
     <string name="icon_picker_title">Symbol auswählen</string>
     <string name="cd_change_icon">Symbol ändern</string>
     <string name="tap_icon_to_change">Tippe auf das Symbol, um es zu ändern</string>
+
+    <string name="screen_settings">Einstellungen</string>
+    <string name="cd_open_settings">Einstellungen öffnen</string>
+    <string name="settings_section_general">Allgemein</string>
+    <string name="settings_section_about">Über</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_language_subtitle">Wähle die App-Sprache</string>
+    <string name="settings_share">App teilen</string>
+    <string name="settings_share_subtitle">Empfehle diese App deinen Freunden</string>
+    <string name="settings_rate_app">App bewerten</string>
+    <string name="settings_rate_app_subtitle">Hinterlasse eine Rezension bei Google Play</string>
+    <string name="language_system">Systemstandard</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">KI-gestützte Ausgabenkontrolle</string>
+    <string name="share_text">Behalte deine Finanzen mit KI-gestützter Ausgabenkontrolle im Griff. Hier herunterladen: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Beleg konnte nicht analysiert werden</string>
     <string name="category_default_other">Sonstiges</string>
