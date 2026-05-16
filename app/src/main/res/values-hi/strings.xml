@@ -48,6 +48,12 @@
     <string name="chart_no_data_period">इस अवधि के लिए कोई डेटा नहीं</string>
     <string name="label_income">आय</string>
     <string name="label_expense">खर्च</string>
+    <string name="chart_subtitle_categories">श्रेणी के अनुसार खर्च</string>
+    <string name="chart_subtitle_income_categories">श्रेणी के अनुसार आय</string>
+    <string name="chart_categories_breakdown">श्रेणी के अनुसार विवरण</string>
+    <string name="chart_no_expenses_period">इस अवधि में कोई खर्च नहीं</string>
+    <string name="chart_no_income_period">इस अवधि में कोई आय नहीं</string>
+    <string name="chart_category_amount_percent">%1$.2f € · %2$.0f%%</string>
 
     <string name="budget_no_categories_message">कोई व्यय श्रेणी उपलब्ध नहीं। अपना बजट प्रबंधित करने के लिए व्यय-प्रकार की श्रेणियाँ बनाएँ।</string>
     <string name="add_button">जोड़ें</string>
@@ -64,6 +70,13 @@
     <string name="budget_list_all_hidden_message">कोई श्रेणी नहीं दिख रही। सूची बटन दबाकर चुनें कि कौन सी श्रेणियाँ देखनी हैं।</string>
 
     <string name="no_transactions">कोई लेनदेन उपलब्ध नहीं।</string>
+    <string name="sort_by_label">इसके अनुसार क्रमित करें</string>
+    <string name="sort_by_date">तारीख</string>
+    <string name="sort_by_amount">राशि</string>
+    <string name="sort_by_type">प्रकार</string>
+    <string name="sort_by_category">श्रेणी</string>
+    <string name="cd_sort_options">क्रम विकल्प</string>
+    <string name="cd_sort_invert">क्रम उलटें</string>
     <string name="delete_transaction_title">इस लेनदेन को हटाएँ?</string>
     <string name="delete_transaction_message">यह इस लेनदेन और संबंधित सभी जानकारी को स्थायी रूप से हटा देगा।</string>
     <string name="accept">स्वीकार करें</string>
@@ -75,6 +88,11 @@
     <string name="transaction_type_income">आय</string>
     <string name="transaction_type_expense">खर्च</string>
     <string name="take_photo">फोटो लें</string>
+    <string name="record_audio">ऑडियो रिकॉर्ड करें</string>
+    <string name="recording_in_progress">रिकॉर्डिंग हो रही है… रोकने के लिए टैप करें</string>
+    <string name="cd_record_audio">फॉर्म भरने के लिए ऑडियो रिकॉर्ड करें</string>
+    <string name="error_audio_record">ऑडियो रिकॉर्ड नहीं किया जा सका</string>
+    <string name="audio_analyzed">ऑडियो का विश्लेषण हो गया</string>
     <string name="analyzing">विश्लेषण हो रहा है…</string>
     <string name="amount_label">राशि</string>
     <string name="hint_amount">0.00</string>
@@ -118,6 +136,25 @@
     <string name="icon_picker_title">आइकन चुनें</string>
     <string name="cd_change_icon">आइकन बदलें</string>
     <string name="tap_icon_to_change">बदलने के लिए आइकन पर टैप करें</string>
+
+    <string name="screen_settings">सेटिंग्स</string>
+    <string name="cd_open_settings">सेटिंग्स खोलें</string>
+    <string name="settings_section_general">सामान्य</string>
+    <string name="settings_section_about">के बारे में</string>
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_subtitle">ऐप की भाषा चुनें</string>
+    <string name="settings_share">ऐप साझा करें</string>
+    <string name="settings_share_subtitle">अपने दोस्तों को यह ऐप सुझाएँ</string>
+    <string name="settings_rate_app">ऐप को रेट करें</string>
+    <string name="settings_rate_app_subtitle">Google Play पर समीक्षा लिखें</string>
+    <string name="language_system">सिस्टम डिफ़ॉल्ट</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="share_subject">AI-संचालित खर्च नियंत्रण</string>
+    <string name="share_text">AI-संचालित खर्च नियंत्रण के साथ अपनी वित्तीय स्थिति पर काबू पाएँ। यहाँ डाउनलोड करें: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">रसीद का विश्लेषण नहीं हो सका</string>
     <string name="category_default_other">अन्य</string>

@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol.data.repository
 
+import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.data.remote.ReceiptRemoteDataSource
 import com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult
 import com.virtualworld.easyexpensecontrol.domain.repository.ReceiptAnalysisRepository
@@ -13,6 +14,21 @@ class ReceiptAnalysisRepositoryImpl(
 
     override suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String>): Result<ReceiptResult> {
         return remoteDataSource.analyzeReceipt(imageBase64, categoryNames).map { dto ->
+            ReceiptResult(
+                amount = dto.amount,
+                description = dto.description,
+                suggestedCategoryName = dto.categoryName
+            )
+        }
+    }
+
+    override suspend fun analyzeAudio(
+        audioBase64: String,
+        type: TransactionType,
+        categoryNames: List<String>,
+        mimeType: String
+    ): Result<ReceiptResult> {
+        return remoteDataSource.analyzeAudio(audioBase64, type, categoryNames, mimeType).map { dto ->
             ReceiptResult(
                 amount = dto.amount,
                 description = dto.description,

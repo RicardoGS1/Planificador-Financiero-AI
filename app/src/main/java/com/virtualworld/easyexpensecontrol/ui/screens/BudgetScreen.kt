@@ -1,5 +1,8 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.FilterList
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.AlertDialog
@@ -42,15 +46,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import android.app.Activity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -59,6 +71,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.data.local.BudgetListVisibilityRepository
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
@@ -73,6 +86,10 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.util.Calendar
 
+private object BudgetScreenAnimationSession {
+    var hasPlayedEntryAnimation: Boolean = false
+}
+
 @Composable
 fun BudgetScreen(
     navController: NavHostController,
@@ -80,6 +97,12 @@ fun BudgetScreen(
     categoryViewModel: CategoryViewModel,
     transactionViewModel: TransactionViewModel
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val activity = context as? Activity ?: return@LaunchedEffect
+        InterstitialAdHelper.show(activity)
+    }
+
     val currentCalendar = Calendar.getInstance()
     val currentMonth = (currentCalendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
     val currentYear = currentCalendar.get(Calendar.YEAR)
@@ -95,6 +118,24 @@ fun BudgetScreen(
     var showVisibilityDialog by remember { mutableStateOf(false) }
     var draftHiddenIds by remember { mutableStateOf(emptySet<Long>()) }
     val scope = rememberCoroutineScope()
+    var animationTarget by remember {
+        mutableFloatStateOf(
+            if (BudgetScreenAnimationSession.hasPlayedEntryAnimation) 1f else 0f
+        )
+    }
+    val entryAnimationProgress by animateFloatAsState(
+        targetValue = animationTarget,
+        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        label = "budget_entry_animation"
+    )
+
+    LaunchedEffect(Unit) {
+        if (!BudgetScreenAnimationSession.hasPlayedEntryAnimation) {
+            animationTarget = 1f
+            BudgetScreenAnimationSession.hasPlayedEntryAnimation = true
+        }
+    }
+
     val visibleExpenseCategories = remember(expenseCategories, hiddenCategoryIds) {
         expenseCategories.filter { it.id !in hiddenCategoryIds }
     }
@@ -135,17 +176,30 @@ fun BudgetScreen(
                         title = stringResource(R.string.screen_budget),
                         showBackArrow = false,
                         trailingContent = {
-                            IconButton(
-                                onClick = {
-                                    draftHiddenIds = hiddenCategoryIds
-                                    showVisibilityDialog = true
-                                }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.FilterList,
-                                    contentDescription = stringResource(R.string.cd_budget_list_visibility),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                                IconButton(
+                                    onClick = { navController.navigate(Screen.BudgetHistoryScreen.route) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DateRange,
+                                        contentDescription = stringResource(R.string.cd_open_budget_history),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        draftHiddenIds = hiddenCategoryIds
+                                        showVisibilityDialog = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.FilterList,
+                                        contentDescription = stringResource(R.string.cd_budget_list_visibility),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     )
@@ -175,6 +229,7 @@ fun BudgetScreen(
                             category = category,
                             budget = categoryBudget,
                             spent = spent,
+                            animationProgress = entryAnimationProgress,
                             onActionClick = {
                                 if (categoryBudget != null) {
                                     navController.navigate(Screen.AddEditBudgetScreen.route + "/${categoryBudget.id}")
@@ -295,19 +350,24 @@ fun ExpenseBudgetItem(
     category: Category,
     budget: Budget?,
     spent: Double,
-    onActionClick: () -> Unit
+    animationProgress: Float = 1f,
+    onActionClick: () -> Unit,
+    isActionEnabled: Boolean = true,
+    showActionButton: Boolean = true
 ) {
     val hasBudget = budget != null
     val limit = budget?.monthlyLimit ?: 0.0
-    val remaining = limit - spent
+    val safeProgress = animationProgress.coerceIn(0f, 1f)
+    val displayedSpent = if (hasBudget) spent * safeProgress else spent
+    val remaining = limit - displayedSpent
     val isOverBudget = hasBudget && remaining < 0
-    val spentFraction = if (hasBudget && limit > 0.0) (spent / limit).toFloat().coerceIn(0f, 1f) else 0f
+    val spentFraction = if (hasBudget && limit > 0.0) (displayedSpent / limit).toFloat().coerceIn(0f, 1f) else 0f
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable { onActionClick() },
+            .clickable(enabled = isActionEnabled) { onActionClick() },
         shape = BudgetCardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -347,24 +407,43 @@ fun ExpenseBudgetItem(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val remainingVisibleState = remember {
+                            MutableTransitionState(!isOverBudget)
+                        }
+                        LaunchedEffect(isOverBudget) {
+                            remainingVisibleState.targetState = !isOverBudget
+                        }
+                        val canShowAttention = isOverBudget &&
+                            !remainingVisibleState.currentState &&
+                            remainingVisibleState.isIdle
+
                         Text(
                             text = stringResource(
                                 R.string.budget_spent_limit,
-                                spent,
+                                displayedSpent,
                                 limit
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = if (isOverBudget) BudgetProgressRed else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        if (isOverBudget) {
+                        AnimatedVisibility(
+                            visible = canShowAttention,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
                             Text(
                                 text = stringResource(R.string.budget_attention),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = BudgetProgressRed
                             )
-                        } else {
+                        }
+                        AnimatedVisibility(
+                            visibleState = remainingVisibleState,
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
                             Text(
                                 text = stringResource(R.string.budget_remaining, remaining),
                                 style = MaterialTheme.typography.bodySmall,
@@ -373,24 +452,29 @@ fun ExpenseBudgetItem(
                         }
                     }
                     Spacer(Modifier.height(8.dp))
-                    BudgetSplitBar(spentFraction = spentFraction, isOverBudget = isOverBudget)
+                    BudgetSplitBar(
+                        spentFraction = spentFraction,
+                        isOverBudget = isOverBudget
+                    )
                 }
                 Spacer(Modifier.height(10.dp))
-                FilledTonalButton(
-                    onClick = onActionClick,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        if (hasBudget) stringResource(R.string.increase_budget)
-                        else stringResource(R.string.set_budget)
-                    )
+                if (showActionButton) {
+                    FilledTonalButton(
+                        onClick = onActionClick,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            if (hasBudget) stringResource(R.string.increase_budget)
+                            else stringResource(R.string.set_budget)
+                        )
+                    }
                 }
             }
         }
@@ -402,6 +486,7 @@ private fun BudgetSplitBar(
     spentFraction: Float,
     isOverBudget: Boolean
 ) {
+    val clampedSpentFraction = spentFraction.coerceIn(0f, 1f)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -412,6 +497,7 @@ private fun BudgetSplitBar(
         if (isOverBudget) {
             Box(
                 modifier = Modifier
+                    .fillMaxWidth(clampedSpentFraction)
                     .fillMaxSize()
                     .background(BudgetProgressRed)
             )
@@ -419,13 +505,13 @@ private fun BudgetSplitBar(
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(
                     modifier = Modifier
-                        .weight(spentFraction.coerceIn(0f, 1f).coerceAtLeast(0.0001f))
+                        .weight(clampedSpentFraction.coerceAtLeast(0.0001f))
                         .fillMaxSize()
                         .background(BudgetProgressRed)
                 )
                 Box(
                     modifier = Modifier
-                        .weight((1f - spentFraction).coerceIn(0f, 1f).coerceAtLeast(0.0001f))
+                        .weight((1f - clampedSpentFraction).coerceIn(0f, 1f).coerceAtLeast(0.0001f))
                         .fillMaxSize()
                         .background(BudgetProgressGreen)
                 )
