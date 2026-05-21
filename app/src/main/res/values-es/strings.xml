@@ -122,7 +122,7 @@
     <string name="transaction_prepared_continue">Transacción preparada. Puedes añadir otra.</string>
     <string name="all_detected_prepared">%1$d transacciones preparadas</string>
     <string name="prepared_transactions_session">Transacciones preparadas (%1$d)</string>
-    <string name="finish_and_save">Guardar y terminar (%1$d)</string>
+    <string name="finish_and_save">Añadir transacciones</string>
     <string name="session_saved">%1$d transacciones guardadas correctamente</string>
     <string name="all_detected_saved">Se guardaron %1$d transacciones</string>
     <string name="err_type_required">Selecciona un tipo de transacción.</string>
@@ -134,12 +134,12 @@
     <string name="success_operation">Operación completada con éxito</string>
     <string name="transaction_added_continue">Transacción añadida. Puedes añadir otra.</string>
     <string name="finish_adding">Terminar</string>
-    <string name="exit_without_saving_title">¿Salir sin guardar?</string>
-    <string name="exit_without_saving_message">Tienes %1$d transacciones preparadas. ¿Quieres guardarlas antes de salir?</string>
-    <string name="exit_without_saving_form_only_message">Tienes cambios sin guardar. ¿Quieres guardarlos antes de salir?</string>
+    <string name="exit_without_saving_title">¿Salir sin añadir?</string>
+    <string name="exit_without_saving_message">Tienes %1$d transacciones preparadas. ¿Quieres añadirlas antes de salir?</string>
+    <string name="exit_without_saving_form_only_message">Tienes cambios sin añadir. ¿Quieres añadirlos antes de salir?</string>
     <string name="exit_unsaved_form_hint">También tienes una transacción sin preparar en el formulario.</string>
-    <string name="save_and_exit">Guardar</string>
-    <string name="discard_without_saving">No guardar</string>
+    <string name="save_and_exit">Añadir</string>
+    <string name="discard_without_saving">No añadir</string>
     <string name="added_transactions_session">Transacciones añadidas (%1$d)</string>
     <string name="error_unknown">Error desconocido</string>
 

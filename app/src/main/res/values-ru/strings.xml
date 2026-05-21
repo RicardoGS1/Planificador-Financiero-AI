@@ -119,7 +119,7 @@
     <string name="transaction_prepared_continue">Операция подготовлена. Можно добавить ещё одну.</string>
     <string name="all_detected_prepared">%1$d операций подготовлено</string>
     <string name="prepared_transactions_session">Подготовленные операции (%1$d)</string>
-    <string name="finish_and_save">Сохранить и завершить (%1$d)</string>
+    <string name="finish_and_save">Добавить операции</string>
     <string name="session_saved">%1$d операций успешно сохранено</string>
     <string name="all_detected_saved">Сохранено операций: %1$d</string>
     <string name="err_amount_gt_zero">Сумма должна быть больше 0.</string>
@@ -130,12 +130,12 @@
     <string name="success_operation">Операция выполнена успешно</string>
     <string name="transaction_added_continue">Операция добавлена. Можно добавить ещё одну.</string>
     <string name="finish_adding">Готово</string>
-    <string name="exit_without_saving_title">Выйти без сохранения?</string>
-    <string name="exit_without_saving_message">У вас %1$d подготовленных операций. Сохранить их перед выходом?</string>
-    <string name="exit_without_saving_form_only_message">У вас есть несохранённые изменения. Сохранить их перед выходом?</string>
+    <string name="exit_without_saving_title">Выйти без добавления?</string>
+    <string name="exit_without_saving_message">У вас %1$d подготовленных операций. Добавить их перед выходом?</string>
+    <string name="exit_without_saving_form_only_message">У вас есть не добавленные изменения. Добавить их перед выходом?</string>
     <string name="exit_unsaved_form_hint">В форме также есть неподготовленная операция.</string>
-    <string name="save_and_exit">Сохранить</string>
-    <string name="discard_without_saving">Не сохранять</string>
+    <string name="save_and_exit">Добавить</string>
+    <string name="discard_without_saving">Не добавлять</string>
     <string name="added_transactions_session">Добавленные операции (%1$d)</string>
     <string name="error_unknown">Неизвестная ошибка</string>
 

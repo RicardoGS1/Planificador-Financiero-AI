@@ -119,7 +119,7 @@
     <string name="transaction_prepared_continue">Transaktion vorbereitet. Sie können eine weitere hinzufügen.</string>
     <string name="all_detected_prepared">%1$d Transaktionen vorbereitet</string>
     <string name="prepared_transactions_session">Vorbereitete Transaktionen (%1$d)</string>
-    <string name="finish_and_save">Speichern und beenden (%1$d)</string>
+    <string name="finish_and_save">Transaktionen hinzufügen</string>
     <string name="session_saved">%1$d Transaktionen erfolgreich gespeichert</string>
     <string name="all_detected_saved">%1$d Transaktionen gespeichert</string>
     <string name="err_type_required">Bitte wählen Sie einen Transaktionstyp.</string>
@@ -131,12 +131,12 @@
     <string name="success_operation">Vorgang erfolgreich abgeschlossen</string>
     <string name="transaction_added_continue">Transaktion hinzugefügt. Sie können eine weitere hinzufügen.</string>
     <string name="finish_adding">Fertig</string>
-    <string name="exit_without_saving_title">Ohne Speichern verlassen?</string>
-    <string name="exit_without_saving_message">Du hast %1$d vorbereitete Transaktionen. Möchtest du sie vor dem Verlassen speichern?</string>
-    <string name="exit_without_saving_form_only_message">Du hast ungespeicherte Änderungen. Möchtest du sie vor dem Verlassen speichern?</string>
+    <string name="exit_without_saving_title">Ohne Hinzufügen verlassen?</string>
+    <string name="exit_without_saving_message">Du hast %1$d vorbereitete Transaktionen. Möchtest du sie vor dem Verlassen hinzufügen?</string>
+    <string name="exit_without_saving_form_only_message">Du hast noch nicht hinzugefügte Änderungen. Möchtest du sie vor dem Verlassen hinzufügen?</string>
     <string name="exit_unsaved_form_hint">Du hast auch eine unvorbereitete Transaktion im Formular.</string>
-    <string name="save_and_exit">Speichern</string>
-    <string name="discard_without_saving">Nicht speichern</string>
+    <string name="save_and_exit">Hinzufügen</string>
+    <string name="discard_without_saving">Nicht hinzufügen</string>
     <string name="added_transactions_session">Hinzugefügte Transaktionen (%1$d)</string>
     <string name="error_unknown">Unbekannter Fehler</string>
 

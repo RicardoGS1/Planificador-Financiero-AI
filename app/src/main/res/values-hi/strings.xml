@@ -119,7 +119,7 @@
     <string name="transaction_prepared_continue">लेनदेन तैयार है। आप एक और जोड़ सकते हैं।</string>
     <string name="all_detected_prepared">%1$d लेनदेन तैयार</string>
     <string name="prepared_transactions_session">तैयार लेनदेन (%1$d)</string>
-    <string name="finish_and_save">सहेजें और समाप्त करें (%1$d)</string>
+    <string name="finish_and_save">लेनदेन जोड़ें</string>
     <string name="session_saved">%1$d लेनदेन सफलतापूर्वक सहेजे गए</string>
     <string name="all_detected_saved">%1$d लेनदेन सहेजे गए</string>
     <string name="err_amount_gt_zero">राशि 0 से अधिक होनी चाहिए।</string>
@@ -130,12 +130,12 @@
     <string name="success_operation">कार्रवाई सफलतापूर्वक पूर्ण</string>
     <string name="transaction_added_continue">लेनदेन जोड़ा गया। आप एक और जोड़ सकते हैं।</string>
     <string name="finish_adding">समाप्त करें</string>
-    <string name="exit_without_saving_title">बिना सहेजे बाहर निकलें?</string>
-    <string name="exit_without_saving_message">आपके पास %1$d तैयार लेनदेन हैं। क्या आप बाहर निकलने से पहले उन्हें सहेजना चाहते हैं?</string>
-    <string name="exit_without_saving_form_only_message">आपके पास बिना सहेजे बदलाव हैं। क्या आप बाहर निकलने से पहले उन्हें सहेजना चाहते हैं?</string>
+    <string name="exit_without_saving_title">बिना जोड़े बाहर निकलें?</string>
+    <string name="exit_without_saving_message">आपके पास %1$d तैयार लेनदेन हैं। क्या आप बाहर निकलने से पहले उन्हें जोड़ना चाहते हैं?</string>
+    <string name="exit_without_saving_form_only_message">आपके पास न जोड़े गए बदलाव हैं। क्या आप बाहर निकलने से पहले उन्हें जोड़ना चाहते हैं?</string>
     <string name="exit_unsaved_form_hint">फॉर्म में आपका एक तैयार न किया गया लेनदेन भी है।</string>
-    <string name="save_and_exit">सहेजें</string>
-    <string name="discard_without_saving">न सहेजें</string>
+    <string name="save_and_exit">जोड़ें</string>
+    <string name="discard_without_saving">न जोड़ें</string>
     <string name="added_transactions_session">जोड़े गए लेनदेन (%1$d)</string>
     <string name="error_unknown">अज्ञात त्रुटि</string>
 

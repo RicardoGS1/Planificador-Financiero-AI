@@ -131,7 +131,7 @@
     <string name="transaction_prepared_continue">Transaction prepared. You can add another.</string>
     <string name="all_detected_prepared">%1$d transactions prepared</string>
     <string name="prepared_transactions_session">Prepared transactions (%1$d)</string>
-    <string name="finish_and_save">Save and finish (%1$d)</string>
+    <string name="finish_and_save">Add transactions</string>
     <string name="session_saved">%1$d transactions saved successfully</string>
     <string name="all_detected_saved">%1$d transactions saved</string>
     <string name="err_type_required">Please select a transaction type.</string>
@@ -143,12 +143,12 @@
     <string name="success_operation">Operation completed successfully</string>
     <string name="transaction_added_continue">Transaction added. You can add another.</string>
     <string name="finish_adding">Finish</string>
-    <string name="exit_without_saving_title">Leave without saving?</string>
-    <string name="exit_without_saving_message">You have %1$d prepared transactions. Do you want to save them before leaving?</string>
-    <string name="exit_without_saving_form_only_message">You have unsaved changes. Do you want to save them before leaving?</string>
+    <string name="exit_without_saving_title">Leave without adding?</string>
+    <string name="exit_without_saving_message">You have %1$d prepared transactions. Do you want to add them before leaving?</string>
+    <string name="exit_without_saving_form_only_message">You have changes not yet added. Do you want to add them before leaving?</string>
     <string name="exit_unsaved_form_hint">You also have an unprepared transaction in the form.</string>
-    <string name="save_and_exit">Save</string>
-    <string name="discard_without_saving">Don\'t save</string>
+    <string name="save_and_exit">Add</string>
+    <string name="discard_without_saving">Don\'t add</string>
     <string name="added_transactions_session">Added transactions (%1$d)</string>
     <string name="error_unknown">Unknown error</string>
 

@@ -1213,7 +1213,7 @@ private fun TransactionBottomBar(
                         )
                     } else {
                         Text(
-                            text = stringResource(R.string.finish_and_save, detectedCount),
+                            text = stringResource(R.string.finish_and_save),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
