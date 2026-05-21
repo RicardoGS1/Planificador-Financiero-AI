@@ -94,6 +94,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
@@ -110,6 +111,7 @@ import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
@@ -471,6 +473,44 @@ fun AddEditDetailTransactionView(
         }
     }
 
+    fun prepareOrUpdateTransaction() {
+        if (!validateTransactionForm()) return
+        if (isAddMode) {
+            addCurrentFormToDetected {
+                scope.launch {
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            context.getString(R.string.transaction_added_continue)
+                        )
+                    }
+                    scrollState.animateScrollTo(0)
+                }
+            }
+        } else {
+            isLoading = true
+            transactionViewModel.saveTransaction(
+                id = id,
+                categoryName = categoryName,
+                category = category,
+                iconName = selectedIconKey,
+                onError = { error ->
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            if (error.isBlank()) context.getString(R.string.error_unknown)
+                            else context.getString(R.string.error_prefix, error)
+                        )
+                        isLoading = false
+                    }
+                },
+                onSuccess = {
+                    scope.launch {
+                        navController.navigateUp()
+                    }
+                }
+            )
+        }
+    }
+
     val onMicClick: () -> Unit = onMicClick@{
         if (isAnalyzingReceipt) return@onMicClick
         if (isRecordingAudio) {
@@ -499,7 +539,7 @@ fun AddEditDetailTransactionView(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             AnimatedVisibility(
-                visible = currentType != null || !isAddMode,
+                visible = !isAddMode || detectedTransactions.isNotEmpty(),
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
@@ -509,43 +549,8 @@ fun AddEditDetailTransactionView(
                     isFinishing = isFinishing,
                     detectedCount = detectedTransactions.size,
                     isEditingPreparedTransaction = selectedDetectedIndex != null,
-                    onSave = {
-                        if (!validateTransactionForm()) return@TransactionBottomBar
-                        if (isAddMode) {
-                            addCurrentFormToDetected {
-                                scope.launch {
-                                    launch {
-                                        snackbarHostState.showSnackbar(
-                                            context.getString(R.string.transaction_added_continue)
-                                        )
-                                    }
-                                    scrollState.animateScrollTo(0)
-                                }
-                            }
-                        } else {
-                            isLoading = true
-                            transactionViewModel.saveTransaction(
-                                id = id,
-                                categoryName = categoryName,
-                                category = category,
-                                iconName = selectedIconKey,
-                                onError = { error ->
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            if (error.isBlank()) context.getString(R.string.error_unknown)
-                                            else context.getString(R.string.error_prefix, error)
-                                        )
-                                        isLoading = false
-                                    }
-                                },
-                                onSuccess = {
-                                    scope.launch {
-                                        navController.navigateUp()
-                                    }
-                                }
-                            )
-                        }
-                    },
+                    onSave = { prepareOrUpdateTransaction() },
+                    showPrimaryButton = !isAddMode,
                     onFinish = {
                         val hasFormData = transactionViewModel.transactionAmountState > 0 ||
                             transactionViewModel.transactionDescriptionState.isNotBlank() ||
@@ -833,10 +838,43 @@ fun AddEditDetailTransactionView(
                                     )
                                 }
                             }
+
+                            if (isAddMode) {
+                                Button(
+                                    onClick = { prepareOrUpdateTransaction() },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(52.dp),
+                                    enabled = !isLoading && !isFinishing,
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                                ) {
+                                    if (isLoading) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            color = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    } else {
+                                        Text(
+                                            text = if (selectedDetectedIndex != null) {
+                                                stringResource(R.string.finish_editing_prepared)
+                                            } else {
+                                                stringResource(R.string.prepare_transaction)
+                                            },
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(
+                        modifier = Modifier.height(
+                            if (isAddMode && detectedTransactions.isNotEmpty()) 88.dp else 8.dp
+                        )
+                    )
                 }
             }
 
@@ -1065,7 +1103,8 @@ private fun TransactionBottomBar(
     onSave: () -> Unit,
     onFinish: () -> Unit,
     accentColor: androidx.compose.ui.graphics.Color,
-    isEditMode: Boolean
+    isEditMode: Boolean,
+    showPrimaryButton: Boolean = true
 ) {
     Surface(
         tonalElevation = 6.dp,
@@ -1079,34 +1118,36 @@ private fun TransactionBottomBar(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
-                onClick = onSave,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                enabled = !isLoading && !isFinishing,
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = accentColor)
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text(
-                        text = when {
-                            isEditMode -> stringResource(id = R.string.update_transaction)
-                            isEditingPreparedTransaction -> stringResource(R.string.finish_editing_prepared)
-                            else -> stringResource(id = R.string.prepare_transaction)
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            if (showPrimaryButton) {
+                Button(
+                    onClick = onSave,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    enabled = !isLoading && !isFinishing,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(
+                            text = when {
+                                isEditMode -> stringResource(id = R.string.update_transaction)
+                                isEditingPreparedTransaction -> stringResource(R.string.finish_editing_prepared)
+                                else -> stringResource(id = R.string.prepare_transaction)
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
 
-            if (isAddMode) {
+            if (isAddMode && detectedCount > 0) {
                 OutlinedButton(
                     onClick = onFinish,
                     modifier = Modifier
@@ -1122,11 +1163,7 @@ private fun TransactionBottomBar(
                         )
                     } else {
                         Text(
-                            text = if (detectedCount > 0) {
-                                stringResource(R.string.finish_and_save, detectedCount)
-                            } else {
-                                stringResource(R.string.finish_adding)
-                            },
+                            text = stringResource(R.string.finish_and_save, detectedCount),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -1400,4 +1437,22 @@ fun TransactionTypeDropdown(
     onTypeChanged: (TransactionType) -> Unit
 ) {
     TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DetectedTransactionsListPreview() {
+    val sampleTransactions = listOf(
+        DetectedTransactionItem(amount = 25.50, description = "Supermercado", categoryName = "Comida"),
+        DetectedTransactionItem(amount = 10.0, description = "Gasolina", categoryName = "Transporte"),
+        DetectedTransactionItem(amount = 5.0, description = "Café", categoryName = "Entretenimiento")
+    )
+    EasyExpenseControlTheme {
+        DetectedTransactionsList(
+            transactions = sampleTransactions,
+            isIngreso = false,
+            selectedIndex = 1,
+            onItemClick = { _, _ -> }
+        )
+    }
 }
