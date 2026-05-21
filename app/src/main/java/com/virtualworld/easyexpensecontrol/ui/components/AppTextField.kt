@@ -23,7 +23,8 @@ fun AppTextField(
     value: String,
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
-    readOnly: Boolean = false
+    readOnly: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -32,7 +33,7 @@ fun AppTextField(
         onValueChange = onValueChange,
         label = { Text(text = label) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        modifier = Modifier
+        modifier = modifier
             .padding(5.dp)
             .fillMaxWidth(),
         enabled = !readOnly,

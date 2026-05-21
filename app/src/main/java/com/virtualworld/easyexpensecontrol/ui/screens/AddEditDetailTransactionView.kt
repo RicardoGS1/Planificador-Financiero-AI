@@ -17,6 +17,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,18 +25,16 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -83,6 +82,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
@@ -121,12 +122,13 @@ import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddEditDetailTransactionView(
     id: Long,
@@ -538,9 +540,8 @@ fun AddEditDetailTransactionView(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(WindowInsets.systemBars.asPaddingValues()),
+        modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             AnimatedVisibility(
@@ -579,11 +580,11 @@ fun AddEditDetailTransactionView(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .imePadding()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .imePadding()
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -686,7 +687,8 @@ fun AddEditDetailTransactionView(
                                     AppTextField(
                                         label = stringResource(R.string.hint_description),
                                         value = transactionViewModel.transactionDescriptionState,
-                                        onValueChange = transactionViewModel::onTransactionDescriptionChanged
+                                        onValueChange = transactionViewModel::onTransactionDescriptionChanged,
+                                        modifier = Modifier.focusScrollIntoView()
                                     )
                                 }
 
@@ -737,7 +739,8 @@ fun AddEditDetailTransactionView(
                                             AppTextField(
                                                 label = stringResource(R.string.hint_category),
                                                 value = categoryName,
-                                                onValueChange = { categoryName = it }
+                                                onValueChange = { categoryName = it },
+                                                modifier = Modifier.focusScrollIntoView()
                                             )
                                         }
                                     }
@@ -909,6 +912,23 @@ fun AddEditDetailTransactionView(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Modifier.focusScrollIntoView(): Modifier {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+    return this
+        .bringIntoViewRequester(bringIntoViewRequester)
+        .onFocusEvent { focusState ->
+            if (focusState.isFocused) {
+                scope.launch {
+                    delay(150)
+                    bringIntoViewRequester.bringIntoView()
+                }
+            }
+        }
+}
+
 @Composable
 private fun SectionTitle(
     text: String,
@@ -1069,7 +1089,9 @@ private fun HeroAmountCard(
                                 innerTextField()
                             }
                         },
-                        modifier = Modifier.width(fieldWidthDp)
+                        modifier = Modifier
+                            .width(fieldWidthDp)
+                            .focusScrollIntoView()
                     )
                 }
             }
@@ -1164,7 +1186,6 @@ private fun TransactionBottomBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
