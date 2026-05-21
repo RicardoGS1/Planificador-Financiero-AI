@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiContent
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiGenerationConfig
@@ -11,7 +13,7 @@ import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiInlineData
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiPart
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiRequest
 import com.virtualworld.easyexpensecontrol.R
-import com.virtualworld.easyexpensecontrol.data.remote.dto.ReceiptResultDto
+import com.virtualworld.easyexpensecontrol.data.remote.dto.ReceiptLineItemDto
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -41,11 +43,21 @@ class ReceiptRemoteDataSource(
         }
         return """
             Eres un asistente que analiza fotos de comprobantes de compra (tickets, facturas).
-            Extrae ÚNICAMENTE la información solicitada y responde en JSON válido con exactamente estos tres campos:
-            - "amount": número (importe total del comprobante, usar punto como decimal).
-            - "description": string breve que describa la compra (máximo 50 caracteres).
-            - "categoryName": string con una categoría de gasto. $categoryInstruction
-            Si no puedes leer el importe, usa 0.0. Responde solo con el JSON, sin markdown ni texto adicional.
+            Extrae la información y responde en JSON válido con exactamente este formato:
+            {
+              "transactions": [
+                {
+                  "amount": número (importe de la línea, usar punto como decimal),
+                  "description": string breve (máximo 50 caracteres),
+                  "categoryName": string con una categoría de gasto
+                }
+              ]
+            }
+            Si el comprobante incluye productos o gastos de varias categorías, crea UNA transacción por categoría o por línea relevante.
+            Si todo el ticket corresponde a una sola categoría, devuelve un array con un solo elemento.
+            La suma de los importes debe coincidir con el total del comprobante cuando sea posible.
+            $categoryInstruction
+            Si no puedes leer un importe, usa 0.0. Responde solo con el JSON, sin markdown ni texto adicional.
         """.trimIndent()
     }
 
@@ -59,19 +71,28 @@ class ReceiptRemoteDataSource(
             "DEBES elegir UNA de estas categorías exactamente: $categoryList."
         }
         return """
-            Eres un asistente que escucha una nota de voz del usuario describiendo un $typeLabelEs.
+            Eres un asistente que escucha una nota de voz del usuario describiendo uno o varios $typeLabelEs.
             El audio puede estar en cualquier idioma; entiende el contenido y extrae la información.
-            Responde en JSON válido con exactamente estos tres campos:
-            - "amount": número (importe del $typeLabelEs, usar punto como decimal).
-            - "description": string breve que describa el $typeLabelEs (máximo 50 caracteres).
-            - "categoryName": string con la categoría del $typeLabelEs. $categoryInstruction
+            Responde en JSON válido con exactamente este formato:
+            {
+              "transactions": [
+                {
+                  "amount": número (importe de la transacción, usar punto como decimal),
+                  "description": string breve (máximo 50 caracteres),
+                  "categoryName": string con la categoría del $typeLabelEs
+                }
+              ]
+            }
+            Si el usuario menciona varios $typeLabelEs de distintas categorías, crea UNA transacción por cada uno.
+            Si solo describe un $typeLabelEs, devuelve un array con un solo elemento.
+            $categoryInstruction
             Si no puedes determinar el importe, usa 0.0.
             Si no puedes determinar una descripción, deja "description" como string vacío.
             Responde solo con el JSON, sin markdown ni texto adicional.
         """.trimIndent()
     }
 
-    suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String> = emptyList()): Result<ReceiptResultDto> {
+    suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String> = emptyList()): Result<List<ReceiptLineItemDto>> {
         val prompt = buildReceiptPrompt(categoryNames)
         return sendInlineDataRequest(prompt, "image/jpeg", imageBase64)
     }
@@ -81,7 +102,7 @@ class ReceiptRemoteDataSource(
         type: TransactionType,
         categoryNames: List<String> = emptyList(),
         mimeType: String = "audio/aac"
-    ): Result<ReceiptResultDto> {
+    ): Result<List<ReceiptLineItemDto>> {
         val prompt = buildAudioPrompt(type, categoryNames)
         return sendInlineDataRequest(prompt, mimeType, audioBase64)
     }
@@ -90,7 +111,7 @@ class ReceiptRemoteDataSource(
         prompt: String,
         mimeType: String,
         dataBase64: String
-    ): Result<ReceiptResultDto> {
+    ): Result<List<ReceiptLineItemDto>> {
         return try {
             val request = GeminiRequest(
                 contents = listOf(
@@ -120,8 +141,13 @@ class ReceiptRemoteDataSource(
                 )
 
             Log.d("GeminiResponse", "JSON recibido: $text")
-            val dto = parseReceiptJson(text)
-            Result.success(dto)
+            val items = parseReceiptJson(text)
+            if (items.isEmpty()) {
+                return Result.failure(
+                    IllegalStateException(appContext.getString(R.string.gemini_empty_response))
+                )
+            }
+            Result.success(items)
         } catch (e: JsonSyntaxException) {
             Result.failure(
                 IllegalArgumentException(appContext.getString(R.string.gemini_parse_error), e)
@@ -145,9 +171,34 @@ class ReceiptRemoteDataSource(
         }
     }
 
-    private fun parseReceiptJson(jsonText: String): ReceiptResultDto {
+    private fun parseReceiptJson(jsonText: String): List<ReceiptLineItemDto> {
         val normalized = jsonText.trim().removeSurrounding("```json", "```").trim()
-        val dto = gson.fromJson(normalized, ReceiptResultDto::class.java)
+        val element = gson.fromJson(normalized, JsonElement::class.java)
+        val rawItems = when {
+            element.isJsonArray -> {
+                gson.fromJson(element, Array<ReceiptLineItemDto>::class.java).toList()
+            }
+            element.isJsonObject -> {
+                val obj = element.asJsonObject
+                when {
+                    obj.has("transactions") && obj.get("transactions").isJsonArray -> {
+                        gson.fromJson(obj.get("transactions"), Array<ReceiptLineItemDto>::class.java).toList()
+                    }
+                    isLegacySingleItem(obj) -> {
+                        listOf(gson.fromJson(obj, ReceiptLineItemDto::class.java))
+                    }
+                    else -> emptyList()
+                }
+            }
+            else -> emptyList()
+        }
+        return rawItems.map(::sanitizeLineItem)
+    }
+
+    private fun isLegacySingleItem(obj: JsonObject): Boolean =
+        obj.has("amount") && obj.has("description") && obj.has("categoryName")
+
+    private fun sanitizeLineItem(dto: ReceiptLineItemDto): ReceiptLineItemDto {
         val amount = dto.amount.coerceAtLeast(0.0)
         return dto.copy(
             amount = amount,

@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
+import com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
@@ -28,6 +29,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+data class DetectedTransactionItem(
+    val amount: Double,
+    val description: String,
+    val categoryName: String,
+    val categoryId: Long = 0L
+)
 
 class TransactionViewModel(
     private val getTransactionsUseCase: GetTransactionsUseCase,
@@ -48,6 +56,9 @@ class TransactionViewModel(
 
     private val _receiptProcessingState = MutableStateFlow<ReceiptProcessingState>(ReceiptProcessingState.Idle)
     val receiptProcessingState: StateFlow<ReceiptProcessingState> = _receiptProcessingState.asStateFlow()
+
+    private val _detectedTransactions = MutableStateFlow<List<DetectedTransactionItem>>(emptyList())
+    val detectedTransactions: StateFlow<List<DetectedTransactionItem>> = _detectedTransactions.asStateFlow()
 
     fun onTransactionTypeChanged(newType: TransactionType?) {
         transactionTypeState = newType
@@ -81,37 +92,54 @@ class TransactionViewModel(
     fun processReceiptImage(imageBytes: ByteArray) {
         viewModelScope.launch(Dispatchers.IO) {
             _receiptProcessingState.value = ReceiptProcessingState.Loading
-            handleAnalysisResult(processReceiptUseCase(imageBytes))
+            handleAnalysisResult(
+                result = processReceiptUseCase(imageBytes),
+                defaultType = TransactionType.Gasto
+            )
         }
     }
 
     fun processAudio(audioBytes: ByteArray, type: TransactionType, mimeType: String = "audio/aac") {
         viewModelScope.launch(Dispatchers.IO) {
             _receiptProcessingState.value = ReceiptProcessingState.Loading
-            handleAnalysisResult(processAudioUseCase(audioBytes, type, mimeType))
+            handleAnalysisResult(
+                result = processAudioUseCase(audioBytes, type, mimeType),
+                defaultType = type
+            )
         }
     }
 
-    private suspend fun handleAnalysisResult(result: Result<com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult>) {
+    private suspend fun handleAnalysisResult(
+        result: Result<ReceiptResult>,
+        defaultType: TransactionType
+    ) {
         result
             .onSuccess { data ->
-                val category = getCategoryByNameUseCase(data.suggestedCategoryName).firstOrNull()
-                val categoryNameForUi = if (category != null) {
-                    withContext(Dispatchers.Main) {
-                        transactionAmountState = data.amount
-                        transactionDescriptionState = data.description
-                        transactionCategoryState = category.id
-                    }
-                    category.name
-                } else {
-                    withContext(Dispatchers.Main) {
-                        transactionAmountState = data.amount
-                        transactionDescriptionState = data.description
-                        transactionCategoryState = 0L
-                    }
-                    data.suggestedCategoryName
+                if (data.items.isEmpty()) {
+                    _receiptProcessingState.value = ReceiptProcessingState.Error(
+                        appContext.getString(R.string.gemini_empty_response)
+                    )
+                    return
                 }
-                _receiptProcessingState.value = ReceiptProcessingState.Success(categoryNameForUi)
+
+                val detected = data.items.map { item ->
+                    val category = getCategoryByNameUseCase(item.suggestedCategoryName).firstOrNull()
+                    DetectedTransactionItem(
+                        amount = item.amount,
+                        description = item.description,
+                        categoryName = category?.name ?: item.suggestedCategoryName,
+                        categoryId = category?.id ?: 0L
+                    )
+                }
+                val first = detected.first()
+                withContext(Dispatchers.Main) {
+                    if (transactionTypeState == null) {
+                        transactionTypeState = defaultType
+                    }
+                    _detectedTransactions.value = _detectedTransactions.value + detected
+                    loadDetectedTransaction(first)
+                }
+                _receiptProcessingState.value = ReceiptProcessingState.Success(detected.size)
             }
             .onFailure { e ->
                 _receiptProcessingState.value = ReceiptProcessingState.Error(
@@ -120,8 +148,90 @@ class TransactionViewModel(
             }
     }
 
+    fun loadDetectedTransaction(item: DetectedTransactionItem) {
+        transactionAmountState = item.amount
+        transactionDescriptionState = item.description
+        transactionCategoryState = item.categoryId
+    }
+
     fun clearReceiptProcessingState() {
         _receiptProcessingState.value = ReceiptProcessingState.Idle
+    }
+
+    fun clearDetectedTransactions() {
+        _detectedTransactions.value = emptyList()
+    }
+
+    fun resetFormForNewTransaction() {
+        transactionAmountState = 0.0
+        transactionDescriptionState = ""
+        transactionCategoryState = 0L
+    }
+
+    fun addOrUpdateDetectedTransaction(
+        categoryName: String,
+        categoryId: Long,
+        updateIndex: Int?,
+        onSuccess: () -> Unit
+    ) {
+        val item = DetectedTransactionItem(
+            amount = transactionAmountState,
+            description = transactionDescriptionState.trim(),
+            categoryName = categoryName.trim(),
+            categoryId = categoryId
+        )
+        val current = _detectedTransactions.value.toMutableList()
+        if (updateIndex != null && updateIndex in current.indices) {
+            current[updateIndex] = item
+        } else {
+            current.add(item)
+        }
+        _detectedTransactions.value = current
+        resetFormForNewTransaction()
+        onSuccess()
+    }
+
+    fun commitDetectedTransactions(
+        onError: suspend (String) -> Unit,
+        onSuccess: suspend (Int) -> Unit
+    ) {
+        val type = transactionTypeState ?: run {
+            viewModelScope.launch { onSuccess(0) }
+            return
+        }
+        val date = transactionDateState
+        val items = _detectedTransactions.value.toList()
+        if (items.isEmpty()) {
+            viewModelScope.launch { onSuccess(0) }
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            for ((index, item) in items.withIndex()) {
+                val category = getCategoryByNameUseCase(item.categoryName).firstOrNull()
+                val saveResult = saveTransactionInternal(
+                    type = type,
+                    amount = item.amount,
+                    description = item.description,
+                    categoryName = item.categoryName,
+                    category = category,
+                    date = date,
+                    iconName = null
+                )
+                if (saveResult.isFailure) {
+                    val message = saveResult.exceptionOrNull()?.message.orEmpty()
+                    _detectedTransactions.value = items.drop(index)
+                    withContext(Dispatchers.Main) {
+                        onError(if (message.isBlank()) appContext.getString(R.string.error_unknown) else message)
+                    }
+                    return@launch
+                }
+            }
+            _detectedTransactions.value = emptyList()
+            withContext(Dispatchers.Main) {
+                onSuccess(items.size)
+            }
+        }
     }
 
     fun saveTransaction(
@@ -133,18 +243,58 @@ class TransactionViewModel(
         onSuccess: suspend () -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            saveTransactionUseCase(
+            val type = transactionTypeState ?: return@launch
+            val amount = transactionAmountState
+            val description = transactionDescriptionState.trim()
+            val date = transactionDateState
+            val trimmedCategoryName = categoryName.trim()
+
+            val saveResult = saveTransactionInternal(
                 id = id,
-                type = transactionTypeState ?: return@launch,
-                amount = transactionAmountState,
-                description = transactionDescriptionState.trim(),
-                categoryName = categoryName,
+                type = type,
+                amount = amount,
+                description = description,
+                categoryName = trimmedCategoryName,
                 category = category,
-                date = transactionDateState,
-                iconName = iconName,
-                onError = { msg -> viewModelScope.launch(Dispatchers.Main) { onError(msg) } },
-                onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } }
+                date = date,
+                iconName = iconName
             )
+            if (saveResult.isFailure) {
+                val message = saveResult.exceptionOrNull()?.message.orEmpty()
+                withContext(Dispatchers.Main) {
+                    onError(if (message.isBlank()) appContext.getString(R.string.error_unknown) else message)
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                onSuccess()
+            }
         }
+    }
+
+    private suspend fun saveTransactionInternal(
+        id: Long = 0L,
+        type: TransactionType,
+        amount: Double,
+        description: String,
+        categoryName: String,
+        category: Category?,
+        date: Long,
+        iconName: String?
+    ): Result<Unit> {
+        var errorMessage: String? = null
+        saveTransactionUseCase(
+            id = id,
+            type = type,
+            amount = amount,
+            description = description,
+            categoryName = categoryName,
+            category = category,
+            date = date,
+            iconName = iconName,
+            onError = { message -> errorMessage = message },
+            onSuccess = { }
+        )
+        return errorMessage?.let { Result.failure(IllegalStateException(it)) } ?: Result.success(Unit)
     }
 }

@@ -452,7 +452,9 @@ fun LatestTransactionsList(
     categories: List<Category>,
     modifier: Modifier = Modifier
 ) {
-    val sorted = transactions.sortedByDescending { it.date }.take(MAX_ULTIMAS_ENTRADAS)
+    val sorted = transactions
+        .sortedWith(compareByDescending<Transaction> { it.date }.thenByDescending { it.id })
+        .take(MAX_ULTIMAS_ENTRADAS)
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),

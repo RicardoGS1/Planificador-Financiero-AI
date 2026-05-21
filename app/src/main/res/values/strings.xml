@@ -99,6 +99,9 @@
     <string name="transaction_type">Transaction type</string>
     <string name="transaction_type_income">Income</string>
     <string name="transaction_type_expense">Expense</string>
+    <string name="select_type_to_continue">Select income or expense to continue</string>
+    <string name="quick_actions">Quick actions</string>
+    <string name="transaction_details">Details</string>
     <string name="take_photo">Take photo</string>
     <string name="record_audio">Record audio</string>
     <string name="recording_in_progress">Recording… tap to stop</string>
@@ -118,6 +121,19 @@
     <string name="cd_hide_calendar">Hide calendar</string>
     <string name="cd_change_date">Change date</string>
     <string name="receipt_analyzed">Receipt analyzed</string>
+    <string name="receipt_analyzed_multiple">Receipt analyzed: %1$d transactions detected</string>
+    <string name="detected_transactions">Detected transactions (%1$d)</string>
+    <string name="tap_detected_to_edit">Tap a transaction to edit it before saving</string>
+    <string name="save_all_detected">Save all (%1$d)</string>
+    <string name="prepare_transaction">Prepare transaction</string>
+    <string name="finish_editing_prepared">Finish editing</string>
+    <string name="prepare_all_detected">Prepare all (%1$d)</string>
+    <string name="transaction_prepared_continue">Transaction prepared. You can add another.</string>
+    <string name="all_detected_prepared">%1$d transactions prepared</string>
+    <string name="prepared_transactions_session">Prepared transactions (%1$d)</string>
+    <string name="finish_and_save">Save and finish (%1$d)</string>
+    <string name="session_saved">%1$d transactions saved successfully</string>
+    <string name="all_detected_saved">%1$d transactions saved</string>
     <string name="err_type_required">Please select a transaction type.</string>
     <string name="err_amount_gt_zero">Amount must be greater than 0.</string>
     <string name="err_description_empty">Description cannot be empty.</string>
@@ -125,6 +141,15 @@
     <string name="err_date_required">You must select a date.</string>
     <string name="error_prefix">Error: %1$s</string>
     <string name="success_operation">Operation completed successfully</string>
+    <string name="transaction_added_continue">Transaction added. You can add another.</string>
+    <string name="finish_adding">Finish</string>
+    <string name="exit_without_saving_title">Leave without saving?</string>
+    <string name="exit_without_saving_message">You have %1$d prepared transactions. Do you want to save them before leaving?</string>
+    <string name="exit_without_saving_form_only_message">You have unsaved changes. Do you want to save them before leaving?</string>
+    <string name="exit_unsaved_form_hint">You also have an unprepared transaction in the form.</string>
+    <string name="save_and_exit">Save</string>
+    <string name="discard_without_saving">Don\'t save</string>
+    <string name="added_transactions_session">Added transactions (%1$d)</string>
     <string name="error_unknown">Unknown error</string>
 
     <string name="tap_pick_month_year">Tap to choose month and year</string>

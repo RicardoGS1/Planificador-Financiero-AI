@@ -90,6 +90,9 @@
     <string name="transaction_type">Tipo de transacción</string>
     <string name="transaction_type_income">Ingreso</string>
     <string name="transaction_type_expense">Gasto</string>
+    <string name="select_type_to_continue">Selecciona ingreso o gasto para continuar</string>
+    <string name="quick_actions">Acciones rápidas</string>
+    <string name="transaction_details">Detalles</string>
     <string name="take_photo">Tomar foto</string>
     <string name="record_audio">Grabar audio</string>
     <string name="recording_in_progress">Grabando… toca para detener</string>
@@ -109,6 +112,19 @@
     <string name="cd_hide_calendar">Ocultar calendario</string>
     <string name="cd_change_date">Cambiar fecha</string>
     <string name="receipt_analyzed">Comprobante analizado</string>
+    <string name="receipt_analyzed_multiple">Comprobante analizado: %1$d transacciones detectadas</string>
+    <string name="detected_transactions">Transacciones detectadas (%1$d)</string>
+    <string name="tap_detected_to_edit">Toca una transacción para editarla antes de guardar</string>
+    <string name="save_all_detected">Guardar todas (%1$d)</string>
+    <string name="prepare_transaction">Preparar transacción</string>
+    <string name="finish_editing_prepared">Terminar edición</string>
+    <string name="prepare_all_detected">Preparar todas (%1$d)</string>
+    <string name="transaction_prepared_continue">Transacción preparada. Puedes añadir otra.</string>
+    <string name="all_detected_prepared">%1$d transacciones preparadas</string>
+    <string name="prepared_transactions_session">Transacciones preparadas (%1$d)</string>
+    <string name="finish_and_save">Guardar y terminar (%1$d)</string>
+    <string name="session_saved">%1$d transacciones guardadas correctamente</string>
+    <string name="all_detected_saved">Se guardaron %1$d transacciones</string>
     <string name="err_type_required">Selecciona un tipo de transacción.</string>
     <string name="err_amount_gt_zero">El importe debe ser mayor que 0.</string>
     <string name="err_description_empty">La descripción no puede estar vacía.</string>
@@ -116,6 +132,15 @@
     <string name="err_date_required">Debe seleccionar una fecha.</string>
     <string name="error_prefix">Error: %1$s</string>
     <string name="success_operation">Operación completada con éxito</string>
+    <string name="transaction_added_continue">Transacción añadida. Puedes añadir otra.</string>
+    <string name="finish_adding">Terminar</string>
+    <string name="exit_without_saving_title">¿Salir sin guardar?</string>
+    <string name="exit_without_saving_message">Tienes %1$d transacciones preparadas. ¿Quieres guardarlas antes de salir?</string>
+    <string name="exit_without_saving_form_only_message">Tienes cambios sin guardar. ¿Quieres guardarlos antes de salir?</string>
+    <string name="exit_unsaved_form_hint">También tienes una transacción sin preparar en el formulario.</string>
+    <string name="save_and_exit">Guardar</string>
+    <string name="discard_without_saving">No guardar</string>
+    <string name="added_transactions_session">Transacciones añadidas (%1$d)</string>
     <string name="error_unknown">Error desconocido</string>
 
     <string name="tap_pick_month_year">Toca para elegir mes y año</string>

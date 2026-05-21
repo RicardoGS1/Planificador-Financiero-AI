@@ -87,6 +87,9 @@
     <string name="transaction_type">Transaktionstyp</string>
     <string name="transaction_type_income">Einnahme</string>
     <string name="transaction_type_expense">Ausgabe</string>
+    <string name="select_type_to_continue">Wähle Einnahme oder Ausgabe, um fortzufahren</string>
+    <string name="quick_actions">Schnellaktionen</string>
+    <string name="transaction_details">Details</string>
     <string name="take_photo">Foto aufnehmen</string>
     <string name="record_audio">Audio aufnehmen</string>
     <string name="recording_in_progress">Aufnahme läuft… zum Stoppen tippen</string>
@@ -106,6 +109,19 @@
     <string name="cd_hide_calendar">Kalender ausblenden</string>
     <string name="cd_change_date">Datum ändern</string>
     <string name="receipt_analyzed">Beleg analysiert</string>
+    <string name="receipt_analyzed_multiple">Beleg analysiert: %1$d Transaktionen erkannt</string>
+    <string name="detected_transactions">Erkannte Transaktionen (%1$d)</string>
+    <string name="tap_detected_to_edit">Tippen Sie auf eine Transaktion, um sie vor dem Speichern zu bearbeiten</string>
+    <string name="save_all_detected">Alle speichern (%1$d)</string>
+    <string name="prepare_transaction">Transaktion vorbereiten</string>
+    <string name="finish_editing_prepared">Bearbeitung beenden</string>
+    <string name="prepare_all_detected">Alle vorbereiten (%1$d)</string>
+    <string name="transaction_prepared_continue">Transaktion vorbereitet. Sie können eine weitere hinzufügen.</string>
+    <string name="all_detected_prepared">%1$d Transaktionen vorbereitet</string>
+    <string name="prepared_transactions_session">Vorbereitete Transaktionen (%1$d)</string>
+    <string name="finish_and_save">Speichern und beenden (%1$d)</string>
+    <string name="session_saved">%1$d Transaktionen erfolgreich gespeichert</string>
+    <string name="all_detected_saved">%1$d Transaktionen gespeichert</string>
     <string name="err_type_required">Bitte wählen Sie einen Transaktionstyp.</string>
     <string name="err_amount_gt_zero">Der Betrag muss größer als 0 sein.</string>
     <string name="err_description_empty">Die Beschreibung darf nicht leer sein.</string>
@@ -113,6 +129,15 @@
     <string name="err_date_required">Bitte wählen Sie ein Datum.</string>
     <string name="error_prefix">Fehler: %1$s</string>
     <string name="success_operation">Vorgang erfolgreich abgeschlossen</string>
+    <string name="transaction_added_continue">Transaktion hinzugefügt. Sie können eine weitere hinzufügen.</string>
+    <string name="finish_adding">Fertig</string>
+    <string name="exit_without_saving_title">Ohne Speichern verlassen?</string>
+    <string name="exit_without_saving_message">Du hast %1$d vorbereitete Transaktionen. Möchtest du sie vor dem Verlassen speichern?</string>
+    <string name="exit_without_saving_form_only_message">Du hast ungespeicherte Änderungen. Möchtest du sie vor dem Verlassen speichern?</string>
+    <string name="exit_unsaved_form_hint">Du hast auch eine unvorbereitete Transaktion im Formular.</string>
+    <string name="save_and_exit">Speichern</string>
+    <string name="discard_without_saving">Nicht speichern</string>
+    <string name="added_transactions_session">Hinzugefügte Transaktionen (%1$d)</string>
     <string name="error_unknown">Unbekannter Fehler</string>
 
     <string name="tap_pick_month_year">Tippen, um Monat und Jahr zu wählen</string>

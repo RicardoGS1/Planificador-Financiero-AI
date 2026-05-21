@@ -37,6 +37,7 @@ import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
+import java.util.concurrent.TimeUnit
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -78,8 +79,14 @@ val appModule = module {
     single { GetCategoryByNameUseCase(get()) }
     single { GetCategoriesByTypeUseCase(get()) }
 
-    // Red - Gemini / análisis de comprobantes
-    single { OkHttpClient.Builder().build() }
+    // Red - Gemini / análisis de comprobantes (timeouts amplios: la IA puede tardar con imagen/audio)
+    single {
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .build()
+    }
     single { Gson() }
     single {
         Retrofit.Builder()

@@ -13,7 +13,8 @@ import retrofit2.http.Query
 interface GeminiApi {
 
     //@POST("models/gemini-2.5-flash:generateContent")
-    @POST("models/gemini-3.1-flash-lite-preview:generateContent")
+    //@POST("models/gemini-3.1-flash-lite-preview:generateContent") // preview discontinuado 25-may-2026
+    @POST("models/gemini-3.1-flash-lite:generateContent")
     suspend fun generateContent(
         @Query("key") apiKey: String,
         @Body body: GeminiRequest

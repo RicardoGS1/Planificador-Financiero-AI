@@ -4,15 +4,22 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,35 +27,49 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -63,12 +84,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.ads.CameraRewardedAdHelper
@@ -86,10 +112,12 @@ import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
+import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +132,10 @@ fun AddEditDetailTransactionView(
     var categoryName by remember { mutableStateOf("") }
     var selectedIconKey by remember { mutableStateOf<String?>(null) }
     var showIconPicker by remember { mutableStateOf(false) }
+    var amountText by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var isFinishing by remember { mutableStateOf(false) }
+    var datePickerExpanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
@@ -166,17 +198,32 @@ fun AddEditDetailTransactionView(
     }
 
     val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
+    val detectedTransactions by transactionViewModel.detectedTransactions.collectAsState()
+    val isAddMode = id == 0L
+    var selectedDetectedIndex by remember { mutableStateOf<Int?>(null) }
+    var showExitConfirmDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(transactionViewModel.transactionTypeState) {
-            CameraRewardedAdHelper.preload(context)
+        CameraRewardedAdHelper.preload(context)
     }
 
     LaunchedEffect(receiptState) {
         when (receiptState) {
             is ReceiptProcessingState.Success -> {
-                categoryName = (receiptState as ReceiptProcessingState.Success).categoryNameForUi
-                categoryViewModel.categoryNameState = categoryName
-                snackbarHostState.showSnackbar(context.getString(R.string.receipt_analyzed))
+                val count = (receiptState as ReceiptProcessingState.Success).transactionCount
+                val newStartIndex = (transactionViewModel.detectedTransactions.value.size - count).coerceAtLeast(0)
+                val firstDetected = transactionViewModel.detectedTransactions.value.getOrNull(newStartIndex)
+                if (firstDetected != null) {
+                    categoryName = firstDetected.categoryName
+                    categoryViewModel.categoryNameState = categoryName
+                    selectedDetectedIndex = newStartIndex
+                }
+                val message = if (count == 1) {
+                    context.getString(R.string.receipt_analyzed)
+                } else {
+                    context.getString(R.string.receipt_analyzed_multiple, count)
+                }
+                snackbarHostState.showSnackbar(message)
                 transactionViewModel.clearReceiptProcessingState()
             }
             is ReceiptProcessingState.Error -> {
@@ -210,13 +257,16 @@ fun AddEditDetailTransactionView(
             }
         }
     } else {
-        // Solo inicializar estado al entrar en pantalla "añadir", no en cada recomposición,
-        // para no sobrescribir los valores que rellenó el análisis del comprobante (Gemini).
         LaunchedEffect(id) {
+            transactionViewModel.clearDetectedTransactions()
+            selectedDetectedIndex = null
             transactionViewModel.transactionTypeState = null
             transactionViewModel.transactionAmountState = 0.0
             transactionViewModel.transactionDescriptionState = ""
             transactionViewModel.transactionCategoryState = 0L
+            categoryName = ""
+            selectedIconKey = null
+            amountText = ""
             val todayStart = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
@@ -224,6 +274,18 @@ fun AddEditDetailTransactionView(
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
             transactionViewModel.transactionDateState = todayStart
+        }
+    }
+
+    LaunchedEffect(transactionViewModel.transactionAmountState) {
+        val modelAmount = transactionViewModel.transactionAmountState
+        val textAmount = amountText.toDoubleOrNull() ?: 0.0
+        if (modelAmount != textAmount) {
+            amountText = if (modelAmount > 0) {
+                if (modelAmount == modelAmount.toLong().toDouble())
+                    modelAmount.toLong().toString()
+                else modelAmount.toString()
+            } else ""
         }
     }
 
@@ -237,434 +299,998 @@ fun AddEditDetailTransactionView(
         datePickerState.selectedDateMillis?.let { transactionViewModel.onTransactionDateChanged(it) }
     }
 
+    val currentType = transactionViewModel.transactionTypeState
+    val categoriesByType by (
+        if (currentType != null) categoryViewModel.getCategoriesByType(currentType)
+        else kotlinx.coroutines.flow.flowOf(emptyList())
+    ).collectAsState(initial = emptyList())
+    val category by categoryViewModel.getCategoryByName(categoryName).collectAsState(initial = null)
+
+    fun resetLocalCategoryFields() {
+        categoryName = ""
+        selectedIconKey = null
+    }
+
+    fun validateTransactionForm(): Boolean {
+        when {
+            transactionViewModel.transactionTypeState == null -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
+                }
+                return false
+            }
+            transactionViewModel.transactionAmountState <= 0 -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
+                }
+                return false
+            }
+            transactionViewModel.transactionDescriptionState.isBlank() -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.err_description_empty))
+                }
+                return false
+            }
+            categoryName.isBlank() -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.err_category_empty))
+                }
+                return false
+            }
+            datePickerState.selectedDateMillis == null -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.err_date_required))
+                }
+                return false
+            }
+            else -> return true
+        }
+    }
+
+    fun addCurrentFormToDetected(onDone: () -> Unit) {
+        transactionViewModel.addOrUpdateDetectedTransaction(
+            categoryName = categoryName,
+            categoryId = category?.id ?: transactionViewModel.transactionCategoryState,
+            updateIndex = selectedDetectedIndex,
+            onSuccess = {
+                selectedDetectedIndex = null
+                resetLocalCategoryFields()
+                onDone()
+            }
+        )
+    }
+
+    fun commitAllDetected() {
+        isFinishing = true
+        transactionViewModel.commitDetectedTransactions(
+            onError = { error ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        if (error.isBlank()) context.getString(R.string.error_unknown)
+                        else context.getString(R.string.error_prefix, error)
+                    )
+                    isFinishing = false
+                }
+            },
+            onSuccess = {
+                isFinishing = false
+                scope.launch {
+                    navController.navigateUp()
+                }
+            }
+        )
+    }
+
+    fun hasUnsavedFormData(): Boolean =
+        transactionViewModel.transactionAmountState > 0 ||
+            transactionViewModel.transactionDescriptionState.isNotBlank() ||
+            categoryName.isNotBlank()
+
+    fun hasUnsavedPreparedWork(): Boolean =
+        isAddMode && (detectedTransactions.isNotEmpty() || hasUnsavedFormData())
+
+    fun attemptNavigateBack() {
+        if (hasUnsavedPreparedWork()) {
+            showExitConfirmDialog = true
+        } else {
+            navController.navigateUp()
+        }
+    }
+
+    fun savePreparedAndExit() {
+        showExitConfirmDialog = false
+        when {
+            hasUnsavedFormData() -> {
+                if (!validateTransactionForm()) return
+                addCurrentFormToDetected { commitAllDetected() }
+            }
+            detectedTransactions.isNotEmpty() -> commitAllDetected()
+            else -> navController.navigateUp()
+        }
+    }
+
+    fun discardPreparedAndExit() {
+        showExitConfirmDialog = false
+        transactionViewModel.clearDetectedTransactions()
+        navController.navigateUp()
+    }
+
+    fun onAmountInputChange(value: String) {
+        val normalized = value.replace(',', '.')
+        val filtered = normalized.filter { it.isDigit() || it == '.' }
+        val sanitized = run {
+            val firstDot = filtered.indexOf('.')
+            if (firstDot == -1) filtered
+            else filtered.substring(0, firstDot + 1) +
+                filtered.substring(firstDot + 1).replace(".", "")
+        }
+        amountText = sanitized
+        transactionViewModel.onTransactionAmountChanged(
+            sanitized.toDoubleOrNull() ?: 0.0
+        )
+    }
+
+    val isAnalyzingReceipt = receiptState is ReceiptProcessingState.Loading
+    val isIngreso = currentType == TransactionType.Ingreso
+    val accentColor = when (currentType) {
+        TransactionType.Ingreso -> MaterialTheme.colorScheme.primary
+        TransactionType.Gasto -> MaterialTheme.colorScheme.error
+        null -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val onCameraClick: () -> Unit = onCameraClick@{
+        if (isAnalyzingReceipt || isRecordingAudio) return@onCameraClick
+        val activity = context as? Activity ?: return@onCameraClick
+        CameraRewardedAdHelper.showThenContinue(activity) {
+            val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+            tempPhotoUri = uri
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                takePictureLauncher.launch(uri)
+            } else {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    if (isAddMode) {
+        BackHandler {
+            if (showExitConfirmDialog) {
+                showExitConfirmDialog = false
+            } else {
+                attemptNavigateBack()
+            }
+        }
+    }
+
+    val onMicClick: () -> Unit = onMicClick@{
+        if (isAnalyzingReceipt) return@onMicClick
+        if (isRecordingAudio) {
+            stopRecordingAndAnalyze()
+        } else {
+            val activity = context as? Activity ?: return@onMicClick
+            CameraRewardedAdHelper.showThenContinue(activity) {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.RECORD_AUDIO
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    startRecordingAudio()
+                } else {
+                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
+            }
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(WindowInsets.systemBars.asPaddingValues()),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            AnimatedVisibility(
+                visible = currentType != null || !isAddMode,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                TransactionBottomBar(
+                    isAddMode = isAddMode,
+                    isLoading = isLoading,
+                    isFinishing = isFinishing,
+                    detectedCount = detectedTransactions.size,
+                    isEditingPreparedTransaction = selectedDetectedIndex != null,
+                    onSave = {
+                        if (!validateTransactionForm()) return@TransactionBottomBar
+                        if (isAddMode) {
+                            addCurrentFormToDetected {
+                                scope.launch {
+                                    launch {
+                                        snackbarHostState.showSnackbar(
+                                            context.getString(R.string.transaction_added_continue)
+                                        )
+                                    }
+                                    scrollState.animateScrollTo(0)
+                                }
+                            }
+                        } else {
+                            isLoading = true
+                            transactionViewModel.saveTransaction(
+                                id = id,
+                                categoryName = categoryName,
+                                category = category,
+                                iconName = selectedIconKey,
+                                onError = { error ->
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            if (error.isBlank()) context.getString(R.string.error_unknown)
+                                            else context.getString(R.string.error_prefix, error)
+                                        )
+                                        isLoading = false
+                                    }
+                                },
+                                onSuccess = {
+                                    scope.launch {
+                                        navController.navigateUp()
+                                    }
+                                }
+                            )
+                        }
+                    },
+                    onFinish = {
+                        val hasFormData = transactionViewModel.transactionAmountState > 0 ||
+                            transactionViewModel.transactionDescriptionState.isNotBlank() ||
+                            categoryName.isNotBlank()
+                        when {
+                            hasFormData -> {
+                                if (!validateTransactionForm()) return@TransactionBottomBar
+                                addCurrentFormToDetected { commitAllDetected() }
+                            }
+                            detectedTransactions.isEmpty() -> navController.navigateUp()
+                            else -> commitAllDetected()
+                        }
+                    },
+                    accentColor = accentColor,
+                    isEditMode = !isAddMode
+                )
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            ScreenHeader(
-                title = if (id != 0L) stringResource(id = R.string.update_transaction)
-                else stringResource(id = R.string.add_transaction),
-                showBackArrow = true,
-                onBackClick = { navController.navigateUp() }
-            )
-
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .fillMaxSize()
+                    .imePadding()
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Tipo de transacción — selector integrado
-                Text(
-                    text = stringResource(R.string.transaction_type),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                TransactionTypeSelector(
-                    selectedType = transactionViewModel.transactionTypeState,
-                    onTypeChanged = transactionViewModel::onTransactionTypeChanged
+                ScreenHeader(
+                    title = if (!isAddMode) stringResource(id = R.string.update_transaction)
+                    else stringResource(id = R.string.add_transaction),
+                    showBackArrow = true,
+                    onBackClick = { attemptNavigateBack() }
                 )
 
-                if (transactionViewModel.transactionTypeState != null) {
-                    val isAnalyzingReceipt = receiptState is ReceiptProcessingState.Loading
-                    val onCameraClick: () -> Unit = onCameraClick@{
-                        if (isAnalyzingReceipt || isRecordingAudio) return@onCameraClick
-                        val activity = context as? Activity ?: return@onCameraClick
-                        CameraRewardedAdHelper.showThenContinue(activity) {
-                            val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
-                            val uri = FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                file
-                            )
-                            tempPhotoUri = uri
-                            if (ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.CAMERA
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                takePictureLauncher.launch(uri)
-                            } else {
-                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (isAddMode && detectedTransactions.isNotEmpty()) {
+                        DetectedTransactionsList(
+                            transactions = detectedTransactions,
+                            isIngreso = isIngreso,
+                            selectedIndex = selectedDetectedIndex,
+                            onItemClick = { index, item ->
+                                transactionViewModel.loadDetectedTransaction(item)
+                                categoryName = item.categoryName
+                                categoryViewModel.categoryNameState = item.categoryName
+                                selectedDetectedIndex = index
                             }
-                        }
+                        )
                     }
-                    val onMicClick: () -> Unit = onMicClick@{
-                        if (isAnalyzingReceipt) return@onMicClick
-                        if (isRecordingAudio) {
-                            stopRecordingAndAnalyze()
-                        } else {
-                            val activity = context as? Activity ?: return@onMicClick
-                            CameraRewardedAdHelper.showThenContinue(activity) {
-                                if (ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.RECORD_AUDIO
-                                    ) == PackageManager.PERMISSION_GRANTED
+
+                    SectionTitle(text = stringResource(R.string.transaction_type))
+                    TransactionTypeSelector(
+                        selectedType = currentType,
+                        onTypeChanged = transactionViewModel::onTransactionTypeChanged
+                    )
+
+                    if (currentType == null && isAddMode) {
+                        TypeSelectionHintCard()
+                    }
+
+                    AnimatedVisibility(
+                        visible = currentType != null,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            HeroAmountCard(
+                                amountText = amountText,
+                                onAmountChange = ::onAmountInputChange,
+                                accentColor = accentColor,
+                                isIngreso = isIngreso
+                            )
+
+                            if (isAddMode) {
+                                SectionTitle(text = stringResource(R.string.quick_actions))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    startRecordingAudio()
-                                } else {
-                                    audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                                }
-                            }
-                        }
-                    }
-
-                    if (transactionViewModel.transactionTypeState == TransactionType.Gasto) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            CameraActionButton(
-                                modifier = Modifier.weight(1f),
-                                isAnalyzing = isAnalyzingReceipt,
-                                isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
-                                onClick = onCameraClick
-                            )
-                            MicActionButton(
-                                modifier = Modifier.weight(1f),
-                                isAnalyzing = isAnalyzingReceipt,
-                                isRecording = isRecordingAudio,
-                                isEnabled = !isAnalyzingReceipt,
-                                onClick = onMicClick
-                            )
-                        }
-                    } else {
-                        MicActionButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            isAnalyzing = isAnalyzingReceipt,
-                            isRecording = isRecordingAudio,
-                            isEnabled = !isAnalyzingReceipt,
-                            onClick = onMicClick
-                        )
-                    }
-                }
-
-                // Importe
-                var amountText by remember { mutableStateOf("") }
-                LaunchedEffect(transactionViewModel.transactionAmountState) {
-                    val modelAmount = transactionViewModel.transactionAmountState
-                    val textAmount = amountText.toDoubleOrNull() ?: 0.0
-                    if (modelAmount != textAmount) {
-                        amountText = if (modelAmount > 0) {
-                            if (modelAmount == modelAmount.toLong().toDouble())
-                                modelAmount.toLong().toString()
-                            else modelAmount.toString()
-                        } else ""
-                    }
-                }
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.amount_label),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AppTextField(
-                            label = stringResource(R.string.hint_amount),
-                            value = amountText,
-                            onValueChange = { value ->
-                                val normalized = value.replace(',', '.')
-                                val filtered = normalized.filter { it.isDigit() || it == '.' }
-                                val sanitized = run {
-                                    val firstDot = filtered.indexOf('.')
-                                    if (firstDot == -1) filtered
-                                    else filtered.substring(0, firstDot + 1) +
-                                        filtered.substring(firstDot + 1).replace(".", "")
-                                }
-                                amountText = sanitized
-                                transactionViewModel.onTransactionAmountChanged(
-                                    sanitized.toDoubleOrNull() ?: 0.0
-                                )
-                            },
-                            keyboardType = KeyboardType.Decimal
-                        )
-                    }
-                }
-
-                // Descripción
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.description_label),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AppTextField(
-                            label = stringResource(R.string.hint_description),
-                            value = transactionViewModel.transactionDescriptionState,
-                            onValueChange = transactionViewModel::onTransactionDescriptionChanged
-                        )
-                    }
-                }
-
-                // Categoría: escribir nueva o elegir existente
-                val currentType = transactionViewModel.transactionTypeState
-                val categoriesByType by (
-                    if (currentType != null) categoryViewModel.getCategoriesByType(currentType)
-                    else kotlinx.coroutines.flow.flowOf(emptyList())
-                ).collectAsState(initial = emptyList())
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(
-                            text = stringResource(R.string.category_label),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .clickable { showIconPicker = true },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = CategoryIcons.getIcon(selectedIconKey),
-                                    contentDescription = stringResource(R.string.cd_change_icon),
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                AppTextField(
-                                    label = stringResource(R.string.hint_category),
-                                    value = categoryName,
-                                    onValueChange = { categoryName = it }
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.tap_icon_to_change),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (categoriesByType.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = stringResource(R.string.existing_categories),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                categoriesByType.forEach { cat ->
-                                    CategoryChip(
-                                        name = cat.name,
-                                        iconKey = cat.iconName,
-                                        isSelected = categoryName.equals(cat.name, ignoreCase = true),
-                                        onClick = {
-                                            categoryName = cat.name
-                                            selectedIconKey = cat.iconName
-                                        }
+                                    if (currentType == TransactionType.Gasto) {
+                                        AiQuickActionCard(
+                                            icon = Icons.Default.CameraAlt,
+                                            label = if (isAnalyzingReceipt) {
+                                                stringResource(R.string.analyzing)
+                                            } else {
+                                                stringResource(R.string.take_photo)
+                                            },
+                                            isActive = isAnalyzingReceipt,
+                                            isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                            onClick = onCameraClick,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    AiQuickActionCard(
+                                        icon = if (isRecordingAudio) Icons.Default.Stop else Icons.Default.Mic,
+                                        label = when {
+                                            isAnalyzingReceipt -> stringResource(R.string.analyzing)
+                                            isRecordingAudio -> stringResource(R.string.recording_in_progress)
+                                            else -> stringResource(R.string.record_audio)
+                                        },
+                                        isActive = isRecordingAudio || isAnalyzingReceipt,
+                                        isEnabled = !isAnalyzingReceipt,
+                                        onClick = onMicClick,
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
-                        }
-                    }
-                }
 
-                if (showIconPicker) {
-                    IconPickerDialog(
-                        selectedIconKey = selectedIconKey,
-                        onIconSelected = { key -> selectedIconKey = key },
-                        onDismiss = { showIconPicker = false }
-                    )
-                }
-
-                val category by categoryViewModel.getCategoryByName(categoryName).collectAsState(initial = null)
-
-                // Fecha — compacto hasta que el usuario toque para editar
-                var datePickerExpanded by remember { mutableStateOf(false) }
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { datePickerExpanded = !datePickerExpanded },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.CalendarMonth,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Spacer(modifier = Modifier.size(8.dp))
-                                Column {
+                            SectionTitle(
+                                text = stringResource(R.string.transaction_details),
+                                icon = Icons.Default.Description
+                            )
+                            FormSectionCard {
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(
-                                        text = stringResource(R.string.date_label),
+                                        text = stringResource(R.string.description_label),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                    AppTextField(
+                                        label = stringResource(R.string.hint_description),
+                                        value = transactionViewModel.transactionDescriptionState,
+                                        onValueChange = transactionViewModel::onTransactionDescriptionChanged
+                                    )
+                                }
+
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Category,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.category_label),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .background(accentColor.copy(alpha = 0.15f))
+                                                .border(
+                                                    width = 2.dp,
+                                                    color = accentColor.copy(alpha = 0.35f),
+                                                    shape = CircleShape
+                                                )
+                                                .clickable { showIconPicker = true },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = CategoryIcons.getIcon(selectedIconKey),
+                                                contentDescription = stringResource(R.string.cd_change_icon),
+                                                modifier = Modifier.size(24.dp),
+                                                tint = accentColor
+                                            )
+                                        }
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            AppTextField(
+                                                label = stringResource(R.string.hint_category),
+                                                value = categoryName,
+                                                onValueChange = { categoryName = it }
+                                            )
+                                        }
+                                    }
                                     Text(
-                                        text = datePickerState.selectedDateMillis?.let { convertTimestampToString(it) }
-                                            ?: stringResource(R.string.tap_pick_date),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Medium
+                                        text = stringResource(R.string.tap_icon_to_change),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    if (categoriesByType.isNotEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.existing_categories),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .horizontalScroll(rememberScrollState()),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            categoriesByType.forEach { cat ->
+                                                CategoryChip(
+                                                    name = cat.name,
+                                                    iconKey = cat.iconName,
+                                                    isSelected = categoryName.equals(cat.name, ignoreCase = true),
+                                                    accentColor = accentColor,
+                                                    onClick = {
+                                                        categoryName = cat.name
+                                                        selectedIconKey = cat.iconName
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { datePickerExpanded = !datePickerExpanded }
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.CalendarMonth,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column {
+                                            Text(
+                                                text = stringResource(R.string.date_label),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = datePickerState.selectedDateMillis?.let { convertTimestampToString(it) }
+                                                    ?: stringResource(R.string.tap_pick_date),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    }
+                                    Icon(
+                                        imageVector = if (datePickerExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = if (datePickerExpanded) stringResource(R.string.cd_hide_calendar)
+                                        else stringResource(R.string.cd_change_date),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+
+                                AnimatedVisibility(
+                                    visible = datePickerExpanded,
+                                    enter = fadeIn() + expandVertically(),
+                                    exit = fadeOut() + shrinkVertically()
+                                ) {
+                                    DatePicker(
+                                        state = datePickerState,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = DatePickerDefaults.colors(
+                                            selectedDayContainerColor = AccentBlue,
+                                            selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                                            todayDateBorderColor = AccentBlue,
+                                            todayContentColor = MaterialTheme.colorScheme.primary
+                                        )
                                     )
                                 }
                             }
-                            Icon(
-                                imageVector = if (datePickerExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (datePickerExpanded) stringResource(R.string.cd_hide_calendar)
-                                else stringResource(R.string.cd_change_date),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        if (datePickerExpanded) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            DatePicker(
-                                state = datePickerState,
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = DatePickerDefaults.colors(
-                                    selectedDayContainerColor = AccentBlue,
-                                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-                                    todayDateBorderColor = AccentBlue,
-                                    todayContentColor = MaterialTheme.colorScheme.primary
-                                )
-                            )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                var isLoading by remember { mutableStateOf(false) }
-
-                FilledTonalButton(
-                    onClick = {
-                        when {
-                            transactionViewModel.transactionTypeState == null -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
-                                }
-                            }
-                            transactionViewModel.transactionAmountState <= 0 -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
-                                }
-                            }
-                            transactionViewModel.transactionDescriptionState.isBlank() -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_description_empty))
-                                }
-                            }
-                            categoryName.isBlank() -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_category_empty))
-                                }
-                            }
-                            datePickerState.selectedDateMillis == null -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_date_required))
-                                }
-                            }
-                            else -> {
-                                isLoading = true
-                                transactionViewModel.saveTransaction(
-                                    id = id,
-                                    categoryName = categoryName,
-                                    category = category,
-                                    iconName = selectedIconKey,
-                                    onError = { error ->
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                if (error.isBlank()) context.getString(R.string.error_unknown)
-                                                else context.getString(R.string.error_prefix, error)
-                                            )
-                                            isLoading = false
-                                        }
-                                    },
-                                    onSuccess = {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(context.getString(R.string.success_operation))
-                                            navController.navigateUp()
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    } else {
-                        Text(
-                            text = if (id != 0L) stringResource(id = R.string.update_transaction)
-                            else stringResource(id = R.string.add_transaction),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
-        }
+
+            if (showIconPicker) {
+                IconPickerDialog(
+                    selectedIconKey = selectedIconKey,
+                    onIconSelected = { key -> selectedIconKey = key },
+                    onDismiss = { showIconPicker = false }
+                )
+            }
 
             if (receiptState is ReceiptProcessingState.Loading) {
                 GeminiAnalysisLoadingOverlay()
             }
+
+            if (showExitConfirmDialog) {
+                UnsavedPreparedTransactionsDialog(
+                    transactions = detectedTransactions,
+                    isIngreso = isIngreso,
+                    hasUnsavedFormData = hasUnsavedFormData(),
+                    onDismiss = { showExitConfirmDialog = false },
+                    onSave = { savePreparedAndExit() },
+                    onDiscard = { discardPreparedAndExit() }
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun SectionTitle(
+    text: String,
+    icon: ImageVector? = null
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        icon?.let {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
+private fun TypeSelectionHintCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+        )
+    ) {
+        Text(
+            text = stringResource(R.string.select_type_to_continue),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun HeroAmountCard(
+    amountText: String,
+    onAmountChange: (String) -> Unit,
+    accentColor: androidx.compose.ui.graphics.Color,
+    isIngreso: Boolean
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = accentColor.copy(alpha = 0.1f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.amount_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = if (isIngreso) "+" else if (amountText.isNotEmpty()) "−" else "",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor
+                )
+                Text(
+                    text = "€",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                BasicTextField(
+                    value = amountText,
+                    onValueChange = onAmountChange,
+                    textStyle = TextStyle(
+                        fontSize = 42.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor,
+                        textAlign = TextAlign.Start
+                    ),
+                    singleLine = true,
+                    cursorBrush = SolidColor(accentColor),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    decorationBox = { innerTextField ->
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            if (amountText.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.hint_amount),
+                                    style = TextStyle(
+                                        fontSize = 42.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = accentColor.copy(alpha = 0.35f)
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                    modifier = Modifier.width(180.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FormSectionCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun AiQuickActionCard(
+    icon: ImageVector,
+    label: String,
+    isActive: Boolean,
+    isEnabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val containerColor = if (isActive) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    Card(
+        modifier = modifier
+            .alpha(if (isEnabled) 1f else 0.5f)
+            .clickable(enabled = isEnabled, onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isActive) 4.dp else 1.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(28.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+        }
+    }
+}
+
+@Composable
+private fun TransactionBottomBar(
+    isAddMode: Boolean,
+    isLoading: Boolean,
+    isFinishing: Boolean,
+    detectedCount: Int,
+    isEditingPreparedTransaction: Boolean,
+    onSave: () -> Unit,
+    onFinish: () -> Unit,
+    accentColor: androidx.compose.ui.graphics.Color,
+    isEditMode: Boolean
+) {
+    Surface(
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onSave,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                enabled = !isLoading && !isFinishing,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = when {
+                            isEditMode -> stringResource(id = R.string.update_transaction)
+                            isEditingPreparedTransaction -> stringResource(R.string.finish_editing_prepared)
+                            else -> stringResource(id = R.string.prepare_transaction)
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            if (isAddMode) {
+                OutlinedButton(
+                    onClick = onFinish,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    enabled = !isLoading && !isFinishing,
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    if (isFinishing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Text(
+                            text = if (detectedCount > 0) {
+                                stringResource(R.string.finish_and_save, detectedCount)
+                            } else {
+                                stringResource(R.string.finish_adding)
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UnsavedPreparedTransactionsDialog(
+    transactions: List<DetectedTransactionItem>,
+    isIngreso: Boolean,
+    hasUnsavedFormData: Boolean,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+    onDiscard: () -> Unit
+) {
+    val dialogScrollState = rememberScrollState()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.exit_without_saving_title)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 320.dp)
+                    .verticalScroll(dialogScrollState),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = if (transactions.isNotEmpty()) {
+                        stringResource(R.string.exit_without_saving_message, transactions.size)
+                    } else {
+                        stringResource(R.string.exit_without_saving_form_only_message)
+                    },
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (transactions.isNotEmpty()) {
+                    transactions.forEach { item ->
+                        DetectedTransactionRow(
+                            item = item,
+                            isIngreso = isIngreso,
+                            isSelected = false
+                        )
+                    }
+                }
+                if (hasUnsavedFormData) {
+                    Text(
+                        text = stringResource(R.string.exit_unsaved_form_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSave) {
+                Text(stringResource(R.string.save_and_exit))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDiscard) {
+                Text(stringResource(R.string.discard_without_saving))
+            }
+        }
+    )
+}
+
+@Composable
+private fun DetectedTransactionsList(
+    transactions: List<DetectedTransactionItem>,
+    isIngreso: Boolean,
+    selectedIndex: Int?,
+    onItemClick: (Int, DetectedTransactionItem) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.prepared_transactions_session, transactions.size),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = stringResource(R.string.tap_detected_to_edit),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            transactions.forEachIndexed { index, item ->
+                DetectedTransactionRow(
+                    item = item,
+                    isIngreso = isIngreso,
+                    isSelected = selectedIndex == index,
+                    onClick = { onItemClick(index, item) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetectedTransactionRow(
+    item: DetectedTransactionItem,
+    isIngreso: Boolean,
+    isSelected: Boolean,
+    onClick: (() -> Unit)? = null
+) {
+    val rowModifier = Modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(14.dp))
+        .background(
+            if (isSelected) AccentBlue.copy(alpha = 0.18f)
+            else MaterialTheme.colorScheme.surface
+        )
+        .border(
+            width = if (isSelected) 1.5.dp else 0.dp,
+            color = if (isSelected) AccentBlue.copy(alpha = 0.5f) else AccentBlue.copy(alpha = 0f),
+            shape = RoundedCornerShape(14.dp)
+        )
+        .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+        .padding(horizontal = 14.dp, vertical = 12.dp)
+
+    Row(
+        modifier = rowModifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.description.ifBlank { stringResource(R.string.no_description) },
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
+            )
+            Text(
+                text = item.categoryName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+        Text(
+            text = if (isIngreso) {
+                "+%.2f €".format(Locale.getDefault(), item.amount)
+            } else {
+                "-%.2f €".format(Locale.getDefault(), item.amount)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isIngreso) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+        )
     }
 }
 
@@ -674,28 +1300,32 @@ fun TransactionTypeSelector(
     onTypeChanged: (TransactionType) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         TransactionType.entries.forEach { type ->
             val isSelected = type == selectedType
-            Card(
+            val typeColor = if (type == TransactionType.Ingreso) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.error
+            }
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onTypeChanged(type) },
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected) AccentBlue
-                    else MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = if (isSelected) 4.dp else 1.dp
-                )
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        if (isSelected) typeColor else MaterialTheme.colorScheme.surface.copy(alpha = 0f)
+                    )
+                    .clickable { onTypeChanged(type) }
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 14.dp, horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -705,16 +1335,16 @@ fun TransactionTypeSelector(
                         contentDescription = null,
                         tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = when (type) {
                             TransactionType.Ingreso -> stringResource(R.string.transaction_type_income)
                             TransactionType.Gasto -> stringResource(R.string.transaction_type_expense)
                         },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -729,16 +1359,17 @@ private fun CategoryChip(
     name: String,
     iconKey: String?,
     isSelected: Boolean,
+    accentColor: androidx.compose.ui.graphics.Color,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) AccentBlue
+            containerColor = if (isSelected) accentColor
             else MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 2.dp else 0.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -769,76 +1400,4 @@ fun TransactionTypeDropdown(
     onTypeChanged: (TransactionType) -> Unit
 ) {
     TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)
-}
-
-@Composable
-private fun CameraActionButton(
-    modifier: Modifier = Modifier,
-    isAnalyzing: Boolean,
-    isEnabled: Boolean,
-    onClick: () -> Unit
-) {
-    FilledTonalButton(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        enabled = isEnabled
-    ) {
-        Icon(
-            imageVector = Icons.Default.CameraAlt,
-            contentDescription = null,
-            modifier = Modifier
-                .size(22.dp)
-                .alpha(if (isAnalyzing) 0.5f else 1f)
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = if (isAnalyzing) stringResource(R.string.analyzing)
-            else stringResource(R.string.take_photo)
-        )
-    }
-}
-
-@Composable
-private fun MicActionButton(
-    modifier: Modifier = Modifier,
-    isAnalyzing: Boolean,
-    isRecording: Boolean,
-    isEnabled: Boolean,
-    onClick: () -> Unit
-) {
-    FilledTonalButton(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        enabled = isEnabled
-    ) {
-        when {
-            isAnalyzing -> Icon(
-                imageVector = Icons.Default.Mic,
-                contentDescription = stringResource(R.string.cd_record_audio),
-                modifier = Modifier
-                    .size(22.dp)
-                    .alpha(0.5f)
-            )
-            isRecording -> Icon(
-                imageVector = Icons.Default.Stop,
-                contentDescription = stringResource(R.string.cd_record_audio),
-                modifier = Modifier.size(22.dp)
-            )
-            else -> Icon(
-                imageVector = Icons.Default.Mic,
-                contentDescription = stringResource(R.string.cd_record_audio),
-                modifier = Modifier.size(22.dp)
-            )
-        }
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = when {
-                isAnalyzing -> stringResource(R.string.analyzing)
-                isRecording -> stringResource(R.string.recording_in_progress)
-                else -> stringResource(R.string.record_audio)
-            }
-        )
-    }
 }
