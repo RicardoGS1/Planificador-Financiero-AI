@@ -12,6 +12,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -87,10 +88,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -956,6 +961,45 @@ private fun HeroAmountCard(
     accentColor: androidx.compose.ui.graphics.Color,
     isIngreso: Boolean
 ) {
+    val hintText = stringResource(R.string.hint_amount)
+    val amountTextStyle = TextStyle(
+        fontSize = 42.sp,
+        fontWeight = FontWeight.Bold,
+        color = accentColor
+    )
+    val placeholderStyle = amountTextStyle.copy(color = accentColor.copy(alpha = 0.35f))
+    val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val hintWidthDp = remember(hintText, amountTextStyle, density) {
+        with(density) {
+            textMeasurer.measure(hintText, amountTextStyle).size.width.toDp()
+        }
+    }
+
+    var amountFieldValue by remember {
+        mutableStateOf(TextFieldValue(amountText, TextRange(amountText.length)))
+    }
+
+    LaunchedEffect(amountText) {
+        if (amountFieldValue.text != amountText) {
+            amountFieldValue = TextFieldValue(
+                text = amountText,
+                selection = TextRange(if (amountText.isEmpty()) 0 else amountText.length)
+            )
+        }
+    }
+
+    val isAmountEmpty = amountText.isEmpty()
+    val displayText = if (isAmountEmpty) hintText else amountText
+    val fieldWidthDp = remember(displayText, amountTextStyle, density, hintWidthDp) {
+        maxOf(
+            hintWidthDp,
+            with(density) {
+                textMeasurer.measure(displayText, amountTextStyle).size.width.toDp()
+            }
+        )
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -977,51 +1021,57 @@ private fun HeroAmountCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = if (isIngreso) "+" else if (amountText.isNotEmpty()) "−" else "",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = accentColor
-                )
-                Text(
-                    text = "€",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = accentColor,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
-                BasicTextField(
-                    value = amountText,
-                    onValueChange = onAmountChange,
-                    textStyle = TextStyle(
-                        fontSize = 42.sp,
+                if (isIngreso || !isAmountEmpty) {
+                    Text(
+                        text = if (isIngreso) "+" else "−",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Text(
+                        text = "€",
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = accentColor,
-                        textAlign = TextAlign.Start
-                    ),
-                    singleLine = true,
-                    cursorBrush = SolidColor(accentColor),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    decorationBox = { innerTextField ->
-                        Box(contentAlignment = Alignment.CenterStart) {
-                            if (amountText.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.hint_amount),
-                                    style = TextStyle(
-                                        fontSize = 42.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = accentColor.copy(alpha = 0.35f)
-                                    )
-                                )
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    BasicTextField(
+                        value = if (isAmountEmpty) {
+                            TextFieldValue("", TextRange(0))
+                        } else {
+                            amountFieldValue
+                        },
+                        onValueChange = { newValue ->
+                            amountFieldValue = newValue
+                            onAmountChange(newValue.text)
+                        },
+                        textStyle = amountTextStyle.copy(textAlign = TextAlign.Start),
+                        singleLine = true,
+                        cursorBrush = SolidColor(accentColor),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                modifier = Modifier.width(fieldWidthDp),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (isAmountEmpty) {
+                                    Text(text = hintText, style = placeholderStyle)
+                                }
+                                innerTextField()
                             }
-                            innerTextField()
-                        }
-                    },
-                    modifier = Modifier.width(180.dp)
-                )
+                        },
+                        modifier = Modifier.width(fieldWidthDp)
+                    )
+                }
             }
         }
     }
@@ -1242,13 +1292,18 @@ private fun DetectedTransactionsList(
     onItemClick: (Int, DetectedTransactionItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val containerShape = RoundedCornerShape(20.dp)
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = containerShape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -1284,50 +1339,57 @@ private fun DetectedTransactionRow(
     isSelected: Boolean,
     onClick: (() -> Unit)? = null
 ) {
-    val rowModifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(14.dp))
-        .background(
-            if (isSelected) AccentBlue.copy(alpha = 0.18f)
-            else MaterialTheme.colorScheme.surface
-        )
-        .border(
-            width = if (isSelected) 1.5.dp else 0.dp,
-            color = if (isSelected) AccentBlue.copy(alpha = 0.5f) else AccentBlue.copy(alpha = 0f),
-            shape = RoundedCornerShape(14.dp)
-        )
-        .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-        .padding(horizontal = 14.dp, vertical = 12.dp)
+    val rowShape = RoundedCornerShape(14.dp)
+    val rowBorderColor = if (isSelected) {
+        AccentBlue.copy(alpha = 0.55f)
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+    }
 
-    Row(
-        modifier = rowModifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = rowShape,
+        color = if (isSelected) AccentBlue.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            width = if (isSelected) 1.5.dp else 1.dp,
+            color = rowBorderColor
+        ),
+        tonalElevation = 0.dp
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.description.ifBlank { stringResource(R.string.no_description) },
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+                Text(
+                    text = item.categoryName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
             Text(
-                text = item.description.ifBlank { stringResource(R.string.no_description) },
+                text = if (isIngreso) {
+                    "+%.2f €".format(Locale.getDefault(), item.amount)
+                } else {
+                    "-%.2f €".format(Locale.getDefault(), item.amount)
+                },
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1
-            )
-            Text(
-                text = item.categoryName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                fontWeight = FontWeight.SemiBold,
+                color = if (isIngreso) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
             )
         }
-        Text(
-            text = if (isIngreso) {
-                "+%.2f €".format(Locale.getDefault(), item.amount)
-            } else {
-                "-%.2f €".format(Locale.getDefault(), item.amount)
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isIngreso) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-        )
     }
 }
 
