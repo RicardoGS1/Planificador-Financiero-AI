@@ -18,6 +18,8 @@ import com.virtualworld.easyexpensecontrol.R
  * Claves expuestas:
  *  - [KEY_APP_OPEN_AD_ENABLED]: activa/desactiva el App Open Ad de forma remota.
  *  - [KEY_INTERSTITIAL_AD_ENABLED]: activa/desactiva el intersticial de forma remota.
+ *  - [KEY_INTERSTITIAL_AD_FREQUENCY]: cada cuántas solicitudes de [InterstitialAdHelper.show]
+ *    se muestra realmente el intersticial (p. ej. 4 = mostrar 1 de cada 4 solicitudes).
  *  - [KEY_REWARDED_AD_ENABLED]: activa/desactiva el rewarded ad de forma remota.
  */
 object RemoteConfigManager {
@@ -26,13 +28,14 @@ object RemoteConfigManager {
 
     const val KEY_APP_OPEN_AD_ENABLED = "app_open_ad_enabled"
     const val KEY_INTERSTITIAL_AD_ENABLED = "interstitial_ad_enabled"
+    const val KEY_INTERSTITIAL_AD_FREQUENCY = "interstitial_ad_frequency"
     const val KEY_REWARDED_AD_ENABLED = "rewarded_ad_enabled"
 
     /**
-     * En DEBUG refrescamos cada vez (0s) para poder probar cambios al instante.
-     * En RELEASE usamos 1h, suficiente para reaccionar sin abusar de la cuota de Firebase.
+     * En DEBUG refrescamos al instante para poder probar parámetros como
+     * [KEY_INTERSTITIAL_AD_FREQUENCY]. En RELEASE usamos 1 h.
      */
-    private val MIN_FETCH_INTERVAL_SECONDS: Long = if (BuildConfig.DEBUG) 0L else 3_600L
+    private val minFetchIntervalSeconds: Long = if (BuildConfig.DEBUG) 0L else 3_600L
 
     @Volatile
     private var initialized = false
@@ -49,24 +52,56 @@ object RemoteConfigManager {
 
         val remoteConfig = Firebase.remoteConfig
         val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = MIN_FETCH_INTERVAL_SECONDS
+            minimumFetchIntervalInSeconds = minFetchIntervalSeconds
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
-        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
-
-        remoteConfig.fetchAndActivate()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Remote Config fetchAndActivate OK, updated=${task.result}")
-                } else {
-                    Log.w(TAG, "Remote Config fetchAndActivate failed", task.exception)
-                }
+            .addOnCompleteListener {
+                remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+                    .addOnCompleteListener {
+                        remoteConfig.fetchAndActivate()
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Log.d(
+                                        TAG,
+                                        "Remote Config fetchAndActivate OK, updated=${task.result}, " +
+                                            "interstitial_ad_frequency=${getInterstitialAdFrequency()}"
+                                    )
+                                } else {
+                                    Log.w(TAG, "Remote Config fetchAndActivate failed", task.exception)
+                                }
+                            }
+                    }
             }
     }
 
     fun isAppOpenAdEnabled(): Boolean = getBoolean(KEY_APP_OPEN_AD_ENABLED)
 
     fun isInterstitialAdEnabled(): Boolean = getBoolean(KEY_INTERSTITIAL_AD_ENABLED)
+
+    /**
+     * Número de solicitudes de intersticial entre cada visualización real.
+     * Valor 1 = comportamiento habitual (mostrar en cada solicitud elegible).
+     * Valor 4 = mostrar solo en la 4.ª solicitud y reiniciar el contador.
+     */
+    fun getInterstitialAdFrequency(): Long {
+        val remoteConfig = Firebase.remoteConfig
+        val value = remoteConfig.getValue(KEY_INTERSTITIAL_AD_FREQUENCY)
+        val fromLong = value.asLong()
+        val fromString = value.asString().trim().toLongOrNull()
+        val resolved = when {
+            fromLong > 0L -> fromLong
+            fromString != null && fromString > 0L -> fromString
+            else -> 1L
+        }.coerceAtLeast(1L)
+        if (BuildConfig.DEBUG) {
+            Log.d(
+                TAG,
+                "interstitial_ad_frequency=$resolved (long=$fromLong, string='${value.asString()}', " +
+                    "source=${value.source})"
+            )
+        }
+        return resolved
+    }
 
     fun isRewardedAdEnabled(): Boolean = getBoolean(KEY_REWARDED_AD_ENABLED)
 

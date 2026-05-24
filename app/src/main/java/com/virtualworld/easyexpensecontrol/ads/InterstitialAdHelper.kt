@@ -18,23 +18,30 @@ import com.virtualworld.easyexpensecontrol.R
  * Muestra un intersticial al navegar a ciertas pantallas (p. ej. presupuestos).
  *
  * - Precarga el anuncio mediante [preload] para evitar latencia.
- * - Aplica un frequency cap de [MIN_INTERVAL_MS] entre intersticiales.
- * - Si el anuncio no está listo o estamos dentro del cap, se llama a
- *   [onDone] de inmediato para no bloquear el flujo del usuario.
+ * - Respeta [RemoteConfigManager.isInterstitialAdEnabled] y el frequency cap remoto
+ *   ([RemoteConfigManager.getInterstitialAdFrequency]): solo muestra el intersticial
+ *   cada N solicitudes de [show].
+ * - Si el anuncio no está listo, se llama a [onDone] de inmediato para no bloquear
+ *   el flujo del usuario.
+ * - El contador de solicitudes persiste entre sesiones (SharedPreferences).
  */
 object InterstitialAdHelper {
 
     private const val TAG = "InterstitialAd"
-    private const val MIN_INTERVAL_MS = 5_000L
+    private const val PREFS_NAME = "interstitial_ad_prefs"
+    private const val KEY_SHOW_REQUEST_COUNT = "show_request_count"
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var loadedAd: InterstitialAd? = null
     private var isLoading = false
-    private var lastShownAtMs = 0L
+    private var showRequestCount = -1
 
     fun preload(context: Context) {
         if (!RemoteConfigManager.isInterstitialAdEnabled()) return
+        ensureCountLoaded(context)
+        val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
+        if (!shouldPreloadForNextShow(frequency)) return
         if (loadedAd != null || isLoading) return
         isLoading = true
         InterstitialAd.load(
@@ -63,15 +70,27 @@ object InterstitialAdHelper {
             return
         }
 
+        ensureCountLoaded(activity)
+        val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
+
+        if (!shouldShowOnThisRequest(activity, frequency)) {
+            Log.d(
+                TAG,
+                "Skipping interstitial (frequency cap $frequency, requestCount=$showRequestCount)"
+            )
+            if (shouldPreloadForNextShow(frequency)) preload(activity)
+            runOnUi(activity, onDone)
+            return
+        }
+
+        Log.d(TAG, "Interstitial eligible (frequency=$frequency, requestCount=$showRequestCount)")
+
         AppOpenAdManager.suppressNextAppOpen()
 
-        val now = System.currentTimeMillis()
-        val tooSoon = lastShownAtMs > 0 && now - lastShownAtMs < MIN_INTERVAL_MS
         val ad = loadedAd
-
-        if (tooSoon || ad == null) {
-            Log.d(TAG, "Skipping interstitial (tooSoon=$tooSoon, loaded=${ad != null})")
-            if (!tooSoon) preload(activity)
+        if (ad == null) {
+            Log.d(TAG, "Skipping interstitial (not loaded yet, keeping requestCount=$showRequestCount)")
+            preload(activity)
             runOnUi(activity, onDone)
             return
         }
@@ -81,7 +100,7 @@ object InterstitialAdHelper {
                 Log.d(TAG, "Interstitial dismissed")
                 ad.fullScreenContentCallback = null
                 loadedAd = null
-                lastShownAtMs = System.currentTimeMillis()
+                resetShowRequestCount(activity)
                 preload(activity)
                 runOnUi(activity, onDone)
             }
@@ -90,12 +109,47 @@ object InterstitialAdHelper {
                 Log.e(TAG, "Interstitial failed to show: code=${error.code}, message=${error.message}")
                 ad.fullScreenContentCallback = null
                 loadedAd = null
+                resetShowRequestCount(activity)
                 preload(activity)
                 runOnUi(activity, onDone)
             }
         }
         ad.show(activity)
     }
+
+    /**
+     * Incrementa el contador de solicitudes y devuelve true si corresponde intentar
+     * mostrar el intersticial en esta solicitud. El contador persiste entre sesiones.
+     * Solo se reinicia tras mostrar el anuncio (o fallo al mostrarlo).
+     */
+    private fun shouldShowOnThisRequest(context: Context, frequency: Int): Boolean {
+        showRequestCount++
+        persistCount(context)
+        return showRequestCount >= frequency
+    }
+
+    private fun resetShowRequestCount(context: Context) {
+        showRequestCount = 0
+        persistCount(context)
+    }
+
+    /** Precarga solo cuando falta una solicitud para llegar al umbral de frecuencia. */
+    private fun shouldPreloadForNextShow(frequency: Int): Boolean {
+        if (frequency <= 1) return true
+        return showRequestCount == frequency - 1
+    }
+
+    private fun ensureCountLoaded(context: Context) {
+        if (showRequestCount >= 0) return
+        showRequestCount = prefs(context).getInt(KEY_SHOW_REQUEST_COUNT, 0)
+    }
+
+    private fun persistCount(context: Context) {
+        prefs(context).edit().putInt(KEY_SHOW_REQUEST_COUNT, showRequestCount).apply()
+    }
+
+    private fun prefs(context: Context) =
+        (context.applicationContext ?: context).getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     private fun adUnitId(context: Context): String = if (BuildConfig.DEBUG) {
         context.getString(R.string.admob_interstitial_camera_test)

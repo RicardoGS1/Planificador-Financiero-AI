@@ -9,6 +9,8 @@
         mostrará anuncios App Open.
       - interstitial_ad_enabled: boolean. Si es false, InterstitialAdHelper NO
         precargará ni mostrará intersticiales.
+      - interstitial_ad_frequency: número entero >= 1. Cada cuántas solicitudes de
+        show() se muestra realmente el intersticial (p. ej. 4 = 1 de cada 4).
       - rewarded_ad_enabled: boolean. Si es false, CameraRewardedAdHelper NO
         precargará ni mostrará anuncios rewarded.
       Permite desactivar cada formato de forma remota (sin actualizar la app)
@@ -22,6 +24,10 @@
     <entry>
         <key>interstitial_ad_enabled</key>
         <value>true</value>
+    </entry>
+    <entry>
+        <key>interstitial_ad_frequency</key>
+        <value>1</value>
     </entry>
     <entry>
         <key>rewarded_ad_enabled</key>
