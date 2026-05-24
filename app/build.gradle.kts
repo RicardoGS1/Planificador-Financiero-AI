@@ -151,7 +151,11 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-config")
 
-    implementation("com.google.android.gms:play-services-ads:23.6.0")
+    // AdMob + mediación Unity Ads (bidding). Versiones alineadas según:
+    // https://developers.google.com/admob/android/mediation/unity
+    implementation("com.google.android.gms:play-services-ads:24.9.0")
+    implementation("com.unity3d.ads:unity-ads:4.16.6")
+    implementation("com.google.ads.mediation:unity:4.16.6.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
 
     implementation(libs.retrofit)

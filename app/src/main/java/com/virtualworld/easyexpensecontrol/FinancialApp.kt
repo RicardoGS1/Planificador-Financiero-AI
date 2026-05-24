@@ -78,6 +78,13 @@ class FinancialApp : Application() {
         if (!mobileAdsInitialized.compareAndSet(false, true)) return
         MobileAds.initialize(this) { initializationStatus ->
             Log.d(TAG, "AdMob SDK initialized: $initializationStatus")
+            initializationStatus.adapterStatusMap.forEach { (adapter, status) ->
+                Log.d(
+                    TAG,
+                    "Mediation adapter '$adapter': state=${status.initializationState}, " +
+                        "description=${status.description}, latency=${status.latency}ms"
+                )
+            }
             val manager = AppOpenAdManager(this, activityRef?.get())
             appOpenAdManager = manager
             synchronized(pendingManagerCallbacks) {

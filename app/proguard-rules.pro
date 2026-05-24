@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Unity Ads mediation adapter (necesario si se activa minify en release)
+-keepattributes SourceFile,LineNumberTable
+-keep class com.google.ads.mediation.unity.** { *; }
+-keep class com.unity3d.ads.** { *; }
+-keep class com.unity3d.services.** { *; }
+-dontwarn com.unity3d.**
