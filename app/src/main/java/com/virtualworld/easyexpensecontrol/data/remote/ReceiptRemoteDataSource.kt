@@ -13,6 +13,7 @@ import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiInlineData
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiPart
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiRequest
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.SensitiveDataSanitizer
 import com.virtualworld.easyexpensecontrol.data.remote.dto.ReceiptLineItemDto
 import retrofit2.HttpException
 import java.io.IOException
@@ -153,21 +154,17 @@ class ReceiptRemoteDataSource(
                 IllegalArgumentException(appContext.getString(R.string.gemini_parse_error), e)
             )
         } catch (e: HttpException) {
-            val body = e.response()?.errorBody()?.string() ?: ""
-            val msg = when (e.code()) {
-                403 -> appContext.getString(R.string.gemini_error_403) +
-                    if (body.isNotEmpty()) " ${body}" else ""
-                401 -> appContext.getString(R.string.gemini_error_401)
-                429 -> appContext.getString(R.string.gemini_error_429)
-                else -> appContext.getString(
-                    R.string.gemini_error_other,
-                    e.code(),
-                    body.ifEmpty { e.message() ?: "" }
-                )
-            }
+            val body = e.response()?.errorBody()?.string().orEmpty()
+            val msg = sanitizeUserMessage(buildHttpErrorMessage(e.code(), body))
             Result.failure(IOException(msg))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(
+                IOException(
+                    sanitizeUserMessage(
+                        e.message ?: appContext.getString(R.string.error_receipt_analysis)
+                    )
+                )
+            )
         }
     }
 
@@ -197,6 +194,33 @@ class ReceiptRemoteDataSource(
 
     private fun isLegacySingleItem(obj: JsonObject): Boolean =
         obj.has("amount") && obj.has("description") && obj.has("categoryName")
+
+    private fun buildHttpErrorMessage(code: Int, body: String): String {
+        val apiDetail = parseApiErrorMessage(body)
+        return when (code) {
+            403 -> appContext.getString(R.string.gemini_error_403)
+            401 -> appContext.getString(R.string.gemini_error_401)
+            429 -> appContext.getString(R.string.gemini_error_429)
+            else -> appContext.getString(
+                R.string.gemini_error_other,
+                code,
+                apiDetail ?: appContext.getString(R.string.error_unknown)
+            )
+        }
+    }
+
+    private fun parseApiErrorMessage(body: String): String? {
+        if (body.isBlank()) return null
+        return try {
+            val root = gson.fromJson(body, JsonObject::class.java)
+            root.getAsJsonObject("error")?.get("message")?.asString?.takeIf { it.isNotBlank() }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun sanitizeUserMessage(message: String): String =
+        SensitiveDataSanitizer.sanitize(message, listOf(apiKey))
 
     private fun sanitizeLineItem(dto: ReceiptLineItemDto): ReceiptLineItemDto {
         val amount = dto.amount.coerceAtLeast(0.0)

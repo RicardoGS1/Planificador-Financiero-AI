@@ -21,6 +21,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransac
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.SaveTransactionUseCase
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.SensitiveDataSanitizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -142,8 +143,9 @@ class TransactionViewModel(
                 _receiptProcessingState.value = ReceiptProcessingState.Success(detected.size)
             }
             .onFailure { e ->
+                val rawMessage = e.message ?: appContext.getString(R.string.error_receipt_analysis)
                 _receiptProcessingState.value = ReceiptProcessingState.Error(
-                    e.message ?: appContext.getString(R.string.error_receipt_analysis)
+                    SensitiveDataSanitizer.sanitize(rawMessage)
                 )
             }
     }
