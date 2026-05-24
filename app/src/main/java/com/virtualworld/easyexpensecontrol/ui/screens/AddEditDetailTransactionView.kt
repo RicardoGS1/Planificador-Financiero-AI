@@ -104,13 +104,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
-import com.virtualworld.easyexpensecontrol.ads.CameraRewardedAdHelper
+import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
+import com.virtualworld.easyexpensecontrol.ui.components.AiAccessRewardedDialog
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
 import com.virtualworld.easyexpensecontrol.ui.components.GeminiAnalysisLoadingOverlay
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
@@ -211,9 +212,11 @@ fun AddEditDetailTransactionView(
     val isAddMode = id == 0L
     var selectedDetectedIndex by remember { mutableStateOf<Int?>(null) }
     var showExitConfirmDialog by remember { mutableStateOf(false) }
+    var showAiAccessDialog by remember { mutableStateOf(false) }
+    var pendingAiAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     LaunchedEffect(transactionViewModel.transactionTypeState) {
-        CameraRewardedAdHelper.preload(context)
+        AiRewardedAdHelper.preload(context)
     }
 
     LaunchedEffect(receiptState) {
@@ -449,8 +452,7 @@ fun AddEditDetailTransactionView(
 
     val onCameraClick: () -> Unit = onCameraClick@{
         if (isAnalyzingReceipt || isRecordingAudio) return@onCameraClick
-        val activity = context as? Activity ?: return@onCameraClick
-        CameraRewardedAdHelper.showThenContinue(activity) {
+        val openCamera = {
             val file = File(context.cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
             val uri = FileProvider.getUriForFile(
                 context,
@@ -467,6 +469,12 @@ fun AddEditDetailTransactionView(
             } else {
                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
             }
+        }
+        if (AiRewardedAdHelper.hasSessionAccess()) {
+            openCamera()
+        } else {
+            pendingAiAction = openCamera
+            showAiAccessDialog = true
         }
     }
 
@@ -523,8 +531,7 @@ fun AddEditDetailTransactionView(
         if (isRecordingAudio) {
             stopRecordingAndAnalyze()
         } else {
-            val activity = context as? Activity ?: return@onMicClick
-            CameraRewardedAdHelper.showThenContinue(activity) {
+            val startMic = {
                 if (ContextCompat.checkSelfPermission(
                         context,
                         Manifest.permission.RECORD_AUDIO
@@ -534,6 +541,12 @@ fun AddEditDetailTransactionView(
                 } else {
                     audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
+            }
+            if (AiRewardedAdHelper.hasSessionAccess()) {
+                startMic()
+            } else {
+                pendingAiAction = startMic
+                showAiAccessDialog = true
             }
         }
     }
@@ -906,6 +919,40 @@ fun AddEditDetailTransactionView(
                     onDismiss = { showExitConfirmDialog = false },
                     onSave = { savePreparedAndExit() },
                     onDiscard = { discardPreparedAndExit() }
+                )
+            }
+
+            if (showAiAccessDialog) {
+                AiAccessRewardedDialog(
+                    onDismiss = {
+                        showAiAccessDialog = false
+                        pendingAiAction = null
+                    },
+                    onWatchAd = {
+                        showAiAccessDialog = false
+                        val activity = context as? Activity
+                        val action = pendingAiAction
+                        pendingAiAction = null
+                        if (activity == null || action == null) return@AiAccessRewardedDialog
+                        AiRewardedAdHelper.showForSessionAccess(
+                            activity = activity,
+                            onGranted = action,
+                            onAdFailed = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(R.string.ai_access_ad_failed)
+                                    )
+                                }
+                            },
+                            onAdNotCompleted = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(R.string.ai_access_ad_not_completed)
+                                    )
+                                }
+                            }
+                        )
+                    }
                 )
             }
         }

@@ -8,6 +8,8 @@
     <string name="admob_app_open_test" translatable="false">ca-app-pub-3940256099942544/9257395921</string>
     <string name="admob_rewarded_camera" translatable="false">ca-app-pub-7595196761874810/7638540800</string>
     <string name="admob_rewarded_camera_test" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
+    <string name="admob_rewarded_ai" translatable="false">ca-app-pub-7595196761874810/7638540800</string>
+    <string name="admob_rewarded_ai_test" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
 
     <string name="app_name">AI-Powered Expense Control</string>
     <string name="update_transaction">Update transaction</string>
@@ -107,6 +109,15 @@
     <string name="recording_in_progress">Recording… tap to stop</string>
     <string name="cd_record_audio">Record audio to fill the form</string>
     <string name="error_audio_record">Could not record audio</string>
+    <string name="ai_access_dialog_title">AI features</string>
+    <string name="ai_access_dialog_message">Watch a short rewarded ad to unlock AI features for this session.</string>
+    <string name="ai_access_feature_scan">Receipt scan</string>
+    <string name="ai_access_feature_voice">Voice input</string>
+    <string name="ai_access_session_hint">Unlocked for this session</string>
+    <string name="ai_access_watch_ad">Watch ad</string>
+    <string name="ai_access_not_now">Not now</string>
+    <string name="ai_access_ad_failed">The ad could not be loaded. Please try again in a moment.</string>
+    <string name="ai_access_ad_not_completed">You must watch the full ad to unlock AI features.</string>
     <string name="audio_analyzed">Audio analyzed</string>
     <string name="analyzing">Analyzing…</string>
     <string name="amount_label">Amount</string>

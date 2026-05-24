@@ -95,6 +95,15 @@
     <string name="recording_in_progress">Aufnahme läuft… zum Stoppen tippen</string>
     <string name="cd_record_audio">Audio aufnehmen, um das Formular auszufüllen</string>
     <string name="error_audio_record">Audio konnte nicht aufgenommen werden</string>
+    <string name="ai_access_dialog_title">KI-Funktionen</string>
+    <string name="ai_access_dialog_message">Sieh dir eine kurze belohnte Anzeige an, um KI-Funktionen für diese Sitzung freizuschalten.</string>
+    <string name="ai_access_feature_scan">Belegscan</string>
+    <string name="ai_access_feature_voice">Spracheingabe</string>
+    <string name="ai_access_session_hint">Für diese Sitzung freigeschaltet</string>
+    <string name="ai_access_watch_ad">Anzeige ansehen</string>
+    <string name="ai_access_not_now">Nicht jetzt</string>
+    <string name="ai_access_ad_failed">Die Anzeige konnte nicht geladen werden. Bitte versuche es in Kürze erneut.</string>
+    <string name="ai_access_ad_not_completed">Du musst die Anzeige vollständig ansehen, um KI-Funktionen freizuschalten.</string>
     <string name="audio_analyzed">Audio analysiert</string>
     <string name="analyzing">Wird analysiert…</string>
     <string name="amount_label">Betrag</string>

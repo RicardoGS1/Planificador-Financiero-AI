@@ -98,6 +98,15 @@
     <string name="recording_in_progress">Grabando… toca para detener</string>
     <string name="cd_record_audio">Grabar audio para rellenar el formulario</string>
     <string name="error_audio_record">No se pudo grabar el audio</string>
+    <string name="ai_access_dialog_title">Funciones de IA</string>
+    <string name="ai_access_dialog_message">Mira un anuncio recompensado breve para desbloquear las funciones de IA en esta sesión.</string>
+    <string name="ai_access_feature_scan">Escaneo de recibos</string>
+    <string name="ai_access_feature_voice">Entrada por voz</string>
+    <string name="ai_access_session_hint">Desbloqueado por sesión</string>
+    <string name="ai_access_watch_ad">Ver anuncio</string>
+    <string name="ai_access_not_now">Ahora no</string>
+    <string name="ai_access_ad_failed">No se pudo cargar el anuncio. Inténtalo de nuevo en un momento.</string>
+    <string name="ai_access_ad_not_completed">Debes ver el anuncio completo para desbloquear las funciones de IA.</string>
     <string name="audio_analyzed">Audio analizado</string>
     <string name="analyzing">Analizando…</string>
     <string name="amount_label">Importe</string>
