@@ -127,6 +127,8 @@
     <string name="save_all_detected">Guardar todas (%1$d)</string>
     <string name="prepare_transaction">Preparar transacción</string>
     <string name="finish_editing_prepared">Terminar edición</string>
+    <string name="remove_prepared_transaction">Eliminar</string>
+    <string name="prepared_transaction_removed">Transacción eliminada de la lista preparada</string>
     <string name="prepare_all_detected">Preparar todas (%1$d)</string>
     <string name="transaction_prepared_continue">Transacción preparada. Puedes añadir otra.</string>
     <string name="all_detected_prepared">%1$d transacciones preparadas</string>

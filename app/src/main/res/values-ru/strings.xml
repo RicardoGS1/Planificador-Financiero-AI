@@ -124,6 +124,8 @@
     <string name="save_all_detected">Сохранить все (%1$d)</string>
     <string name="prepare_transaction">Подготовить операцию</string>
     <string name="finish_editing_prepared">Завершить редактирование</string>
+    <string name="remove_prepared_transaction">Удалить</string>
+    <string name="prepared_transaction_removed">Операция удалена из подготовленного списка</string>
     <string name="prepare_all_detected">Подготовить все (%1$d)</string>
     <string name="transaction_prepared_continue">Операция подготовлена. Можно добавить ещё одну.</string>
     <string name="all_detected_prepared">%1$d операций подготовлено</string>

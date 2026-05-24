@@ -168,6 +168,14 @@ class TransactionViewModel(
         transactionCategoryState = 0L
     }
 
+    fun removeDetectedTransactionAt(index: Int): Boolean {
+        val current = _detectedTransactions.value.toMutableList()
+        if (index !in current.indices) return false
+        current.removeAt(index)
+        _detectedTransactions.value = current
+        return true
+    }
+
     fun addOrUpdateDetectedTransaction(
         categoryName: String,
         categoryId: Long,

@@ -488,6 +488,22 @@ fun AddEditDetailTransactionView(
         }
     }
 
+    fun deleteSelectedPreparedTransaction() {
+        val index = selectedDetectedIndex ?: return
+        if (transactionViewModel.removeDetectedTransactionAt(index)) {
+            selectedDetectedIndex = null
+            resetLocalCategoryFields()
+            transactionViewModel.resetFormForNewTransaction()
+            amountText = ""
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    context.getString(R.string.prepared_transaction_removed)
+                )
+                scrollState.animateScrollTo(0)
+            }
+        }
+    }
+
     fun prepareOrUpdateTransaction() {
         if (!validateTransactionForm()) return
         if (isAddMode) {
@@ -861,30 +877,36 @@ fun AddEditDetailTransactionView(
                             }
 
                             if (isAddMode) {
-                                Button(
-                                    onClick = { prepareOrUpdateTransaction() },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp),
-                                    enabled = !isLoading && !isFinishing,
-                                    shape = RoundedCornerShape(14.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = accentColor)
-                                ) {
-                                    if (isLoading) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            color = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    } else {
-                                        Text(
-                                            text = if (selectedDetectedIndex != null) {
-                                                stringResource(R.string.finish_editing_prepared)
-                                            } else {
-                                                stringResource(R.string.prepare_transaction)
-                                            },
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
+                                if (selectedDetectedIndex != null) {
+                                    PreparedTransactionEditActions(
+                                        isLoading = isLoading,
+                                        isFinishing = isFinishing,
+                                        accentColor = accentColor,
+                                        onFinishEditing = { prepareOrUpdateTransaction() },
+                                        onDelete = { deleteSelectedPreparedTransaction() }
+                                    )
+                                } else {
+                                    Button(
+                                        onClick = { prepareOrUpdateTransaction() },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(52.dp),
+                                        enabled = !isLoading && !isFinishing,
+                                        shape = RoundedCornerShape(14.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                                    ) {
+                                        if (isLoading) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(24.dp),
+                                                color = MaterialTheme.colorScheme.onPrimary
+                                            )
+                                        } else {
+                                            Text(
+                                                text = stringResource(R.string.prepare_transaction),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -1208,6 +1230,63 @@ private fun AiQuickActionCard(
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
+        }
+    }
+}
+
+@Composable
+private fun PreparedTransactionEditActions(
+    isLoading: Boolean,
+    isFinishing: Boolean,
+    accentColor: androidx.compose.ui.graphics.Color,
+    onFinishEditing: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val enabled = !isLoading && !isFinishing
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedButton(
+            onClick = onDelete,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp),
+            enabled = enabled,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+        ) {
+            Text(
+                text = stringResource(R.string.remove_prepared_transaction),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Button(
+            onClick = onFinishEditing,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp),
+            enabled = enabled,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.finish_editing_prepared),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }

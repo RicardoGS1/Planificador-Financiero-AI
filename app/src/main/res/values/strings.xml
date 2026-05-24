@@ -138,6 +138,8 @@
     <string name="save_all_detected">Save all (%1$d)</string>
     <string name="prepare_transaction">Prepare transaction</string>
     <string name="finish_editing_prepared">Finish editing</string>
+    <string name="remove_prepared_transaction">Remove</string>
+    <string name="prepared_transaction_removed">Transaction removed from the prepared list</string>
     <string name="prepare_all_detected">Prepare all (%1$d)</string>
     <string name="transaction_prepared_continue">Transaction prepared. You can add another.</string>
     <string name="all_detected_prepared">%1$d transactions prepared</string>

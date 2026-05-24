@@ -124,6 +124,8 @@
     <string name="save_all_detected">सभी सहेजें (%1$d)</string>
     <string name="prepare_transaction">लेनदेन तैयार करें</string>
     <string name="finish_editing_prepared">संपादन समाप्त करें</string>
+    <string name="remove_prepared_transaction">हटाएँ</string>
+    <string name="prepared_transaction_removed">लेनदेन तैयार सूची से हटाया गया</string>
     <string name="prepare_all_detected">सभी तैयार करें (%1$d)</string>
     <string name="transaction_prepared_continue">लेनदेन तैयार है। आप एक और जोड़ सकते हैं।</string>
     <string name="all_detected_prepared">%1$d लेनदेन तैयार</string>
