@@ -89,6 +89,7 @@
     <string name="settings_accounts_subtitle_with_hidden">%1$s · скрыто: %2$d</string>
     <string name="settings_accounts_all_hidden">Скрытых счетов: %1$d</string>
     <string name="add_account_hint">Создайте новый счёт, чтобы отдельно организовать транзакции.</string>
+    <string name="add_account_examples">Примеры: Наличные, Карта ING, Дебетовая карта, Сбережения…</string>
     <string name="err_account_name_empty">Введите название счёта</string>
     <string name="err_account_required">Выберите счёт</string>
     <string name="cd_account_filter">Фильтр по счёту</string>

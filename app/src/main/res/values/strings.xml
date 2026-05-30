@@ -112,6 +112,7 @@
     <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d hidden</string>
     <string name="settings_accounts_all_hidden">%1$d hidden accounts</string>
     <string name="add_account_hint">Create a new account to organize your transactions separately.</string>
+    <string name="add_account_examples">Examples: Cash, ING card, Debit card, Savings…</string>
     <string name="err_account_name_empty">Enter an account name</string>
     <string name="err_account_required">Select an account</string>
     <string name="cd_account_filter">Account filter</string>

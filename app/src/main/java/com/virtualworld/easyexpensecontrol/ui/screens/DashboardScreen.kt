@@ -92,6 +92,7 @@ import kotlin.random.Random
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 private enum class ChartPeriod { DAY, WEEK, MONTH }
@@ -113,6 +114,11 @@ fun DashboardScreen(
     val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
     val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
     val allAccounts by accountViewModel.accounts.collectAsState(initial = emptyList())
+    var preferAddAccountTab by remember { mutableStateOf<Boolean?>(null) }
+
+    LaunchedEffect(Unit) {
+        preferAddAccountTab = accountViewModel.visibleAccounts.first().isEmpty()
+    }
 
     DashboardScreen(
         navController = navController,
@@ -120,6 +126,7 @@ fun DashboardScreen(
         categories = categories,
         accounts = accounts,
         allAccounts = allAccounts,
+        preferAddAccountTab = preferAddAccountTab,
         onAddAccount = { name, onError, onSuccess ->
             accountViewModel.addAccount(name, onError, onSuccess)
         },
@@ -134,6 +141,7 @@ fun DashboardScreen(
     categories: List<Category>,
     accounts: List<Account>,
     allAccounts: List<Account> = accounts,
+    preferAddAccountTab: Boolean? = null,
     onAddAccount: (name: String, onError: suspend (String) -> Unit, onSuccess: suspend (Long) -> Unit) -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -141,11 +149,20 @@ fun DashboardScreen(
     var showAddAccountDialog by remember { mutableStateOf(false) }
     var newAccountName by remember { mutableStateOf("") }
     var addAccountError by remember { mutableStateOf<String?>(null) }
+    var hasAppliedInitialTab by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val isAddTab = selectedTabIndex == accounts.size + 1
 
-    LaunchedEffect(accounts.size) {
+    LaunchedEffect(preferAddAccountTab, accounts.size) {
+        if (!hasAppliedInitialTab) {
+            if (preferAddAccountTab == null) return@LaunchedEffect
+            hasAppliedInitialTab = true
+            if (preferAddAccountTab) {
+                selectedTabIndex = accounts.size + 1
+            }
+            return@LaunchedEffect
+        }
         if (selectedTabIndex > 0 && selectedTabIndex <= accounts.size) return@LaunchedEffect
         if (selectedTabIndex == accounts.size + 1) return@LaunchedEffect
         if (selectedTabIndex != 0) {
@@ -182,6 +199,12 @@ fun DashboardScreen(
             title = { Text(stringResource(R.string.add_account_title)) },
             text = {
                 Column {
+                    Text(
+                        text = stringResource(R.string.add_account_examples),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
                     OutlinedTextField(
                         value = newAccountName,
                         onValueChange = {
@@ -569,7 +592,7 @@ fun PeriodChart(
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
                     shape = DashboardCardShape
                 )
-                .padding(18.dp)
+                .padding(14.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -604,11 +627,11 @@ fun PeriodChart(
                     monthLabel = monthLabel
                 )
             }
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(190.dp)
+                    .height(130.dp)
             ) {
                 val bottomPadding = 32f
                 val chartHeight = size.height - bottomPadding
@@ -671,7 +694,7 @@ fun PeriodChart(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,

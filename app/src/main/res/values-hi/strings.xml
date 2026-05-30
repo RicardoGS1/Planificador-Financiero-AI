@@ -89,6 +89,7 @@
     <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d छिपे</string>
     <string name="settings_accounts_all_hidden">%1$d छिपे खाते</string>
     <string name="add_account_hint">अपने लेनदेन को अलग से व्यवस्थित करने के लिए एक नया खाता बनाएं।</string>
+    <string name="add_account_examples">उदाहरण: नकद, ING कार्ड, डेबिट कार्ड, बचत…</string>
     <string name="err_account_name_empty">खाते का नाम दर्ज करें</string>
     <string name="err_account_required">एक खाता चुनें</string>
     <string name="cd_account_filter">खाता फ़िल्टर</string>
