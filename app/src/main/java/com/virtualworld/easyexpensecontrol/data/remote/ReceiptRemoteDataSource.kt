@@ -13,13 +13,15 @@ import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiInlineData
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiPart
 import com.virtualworld.easyexpensecontrol.data.remote.dto.GeminiRequest
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.AiPromptBuilder
+import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
 import com.virtualworld.easyexpensecontrol.core.util.SensitiveDataSanitizer
 import com.virtualworld.easyexpensecontrol.data.remote.dto.ReceiptLineItemDto
 import retrofit2.HttpException
 import java.io.IOException
 
 /**
- * Origen de datos remoto: envía la imagen a Gemini y devuelve el DTO del comprobante.
+ * Origen de datos remoto: envía imagen o audio a Gemini y devuelve transacciones detectadas.
  */
 class ReceiptRemoteDataSource(
     private val geminiApi: GeminiApi,
@@ -28,73 +30,8 @@ class ReceiptRemoteDataSource(
     private val appContext: Context
 ) {
 
-    private val fallbackExpenseCategories = "Supermercado, Transporte, Restaurante, Farmacia, Ocio, Gasolina, Hogar, Otros"
-    private val fallbackIncomeCategories = "Salario, Freelance, Inversiones, Ventas, Reembolso, Regalo, Otros"
-
-    private fun buildReceiptPrompt(categoryNames: List<String>): String {
-        val categoryList = if (categoryNames.isNotEmpty()) {
-            categoryNames.joinToString(", ")
-        } else {
-            fallbackExpenseCategories
-        }
-        val categoryInstruction = if (categoryNames.isNotEmpty()) {
-            "DEBES elegir UNA de estas categorías exactamente: $categoryList. Si ninguna encaja bien, como segunda opción puedes usar: $fallbackExpenseCategories."
-        } else {
-            "DEBES elegir UNA de estas categorías exactamente: $categoryList."
-        }
-        return """
-            Eres un asistente que analiza fotos de comprobantes de compra (tickets, facturas).
-            Extrae la información y responde en JSON válido con exactamente este formato:
-            {
-              "transactions": [
-                {
-                  "amount": número (importe de la línea, usar punto como decimal),
-                  "description": string breve (máximo 50 caracteres),
-                  "categoryName": string con una categoría de gasto
-                }
-              ]
-            }
-            Si el comprobante incluye productos o gastos de varias categorías, crea UNA transacción por categoría o por línea relevante.
-            Si todo el ticket corresponde a una sola categoría, devuelve un array con un solo elemento.
-            La suma de los importes debe coincidir con el total del comprobante cuando sea posible.
-            $categoryInstruction
-            Si no puedes leer un importe, usa 0.0. Responde solo con el JSON, sin markdown ni texto adicional.
-        """.trimIndent()
-    }
-
-    private fun buildAudioPrompt(type: TransactionType, categoryNames: List<String>): String {
-        val typeLabelEs = if (type == TransactionType.Gasto) "gasto" else "ingreso"
-        val fallback = if (type == TransactionType.Gasto) fallbackExpenseCategories else fallbackIncomeCategories
-        val categoryList = if (categoryNames.isNotEmpty()) categoryNames.joinToString(", ") else fallback
-        val categoryInstruction = if (categoryNames.isNotEmpty()) {
-            "DEBES elegir UNA de estas categorías exactamente: $categoryList. Si ninguna encaja bien, como segunda opción puedes usar: $fallback."
-        } else {
-            "DEBES elegir UNA de estas categorías exactamente: $categoryList."
-        }
-        return """
-            Eres un asistente que escucha una nota de voz del usuario describiendo uno o varios $typeLabelEs.
-            El audio puede estar en cualquier idioma; entiende el contenido y extrae la información.
-            Responde en JSON válido con exactamente este formato:
-            {
-              "transactions": [
-                {
-                  "amount": número (importe de la transacción, usar punto como decimal),
-                  "description": string breve (máximo 50 caracteres),
-                  "categoryName": string con la categoría del $typeLabelEs
-                }
-              ]
-            }
-            Si el usuario menciona varios $typeLabelEs de distintas categorías, crea UNA transacción por cada uno.
-            Si solo describe un $typeLabelEs, devuelve un array con un solo elemento.
-            $categoryInstruction
-            Si no puedes determinar el importe, usa 0.0.
-            Si no puedes determinar una descripción, deja "description" como string vacío.
-            Responde solo con el JSON, sin markdown ni texto adicional.
-        """.trimIndent()
-    }
-
     suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String> = emptyList()): Result<List<ReceiptLineItemDto>> {
-        val prompt = buildReceiptPrompt(categoryNames)
+        val prompt = buildPrompt(AiPromptBuilder.InputMode.RECEIPT, TransactionType.Gasto, categoryNames)
         return sendInlineDataRequest(prompt, "image/jpeg", imageBase64)
     }
 
@@ -104,8 +41,29 @@ class ReceiptRemoteDataSource(
         categoryNames: List<String> = emptyList(),
         mimeType: String = "audio/aac"
     ): Result<List<ReceiptLineItemDto>> {
-        val prompt = buildAudioPrompt(type, categoryNames)
+        val prompt = buildPrompt(AiPromptBuilder.InputMode.AUDIO, type, categoryNames)
         return sendInlineDataRequest(prompt, mimeType, audioBase64)
+    }
+
+    private fun buildPrompt(
+        mode: AiPromptBuilder.InputMode,
+        transactionType: TransactionType,
+        categoryNames: List<String>
+    ): String {
+        val localizedContext = LocaleHelper.applySavedLocale(appContext)
+        val effectiveLocale = LocaleHelper.getEffectiveLocale(appContext)
+        val outputLanguageTag = AiPromptBuilder.resolveOutputLanguageTag(
+            contextTag = LocaleHelper.getSavedLanguageTag(appContext),
+            fallbackLocale = effectiveLocale
+        )
+        val defaultOtherCategory = localizedContext.getString(R.string.category_default_other)
+        return AiPromptBuilder.buildPrompt(
+            mode = mode,
+            transactionType = transactionType,
+            categoryNames = categoryNames,
+            outputLanguageTag = outputLanguageTag,
+            defaultOtherCategory = defaultOtherCategory
+        )
     }
 
     private suspend fun sendInlineDataRequest(
@@ -141,7 +99,7 @@ class ReceiptRemoteDataSource(
                     IllegalStateException(appContext.getString(R.string.gemini_empty_response))
                 )
 
-            Log.d("GeminiResponse", "JSON recibido: $text")
+            Log.d(TAG, "JSON recibido: $text")
             val items = parseReceiptJson(text)
             if (items.isEmpty()) {
                 return Result.failure(
@@ -181,7 +139,7 @@ class ReceiptRemoteDataSource(
                     obj.has("transactions") && obj.get("transactions").isJsonArray -> {
                         gson.fromJson(obj.get("transactions"), Array<ReceiptLineItemDto>::class.java).toList()
                     }
-                    isLegacySingleItem(obj) -> {
+                    obj.has("amount") && obj.has("description") && obj.has("categoryName") -> {
                         listOf(gson.fromJson(obj, ReceiptLineItemDto::class.java))
                     }
                     else -> emptyList()
@@ -191,9 +149,6 @@ class ReceiptRemoteDataSource(
         }
         return rawItems.map(::sanitizeLineItem)
     }
-
-    private fun isLegacySingleItem(obj: JsonObject): Boolean =
-        obj.has("amount") && obj.has("description") && obj.has("categoryName")
 
     private fun buildHttpErrorMessage(code: Int, body: String): String {
         val apiDetail = parseApiErrorMessage(body)
@@ -222,14 +177,14 @@ class ReceiptRemoteDataSource(
     private fun sanitizeUserMessage(message: String): String =
         SensitiveDataSanitizer.sanitize(message, listOf(apiKey))
 
-    private fun sanitizeLineItem(dto: ReceiptLineItemDto): ReceiptLineItemDto {
-        val amount = dto.amount.coerceAtLeast(0.0)
-        return dto.copy(
-            amount = amount,
-            description = dto.description.take(200),
-            categoryName = dto.categoryName.take(100).ifEmpty {
-                appContext.getString(R.string.category_default_other)
-            }
+    private fun sanitizeLineItem(dto: ReceiptLineItemDto): ReceiptLineItemDto =
+        dto.copy(
+            amount = dto.amount.coerceAtLeast(0.0),
+            description = dto.description.trim().take(50),
+            categoryName = dto.categoryName.trim().take(30)
         )
+
+    private companion object {
+        const val TAG = "ReceiptRemoteDataSource"
     }
 }

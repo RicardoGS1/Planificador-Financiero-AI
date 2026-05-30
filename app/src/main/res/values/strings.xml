@@ -82,6 +82,15 @@
     <string name="budget_history_title">Previous budgets</string>
     <string name="budget_history_empty_message">No budgets were found before the current month.</string>
     <string name="cd_open_budget_history">Open previous budgets list</string>
+    <string name="budget_summary_spent">Spent</string>
+    <string name="budget_summary_limit">Budget</string>
+    <string name="budget_usage_percent">%1$d%% used</string>
+    <string name="budget_status_no_budget">No budget</string>
+    <string name="budget_status_over">Over budget</string>
+    <string name="budget_status_warning">Almost there</string>
+    <string name="budget_status_ok">On track</string>
+    <string name="budget_categories_section">By category</string>
+    <string name="budget_spent_only">Spent: %1$.2f %2$s</string>
 
     <string name="no_transactions">No transactions available.</string>
     <string name="sort_by_label">Sort by</string>

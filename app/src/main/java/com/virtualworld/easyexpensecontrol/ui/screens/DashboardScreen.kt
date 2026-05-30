@@ -257,17 +257,12 @@ fun DashboardScreen(
                 trailingContent = {
                     IconButton(
                         onClick = onSettingsClick,
-                        modifier = Modifier
-                            .padding(end = 12.dp)
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                        modifier = Modifier.padding(end = 4.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
                             contentDescription = stringResource(R.string.cd_open_settings),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(22.dp)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -292,10 +287,7 @@ fun DashboardScreen(
                 }
                 Tab(
                     selected = isAddTab,
-                    onClick = {
-                        selectedTabIndex = accounts.size + 1
-                        showAddAccountDialog = true
-                    },
+                    onClick = { selectedTabIndex = accounts.size + 1 },
                     text = {
                         Icon(
                             imageVector = Icons.Default.Add,

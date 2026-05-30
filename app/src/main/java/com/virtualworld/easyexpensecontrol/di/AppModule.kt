@@ -140,6 +140,7 @@ val appModule = module {
             processReceiptUseCase = get(),
             processAudioUseCase = get(),
             getCategoryByNameUseCase = get(),
+            getCategoriesByTypeUseCase = get(),
             appContext = androidContext()
         )
     }

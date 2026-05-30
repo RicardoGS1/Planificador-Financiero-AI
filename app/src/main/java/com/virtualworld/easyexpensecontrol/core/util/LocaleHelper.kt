@@ -34,6 +34,19 @@ object LocaleHelper {
      * Devuelve un [Context] con la [Configuration] forzada al idioma guardado.
      * Si la etiqueta está vacía, devuelve el contexto original (idioma del sistema).
      */
+    /** Locale efectivo de la app: el guardado por el usuario o el del sistema. */
+    fun getEffectiveLocale(context: Context): Locale {
+        val tag = getSavedLanguageTag(context)
+        if (tag.isNotBlank()) return Locale.forLanguageTag(tag)
+        val config = context.resources.configuration
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            config.locales[0]
+        } else {
+            @Suppress("DEPRECATION")
+            config.locale
+        }
+    }
+
     fun applySavedLocale(context: Context): Context {
         val tag = getSavedLanguageTag(context)
         if (tag.isBlank()) return context

@@ -71,6 +71,15 @@
     <string name="budget_history_title">Presupuestos anteriores</string>
     <string name="budget_history_empty_message">No se encontraron presupuestos anteriores al mes actual.</string>
     <string name="cd_open_budget_history">Abrir lista de presupuestos anteriores</string>
+    <string name="budget_summary_spent">Gastado</string>
+    <string name="budget_summary_limit">Presupuesto</string>
+    <string name="budget_usage_percent">%1$d%% usado</string>
+    <string name="budget_status_no_budget">Sin presupuesto</string>
+    <string name="budget_status_over">Excedido</string>
+    <string name="budget_status_warning">Casi al límite</string>
+    <string name="budget_status_ok">En línea</string>
+    <string name="budget_categories_section">Por categoría</string>
+    <string name="budget_spent_only">Gastado: %1$.2f %2$s</string>
 
     <string name="no_transactions">No hay transacciones disponibles.</string>
     <string name="sort_by_label">Ordenar por</string>

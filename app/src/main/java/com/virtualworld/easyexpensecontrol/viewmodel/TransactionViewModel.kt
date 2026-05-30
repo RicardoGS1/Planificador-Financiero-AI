@@ -12,6 +12,8 @@ import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult
+import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
+import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoriesByTypeUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
@@ -47,6 +49,7 @@ class TransactionViewModel(
     private val processReceiptUseCase: ProcessReceiptUseCase,
     private val processAudioUseCase: ProcessAudioUseCase,
     private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
+    private val getCategoriesByTypeUseCase: GetCategoriesByTypeUseCase,
     private val appContext: Context
 ) : ViewModel() {
     var transactionTypeState by mutableStateOf<TransactionType?>(null)
@@ -128,13 +131,19 @@ class TransactionViewModel(
                     return
                 }
 
+                val categories = getCategoriesByTypeUseCase(defaultType).firstOrNull().orEmpty()
+                val defaultOtherLabel = appContext.getString(R.string.category_default_other)
                 val detected = data.items.map { item ->
-                    val category = getCategoryByNameUseCase(item.suggestedCategoryName).firstOrNull()
+                    val matched = CategoryNameMatcher.resolve(
+                        suggestedName = item.suggestedCategoryName,
+                        categories = categories,
+                        defaultOtherLabel = defaultOtherLabel
+                    ) ?: getCategoryByNameUseCase(item.suggestedCategoryName).firstOrNull()
                     DetectedTransactionItem(
                         amount = item.amount,
                         description = item.description,
-                        categoryName = category?.name ?: item.suggestedCategoryName,
-                        categoryId = category?.id ?: 0L
+                        categoryName = matched?.name ?: item.suggestedCategoryName,
+                        categoryId = matched?.id ?: 0L
                     )
                 }
                 val first = detected.first()
@@ -222,8 +231,14 @@ class TransactionViewModel(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
+            val categories = getCategoriesByTypeUseCase(type).firstOrNull().orEmpty()
+            val defaultOtherLabel = appContext.getString(R.string.category_default_other)
             for ((index, item) in items.withIndex()) {
-                val category = getCategoryByNameUseCase(item.categoryName).firstOrNull()
+                val category = CategoryNameMatcher.resolve(
+                    suggestedName = item.categoryName,
+                    categories = categories,
+                    defaultOtherLabel = defaultOtherLabel
+                ) ?: getCategoryByNameUseCase(item.categoryName).firstOrNull()
                 val saveResult = saveTransactionInternal(
                     type = type,
                     amount = item.amount,
