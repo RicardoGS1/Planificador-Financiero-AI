@@ -78,6 +78,7 @@
     <string name="all_accounts">Alle Konten</string>
     <string name="tab_all_accounts">Gesamt</string>
     <string name="filter_by_account">Konto</string>
+    <string name="transaction_filters_title">Filter</string>
     <string name="account_label">Konto</string>
     <string name="account_name_label">Kontoname</string>
     <string name="add_account_title">Konto hinzufügen</string>

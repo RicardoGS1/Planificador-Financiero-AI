@@ -21,10 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.ui.theme.ScreenTitleStyle
 
 /**
  * Cabecera integrada en la pantalla: botón atrás opcional + título.
@@ -60,8 +60,7 @@ fun ScreenHeader(
         Text(
             text = title,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
+            style = ScreenTitleStyle,
             color = MaterialTheme.colorScheme.onBackground
         )
         trailingContent?.invoke(this)

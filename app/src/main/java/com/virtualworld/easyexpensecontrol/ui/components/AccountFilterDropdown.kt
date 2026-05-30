@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,7 +36,8 @@ fun AccountFilterDropdown(
     selectedAccountId: Long,
     onAccountSelected: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    label: String? = null
+    label: String? = null,
+    embedded: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedLabel = when (selectedAccountId) {
@@ -48,8 +50,12 @@ fun AccountFilterDropdown(
         Surface(
             onClick = { expanded = true },
             shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp,
+            color = if (embedded) {
+                Color.White.copy(alpha = 0.18f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+            tonalElevation = if (embedded) 0.dp else 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -62,7 +68,7 @@ fun AccountFilterDropdown(
                         append(selectedLabel)
                     },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
@@ -71,7 +77,11 @@ fun AccountFilterDropdown(
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = stringResource(R.string.cd_account_filter),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (embedded) {
+                        Color.White.copy(alpha = 0.85f)
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
                 )
             }
         }

@@ -78,6 +78,7 @@
     <string name="all_accounts">सभी खाते</string>
     <string name="tab_all_accounts">कुल</string>
     <string name="filter_by_account">खाता</string>
+    <string name="transaction_filters_title">फ़िल्टर</string>
     <string name="account_label">खाता</string>
     <string name="account_name_label">खाते का नाम</string>
     <string name="add_account_title">खाता जोड़ें</string>

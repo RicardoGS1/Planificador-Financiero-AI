@@ -51,6 +51,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -69,6 +71,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
+import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfDay
@@ -95,6 +98,7 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 
 private enum class PeriodType { Day, Month, Year }
+private val StatisticsFiltersCardShape = RoundedCornerShape(20.dp)
 private const val STATICS_PREFS_NAME = "statistics_screen_preferences"
 private const val KEY_PERIOD_TYPE = "period_type"
 private const val KEY_SELECTED_DAY_INDEX = "selected_day_index"
@@ -260,45 +264,20 @@ fun StaticsScreen(
         ) {
             ScreenHeader(title = stringResource(R.string.screen_statistics), showBackArrow = false)
 
-            AccountFilterDropdown(
+            StatisticsFiltersCard(
                 accounts = accounts,
-                selectedAccountId = selectedAccountFilter,
+                selectedAccountFilter = selectedAccountFilter,
                 onAccountSelected = { selectedAccountFilter = it },
-                label = stringResource(R.string.filter_by_account),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                periodType = periodType,
+                onPeriodTypeSelect = { periodType = it },
+                days = days,
+                selectedDayIndex = selectedDayIndex,
+                onDaySelect = { selectedDayIndex = it },
+                selectedMonth = selectedMonth,
+                selectedYear = selectedYear,
+                onMonthChange = { selectedMonth = it },
+                onYearChange = { selectedYear = it }
             )
-
-            // Selector de período: Día | Mes | Año
-            PeriodTypeSelector(
-                selected = periodType,
-                onSelect = { periodType = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            )
-
-            when (periodType) {
-                PeriodType.Day -> DaySelector(
-                    days = days,
-                    selectedIndex = selectedDayIndex,
-                    onSelect = { selectedDayIndex = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                PeriodType.Month -> MonthYearSelector(
-                    month = selectedMonth,
-                    year = selectedYear,
-                    onMonthChange = { selectedMonth = it },
-                    onYearChange = { selectedYear = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                PeriodType.Year -> YearSelector(
-                    year = selectedYear,
-                    onYearChange = { selectedYear = it },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
 
             if (transactionsList.isEmpty()) {
                 Box(
@@ -456,16 +435,107 @@ fun StaticsScreen(
 }
 
 @Composable
+private fun StatisticsFiltersCard(
+    accounts: List<com.virtualworld.easyexpensecontrol.data.model.Account>,
+    selectedAccountFilter: Long,
+    onAccountSelected: (Long) -> Unit,
+    periodType: PeriodType,
+    onPeriodTypeSelect: (PeriodType) -> Unit,
+    days: List<Pair<String, Long>>,
+    selectedDayIndex: Int,
+    onDaySelect: (Int) -> Unit,
+    selectedMonth: Int,
+    selectedYear: Int,
+    onMonthChange: (Int) -> Unit,
+    onYearChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val gradient = Brush.linearGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            AccentBlue,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+        )
+    )
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(
+                8.dp,
+                StatisticsFiltersCardShape,
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+            ),
+        shape = StatisticsFiltersCardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(gradient)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            AccountFilterDropdown(
+                accounts = accounts,
+                selectedAccountId = selectedAccountFilter,
+                onAccountSelected = onAccountSelected,
+                label = stringResource(R.string.filter_by_account),
+                embedded = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            PeriodTypeSelector(
+                selected = periodType,
+                onSelect = onPeriodTypeSelect,
+                embedded = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            when (periodType) {
+                PeriodType.Day -> DaySelector(
+                    days = days,
+                    selectedIndex = selectedDayIndex,
+                    onSelect = onDaySelect,
+                    embedded = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                PeriodType.Month -> MonthYearSelector(
+                    month = selectedMonth,
+                    year = selectedYear,
+                    onMonthChange = onMonthChange,
+                    onYearChange = onYearChange,
+                    embedded = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                PeriodType.Year -> YearSelector(
+                    year = selectedYear,
+                    onYearChange = onYearChange,
+                    embedded = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PeriodTypeSelector(
     selected: PeriodType,
     onSelect: (PeriodType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false
 ) {
     val primary = MaterialTheme.colorScheme.primary
-    val surface = MaterialTheme.colorScheme.surface
-    val onSurface = MaterialTheme.colorScheme.onSurface
-    val onPrimary = Color.White
-    val outline = MaterialTheme.colorScheme.outlineVariant
+    val surface = if (embedded) Color.White.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface
+    val onSurface = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val onPrimary = if (embedded) primary else Color.White
+    val outline = if (embedded) {
+        Color.White.copy(alpha = 0.35f)
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
+    val activeContainer = if (embedded) Color.White else primary
     val cornerRadius = 6.dp
 
     SingleChoiceSegmentedButtonRow(
@@ -481,11 +551,11 @@ private fun PeriodTypeSelector(
                 bottomEnd = 0.dp
             ),
             colors = SegmentedButtonDefaults.colors(
-                activeContainerColor = primary,
+                activeContainerColor = activeContainer,
                 activeContentColor = onPrimary,
                 inactiveContainerColor = surface,
                 inactiveContentColor = onSurface,
-                activeBorderColor = primary,
+                activeBorderColor = if (embedded) Color.White else primary,
                 inactiveBorderColor = outline
             )
         ) {
@@ -496,11 +566,11 @@ private fun PeriodTypeSelector(
             onClick = { onSelect(PeriodType.Month) },
             shape = RoundedCornerShape(0.dp),
             colors = SegmentedButtonDefaults.colors(
-                activeContainerColor = primary,
+                activeContainerColor = activeContainer,
                 activeContentColor = onPrimary,
                 inactiveContainerColor = surface,
                 inactiveContentColor = onSurface,
-                activeBorderColor = primary,
+                activeBorderColor = if (embedded) Color.White else primary,
                 inactiveBorderColor = outline
             )
         ) {
@@ -516,11 +586,11 @@ private fun PeriodTypeSelector(
                 bottomEnd = cornerRadius
             ),
             colors = SegmentedButtonDefaults.colors(
-                activeContainerColor = primary,
+                activeContainerColor = activeContainer,
                 activeContentColor = onPrimary,
                 inactiveContainerColor = surface,
                 inactiveContentColor = onSurface,
-                activeBorderColor = primary,
+                activeBorderColor = if (embedded) Color.White else primary,
                 inactiveBorderColor = outline
             )
         ) {
@@ -529,44 +599,99 @@ private fun PeriodTypeSelector(
     }
 }
 
+private val DateSelectorPanelShape = RoundedCornerShape(10.dp)
+
+@Composable
+private fun DateSelectorLabel(text: String, color: Color) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = color,
+        modifier = Modifier.padding(bottom = 4.dp)
+    )
+}
+
+@Composable
+private fun CompactDateNavButton(
+    onClick: () -> Unit,
+    contentDescription: String,
+    tint: Color,
+    forward: Boolean
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(32.dp)
+    ) {
+        Icon(
+            imageVector = if (forward) Icons.Rounded.ChevronRight else Icons.Rounded.ChevronLeft,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
 @Composable
 private fun DaySelector(
     days: List<Pair<String, Long>>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false
 ) {
-    Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(
+    val labelColor = if (embedded) {
+        Color.White.copy(alpha = 0.85f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val panelBackground = if (embedded) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    }
+    val panelBorder = if (embedded) {
+        Color.White.copy(alpha = 0.35f)
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
+    val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+
+    Column(modifier = modifier.then(contentPadding)) {
+        DateSelectorLabel(
             text = stringResource(R.string.select_day),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = labelColor
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                .padding(8.dp),
+                .clip(DateSelectorPanelShape)
+                .background(panelBackground)
+                .border(1.dp, panelBorder, DateSelectorPanelShape)
+                .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { if (selectedIndex < days.size - 1) onSelect(selectedIndex + 1) }) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_day_previous))
-            }
+            CompactDateNavButton(
+                onClick = { if (selectedIndex < days.size - 1) onSelect(selectedIndex + 1) },
+                contentDescription = stringResource(R.string.cd_day_previous),
+                tint = contentColor,
+                forward = false
+            )
             Text(
                 text = days.getOrNull(selectedIndex)?.first ?: "",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = contentColor,
                 modifier = Modifier.width(80.dp),
                 textAlign = TextAlign.Center
             )
-            IconButton(onClick = { if (selectedIndex > 0) onSelect(selectedIndex - 1) }) {
-                Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_day_next))
-            }
+            CompactDateNavButton(
+                onClick = { if (selectedIndex > 0) onSelect(selectedIndex - 1) },
+                contentDescription = stringResource(R.string.cd_day_next),
+                tint = contentColor,
+                forward = true
+            )
         }
     }
 }
@@ -577,71 +702,95 @@ private fun MonthYearSelector(
     year: Int,
     onMonthChange: (Int) -> Unit,
     onYearChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false
 ) {
     val monthNames = stringArrayResource(R.array.month_names_short).toList()
-    Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(
+    val labelColor = if (embedded) {
+        Color.White.copy(alpha = 0.85f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val panelBackground = if (embedded) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    }
+    val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+
+    Column(modifier = modifier.then(contentPadding)) {
+        DateSelectorLabel(
             text = stringResource(R.string.month_year),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = labelColor
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                .padding(8.dp),
+                .clip(DateSelectorPanelShape)
+                .background(panelBackground)
+                .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = {
-                    if (month <= 1) {
-                        onYearChange(year - 1)
-                        onMonthChange(12)
-                    } else {
-                        onMonthChange(month - 1)
-                    }
-                }) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_month_previous))
-                }
+                CompactDateNavButton(
+                    onClick = {
+                        if (month <= 1) {
+                            onYearChange(year - 1)
+                            onMonthChange(12)
+                        } else {
+                            onMonthChange(month - 1)
+                        }
+                    },
+                    contentDescription = stringResource(R.string.cd_month_previous),
+                    tint = contentColor,
+                    forward = false
+                )
                 Text(
                     text = monthNames.getOrNull(month - 1) ?: "",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                     modifier = Modifier.width(48.dp),
                     textAlign = TextAlign.Center
                 )
-                IconButton(onClick = {
-                    if (month >= 12) {
-                        onYearChange(year + 1)
-                        onMonthChange(1)
-                    } else {
-                        onMonthChange(month + 1)
-                    }
-                }) {
-                    Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_month_next))
-                }
+                CompactDateNavButton(
+                    onClick = {
+                        if (month >= 12) {
+                            onYearChange(year + 1)
+                            onMonthChange(1)
+                        } else {
+                            onMonthChange(month + 1)
+                        }
+                    },
+                    contentDescription = stringResource(R.string.cd_month_next),
+                    tint = contentColor,
+                    forward = true
+                )
 
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { onYearChange(year - 1) }) {
-                    Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_previous))
-                }
+                CompactDateNavButton(
+                    onClick = { onYearChange(year - 1) },
+                    contentDescription = stringResource(R.string.cd_year_previous),
+                    tint = contentColor,
+                    forward = false
+                )
                 Text(
                     text = year.toString(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = contentColor,
                     modifier = Modifier.width(56.dp),
                     textAlign = TextAlign.Center
                 )
-                IconButton(onClick = { onYearChange(year + 1) }) {
-                    Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_next))
-                }
+                CompactDateNavButton(
+                    onClick = { onYearChange(year + 1) },
+                    contentDescription = stringResource(R.string.cd_year_next),
+                    tint = contentColor,
+                    forward = true
+                )
 
             }
         }
@@ -652,37 +801,55 @@ private fun MonthYearSelector(
 private fun YearSelector(
     year: Int,
     onYearChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false
 ) {
-    Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(
+    val labelColor = if (embedded) {
+        Color.White.copy(alpha = 0.85f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val panelBackground = if (embedded) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    }
+    val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+
+    Column(modifier = modifier.then(contentPadding)) {
+        DateSelectorLabel(
             text = stringResource(R.string.year_label),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = labelColor
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                .padding(8.dp),
+                .clip(DateSelectorPanelShape)
+                .background(panelBackground)
+                .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { onYearChange(year - 1) }) {
-                Icon(Icons.Rounded.ChevronLeft, contentDescription = stringResource(R.string.cd_year_previous))
-            }
+            CompactDateNavButton(
+                onClick = { onYearChange(year - 1) },
+                contentDescription = stringResource(R.string.cd_year_previous),
+                tint = contentColor,
+                forward = false
+            )
             Text(
                 text = year.toString(),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                color = contentColor,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
-            IconButton(onClick = { onYearChange(year + 1) }) {
-                Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.cd_year_next))
-            }
+            CompactDateNavButton(
+                onClick = { onYearChange(year + 1) },
+                contentDescription = stringResource(R.string.cd_year_next),
+                tint = contentColor,
+                forward = true
+            )
         }
     }
 }

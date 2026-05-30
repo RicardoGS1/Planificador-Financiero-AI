@@ -1,8 +1,8 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,6 +55,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +68,7 @@ import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
+import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
@@ -86,6 +90,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+
+private val HistoryFiltersCardShape = RoundedCornerShape(20.dp)
 
 @Composable
 fun HistoryScreen(
@@ -163,14 +169,15 @@ fun HistoryScreen(
                     ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 }
                 item {
-                    AccountFilterDropdown(
+                    TransactionFiltersCard(
                         accounts = accounts,
-                        selectedAccountId = selectedAccountFilter,
+                        selectedAccountFilter = selectedAccountFilter,
                         onAccountSelected = { selectedAccountFilter = it },
-                        label = stringResource(R.string.filter_by_account),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                        sortOption = sortOption,
+                        ascending = sortAscending,
+                        onSortOptionChange = { sortOption = it },
+                        onToggleDirection = { sortAscending = !sortAscending },
+                        showSortControls = filteredTransactions.isNotEmpty()
                     )
                 }
                 if (filteredTransactions.isEmpty()) {
@@ -185,20 +192,10 @@ fun HistoryScreen(
                         )
                     }
                 }
-                if (filteredTransactions.isNotEmpty()) {
-                    item {
-                        SortControls(
-                            sortOption = sortOption,
-                            ascending = sortAscending,
-                            onSortOptionChange = { sortOption = it },
-                            onToggleDirection = { sortAscending = !sortAscending }
-                        )
-                    }
-                }
-                items(sortedTransactions, key = { transaction -> transaction.id }) { transaction -> 
+                items(sortedTransactions, key = { transaction -> transaction.id }) { transaction ->
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
-                            if (value == SwipeToDismissBoxValue.EndToStart || value == SwipeToDismissBoxValue.StartToEnd) {
+                            if (value == SwipeToDismissBoxValue.EndToStart) {
                                 transactionToDelete = transaction
                                 showDialog = true
                                 false
@@ -229,24 +226,10 @@ fun HistoryScreen(
                                         tint = colorResource(R.color.blue_white)
                                     )
                                 }
-                            } else if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(color)
-                                        .padding(horizontal = 20.dp),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = stringResource(R.string.cd_delete),
-                                        tint = colorResource(R.color.blue_white)
-                                    )
-                                }
                             }
                         },
                         enableDismissFromEndToStart = true,
-                        enableDismissFromStartToEnd = true,
+                        enableDismissFromStartToEnd = false,
                         content = {
                             TransactionItem(
                                 transaction = transaction,
@@ -444,25 +427,102 @@ private fun sortOptionLabelRes(option: SortOption): Int = when (option) {
 }
 
 @Composable
+private fun TransactionFiltersCard(
+    accounts: List<Account>,
+    selectedAccountFilter: Long,
+    onAccountSelected: (Long) -> Unit,
+    sortOption: SortOption,
+    ascending: Boolean,
+    onSortOptionChange: (SortOption) -> Unit,
+    onToggleDirection: () -> Unit,
+    showSortControls: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val gradient = Brush.linearGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            AccentBlue,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+        )
+    )
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(
+                8.dp,
+                HistoryFiltersCardShape,
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+            ),
+        shape = HistoryFiltersCardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(gradient)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            AccountFilterDropdown(
+                accounts = accounts,
+                selectedAccountId = selectedAccountFilter,
+                onAccountSelected = onAccountSelected,
+                label = stringResource(R.string.filter_by_account),
+                embedded = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (showSortControls) {
+                SortControls(
+                    sortOption = sortOption,
+                    ascending = ascending,
+                    onSortOptionChange = onSortOptionChange,
+                    onToggleDirection = onToggleDirection,
+                    embedded = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SortControls(
     sortOption: SortOption,
     ascending: Boolean,
     onSortOptionChange: (SortOption) -> Unit,
-    onToggleDirection: () -> Unit
+    onToggleDirection: () -> Unit,
+    modifier: Modifier = Modifier,
+    embedded: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val chipColor = if (embedded) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val chipElevation = if (embedded) 0.dp else 2.dp
+    val textColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val iconTint = if (embedded) {
+        Color.White.copy(alpha = 0.85f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = modifier.then(
+            if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+        ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(modifier = Modifier.weight(1f)) {
             Surface(
                 onClick = { expanded = true },
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
+                color = chipColor,
+                tonalElevation = chipElevation,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -474,7 +534,7 @@ private fun SortControls(
                             ": " +
                             stringResource(sortOptionLabelRes(sortOption)),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = textColor,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
@@ -483,7 +543,7 @@ private fun SortControls(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = stringResource(R.string.cd_sort_options),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = iconTint
                     )
                 }
             }
@@ -506,15 +566,15 @@ private fun SortControls(
         Surface(
             onClick = onToggleDirection,
             shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp,
+            color = chipColor,
+            tonalElevation = chipElevation,
             modifier = Modifier.size(44.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = if (ascending) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
                     contentDescription = stringResource(R.string.cd_sort_invert),
-                    tint = AccentBlue
+                    tint = if (embedded) Color.White else AccentBlue
                 )
             }
         }

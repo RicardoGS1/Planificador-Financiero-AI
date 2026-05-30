@@ -78,6 +78,7 @@
     <string name="all_accounts">Все счета</string>
     <string name="tab_all_accounts">Итого</string>
     <string name="filter_by_account">Счёт</string>
+    <string name="transaction_filters_title">Фильтры</string>
     <string name="account_label">Счёт</string>
     <string name="account_name_label">Название счёта</string>
     <string name="add_account_title">Добавить счёт</string>
