@@ -25,6 +25,7 @@ class SaveTransactionUseCase(
         category: Category?,
         date: Long,
         iconName: String?,
+        accountId: Long,
         onError: (String) -> Unit,
         onSuccess: () -> Unit
     ) {
@@ -36,7 +37,8 @@ class SaveTransactionUseCase(
                 amount = amount,
                 description = description,
                 category = categoryId,
-                date = date
+                date = date,
+                accountId = accountId
             )
 
             if (id != 0L) {

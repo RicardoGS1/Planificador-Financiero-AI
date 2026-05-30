@@ -54,6 +54,7 @@ class TransactionViewModel(
     var transactionCategoryState by mutableLongStateOf(0L)
     var transactionDateState by mutableLongStateOf(0L)
     var transactionDescriptionState by mutableStateOf("")
+    var transactionAccountState by mutableLongStateOf(1L)
 
     private val _receiptProcessingState = MutableStateFlow<ReceiptProcessingState>(ReceiptProcessingState.Idle)
     val receiptProcessingState: StateFlow<ReceiptProcessingState> = _receiptProcessingState.asStateFlow()
@@ -75,6 +76,10 @@ class TransactionViewModel(
 
     fun onTransactionDescriptionChanged(newString: String) {
         transactionDescriptionState = newString
+    }
+
+    fun onTransactionAccountChanged(accountId: Long) {
+        transactionAccountState = accountId
     }
 
     val getAllTransactions: Flow<List<Transaction>> = getTransactionsUseCase()
@@ -226,7 +231,8 @@ class TransactionViewModel(
                     categoryName = item.categoryName,
                     category = category,
                     date = date,
-                    iconName = null
+                    iconName = null,
+                    accountId = transactionAccountState
                 )
                 if (saveResult.isFailure) {
                     val message = saveResult.exceptionOrNull()?.message.orEmpty()
@@ -267,7 +273,8 @@ class TransactionViewModel(
                 categoryName = trimmedCategoryName,
                 category = category,
                 date = date,
-                iconName = iconName
+                iconName = iconName,
+                accountId = transactionAccountState
             )
             if (saveResult.isFailure) {
                 val message = saveResult.exceptionOrNull()?.message.orEmpty()
@@ -290,7 +297,8 @@ class TransactionViewModel(
         categoryName: String,
         category: Category?,
         date: Long,
-        iconName: String?
+        iconName: String?,
+        accountId: Long
     ): Result<Unit> {
         var errorMessage: String? = null
         saveTransactionUseCase(
@@ -302,6 +310,7 @@ class TransactionViewModel(
             category = category,
             date = date,
             iconName = iconName,
+            accountId = accountId,
             onError = { message -> errorMessage = message },
             onSuccess = { }
         )

@@ -20,9 +20,10 @@ import com.virtualworld.easyexpensecontrol.ui.screens.HistoryScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.SettingsScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.SplashScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.StaticsScreen
+import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
-import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -31,6 +32,7 @@ fun Navigation(
     transactionViewModel: TransactionViewModel = koinViewModel(),
     categoryViewModel: CategoryViewModel = koinViewModel(),
     budgetViewModel: BudgetViewModel = koinViewModel(),
+    accountViewModel: AccountViewModel = koinViewModel(),
     navController: NavHostController,
     onPlaySound: (Int) -> Unit
 ) {
@@ -52,7 +54,7 @@ fun Navigation(
             SplashScreen(navController = navController)
         }
         composable(route = Screen.DashboardScreen.route) {
-            DashboardScreen(navController, transactionViewModel, categoryViewModel)
+            DashboardScreen(navController, transactionViewModel, categoryViewModel, accountViewModel)
         }
         composable(route = Screen.BudgetScreen.route) {
             BudgetScreen(
@@ -103,6 +105,7 @@ fun Navigation(
                 id = id,
                 transactionViewModel = transactionViewModel,
                 categoryViewModel = categoryViewModel,
+                accountViewModel = accountViewModel,
                 navController = navController
             )
         }
@@ -112,6 +115,7 @@ fun Navigation(
                 transactionViewModel = transactionViewModel,
                 categoryViewModel = categoryViewModel,
                 budgetViewModel = budgetViewModel,
+                accountViewModel = accountViewModel,
                 onPlaySound = onPlaySound
             )
         }
@@ -119,11 +123,15 @@ fun Navigation(
             StaticsScreen(
                 navController = navController,
                 transactionViewModel = transactionViewModel,
-                categoryViewModel = categoryViewModel
+                categoryViewModel = categoryViewModel,
+                accountViewModel = accountViewModel
             )
         }
         composable(route = Screen.SettingsScreen.route) {
-            SettingsScreen(navController = navController)
+            SettingsScreen(
+                navController = navController,
+                accountViewModel = accountViewModel
+            )
         }
     }
 }

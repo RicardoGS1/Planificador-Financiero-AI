@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
@@ -70,6 +73,10 @@ import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
+import com.virtualworld.easyexpensecontrol.ui.components.AccountFilterDropdown
+import com.virtualworld.easyexpensecontrol.ui.components.ALL_ACCOUNTS_FILTER_ID
+import com.virtualworld.easyexpensecontrol.ui.components.filterTransactionsByAccount
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -86,13 +93,25 @@ fun HistoryScreen(
     transactionViewModel: TransactionViewModel,
     categoryViewModel: CategoryViewModel,
     budgetViewModel: BudgetViewModel,
+    accountViewModel: AccountViewModel,
     onPlaySound: (Int) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var transactionToDelete by remember { mutableStateOf<Transaction?>(null) }
     var sortOption by remember { mutableStateOf(SortOption.DATE) }
     var sortAscending by remember { mutableStateOf(false) }
+    var selectedAccountFilter by remember { mutableStateOf(ALL_ACCOUNTS_FILTER_ID) }
     val scope = rememberCoroutineScope()
+    val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
+    val allAccounts by accountViewModel.accounts.collectAsState(initial = emptyList())
+
+    LaunchedEffect(accounts, selectedAccountFilter) {
+        if (selectedAccountFilter != ALL_ACCOUNTS_FILTER_ID &&
+            accounts.none { it.id == selectedAccountFilter }
+        ) {
+            selectedAccountFilter = ALL_ACCOUNTS_FILTER_ID
+        }
+    }
 
     Scaffold(
         bottomBar = { CurvedBottomBar(navController = navController) },
@@ -109,14 +128,21 @@ fun HistoryScreen(
             val categoryNameMap = remember(categories.value) {
                 categories.value.associate { it.id to it.name }
             }
+            val accountNameMap = remember(allAccounts) {
+                allAccounts.associate { it.id to it.name }
+            }
+
+            val filteredTransactions = remember(transactionList.value, selectedAccountFilter) {
+                filterTransactionsByAccount(transactionList.value, selectedAccountFilter)
+            }
 
             val sortedTransactions = remember(
-                transactionList.value,
+                filteredTransactions,
                 sortOption,
                 sortAscending,
                 categoryNameMap
             ) {
-                val list = transactionList.value
+                val list = filteredTransactions
                 val base = when (sortOption) {
                     SortOption.DATE -> list.sortedBy { it.date }
                     SortOption.AMOUNT -> list.sortedBy { it.amount }
@@ -128,18 +154,6 @@ fun HistoryScreen(
                 if (sortAscending) base else base.reversed()
             }
 
-            if (transactionList.value.isEmpty()) {
-                ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
-                Text(
-                    text = stringResource(R.string.no_transactions),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .wrapContentHeight(Alignment.CenterVertically),
-                    textAlign = TextAlign.Center,
-                    fontSize = 20.sp
-                )
-            }
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -148,7 +162,30 @@ fun HistoryScreen(
                 item {
                     ScreenHeader(title = stringResource(R.string.screen_transactions), showBackArrow = false)
                 }
-                if (transactionList.value.isNotEmpty()) {
+                item {
+                    AccountFilterDropdown(
+                        accounts = accounts,
+                        selectedAccountId = selectedAccountFilter,
+                        onAccountSelected = { selectedAccountFilter = it },
+                        label = stringResource(R.string.filter_by_account),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                    )
+                }
+                if (filteredTransactions.isEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.no_transactions),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            textAlign = TextAlign.Center,
+                            fontSize = 20.sp
+                        )
+                    }
+                }
+                if (filteredTransactions.isNotEmpty()) {
                     item {
                         SortControls(
                             sortOption = sortOption,
@@ -211,7 +248,11 @@ fun HistoryScreen(
                         enableDismissFromEndToStart = true,
                         enableDismissFromStartToEnd = true,
                         content = {
-                            TransactionItem(transaction = transaction, categoryViewModel = categoryViewModel) {
+                            TransactionItem(
+                                transaction = transaction,
+                                categoryViewModel = categoryViewModel,
+                                accountName = accountNameMap[transaction.accountId]
+                            ) {
                                 val id = transaction.id
                                 navController.navigate(Screen.AddEditTransactionScreen.route + "/$id")
                             }
@@ -312,6 +353,7 @@ private val ExpenseRed = Color(0xFFE33936)
 fun TransactionItem(
     transaction: Transaction,
     categoryViewModel: CategoryViewModel,
+    accountName: String? = null,
     onClick: () -> Unit
 ) {
     val isIngreso = transaction.type == TransactionType.Ingreso
@@ -359,7 +401,13 @@ fun TransactionItem(
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
-                    text = category.name.ifEmpty { stringResource(R.string.no_category) },
+                    text = buildString {
+                        append(category.name.ifEmpty { stringResource(R.string.no_category) })
+                        if (!accountName.isNullOrBlank()) {
+                            append(" · ")
+                            append(accountName)
+                        }
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
@@ -373,7 +421,11 @@ fun TransactionItem(
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = if (isIngreso) "+%.2f €".format(Locale.getDefault(), transaction.amount) else "-%.2f €".format(Locale.getDefault(), transaction.amount),
+                text = CurrencyFormatter.formatSigned(
+                    LocalContext.current,
+                    transaction.amount,
+                    isIngreso
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = if (isIngreso) IncomeGreen else ExpenseRed

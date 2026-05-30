@@ -70,6 +70,7 @@ import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfDay
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfMonth
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfYear
@@ -80,6 +81,10 @@ import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
+import com.virtualworld.easyexpensecontrol.ui.components.AccountFilterDropdown
+import com.virtualworld.easyexpensecontrol.ui.components.ALL_ACCOUNTS_FILTER_ID
+import com.virtualworld.easyexpensecontrol.ui.components.filterTransactionsByAccount
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import java.util.Calendar
@@ -146,15 +151,18 @@ private val IncomeCategoryPalette: List<Color> = listOf(
 fun StaticsScreen(
     navController: NavController,
     transactionViewModel: TransactionViewModel,
-    categoryViewModel: CategoryViewModel
+    categoryViewModel: CategoryViewModel,
+    accountViewModel: AccountViewModel
 ) {
     val transactions by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
     val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+    val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
 
     StaticsScreen(
         navController = navController,
         transactions = transactions,
-        categories = categories
+        categories = categories,
+        accounts = accounts
     )
 }
 
@@ -162,14 +170,27 @@ fun StaticsScreen(
 fun StaticsScreen(
     navController: NavController,
     transactions: List<Transaction>,
-    categories: List<Category>
+    categories: List<Category>,
+    accounts: List<com.virtualworld.easyexpensecontrol.data.model.Account>
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
         context.applicationContext.getSharedPreferences(STATICS_PREFS_NAME, Context.MODE_PRIVATE)
     }
     val currentCalendar = remember { Calendar.getInstance() }
-    val transactionsList = transactions // Rename to avoid confusion with parameter name in lambdas if any
+    var selectedAccountFilter by remember { mutableStateOf(ALL_ACCOUNTS_FILTER_ID) }
+
+    LaunchedEffect(accounts, selectedAccountFilter) {
+        if (selectedAccountFilter != ALL_ACCOUNTS_FILTER_ID &&
+            accounts.none { it.id == selectedAccountFilter }
+        ) {
+            selectedAccountFilter = ALL_ACCOUNTS_FILTER_ID
+        }
+    }
+
+    val transactionsList = remember(transactions, selectedAccountFilter) {
+        filterTransactionsByAccount(transactions, selectedAccountFilter)
+    }
     val categoriesList = categories
 
     var periodType by remember {
@@ -238,6 +259,16 @@ fun StaticsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             ScreenHeader(title = stringResource(R.string.screen_statistics), showBackArrow = false)
+
+            AccountFilterDropdown(
+                accounts = accounts,
+                selectedAccountId = selectedAccountFilter,
+                onAccountSelected = { selectedAccountFilter = it },
+                label = stringResource(R.string.filter_by_account),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
 
             // Selector de período: Día | Mes | Año
             PeriodTypeSelector(
@@ -662,6 +693,8 @@ private fun StatisticsChart(
     periodType: PeriodType,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val currencySymbol = CurrencyFormatter.symbol(context)
     val colorGreen = colorResource(R.color.green_transaction)
     val colorRed = colorResource(R.color.red_transaction)
     val labelColor = colorResource(R.color.bold_from_palette)
@@ -691,7 +724,7 @@ private fun StatisticsChart(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = stringResource(R.string.comparison_euro),
+                text = stringResource(R.string.comparison_currency, currencySymbol),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -715,6 +748,7 @@ private fun StatisticsChart(
                     data = data,
                     colorIncome = colorGreen,
                     colorExpense = colorRed,
+                    currencySymbol = currencySymbol,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(if (data.size <= 2) 180.dp else 200.dp)
@@ -760,6 +794,7 @@ private fun AttractiveBarChart(
     data: List<ChartBarGroup>,
     colorIncome: Color,
     colorExpense: Color,
+    currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
     val maxVal = data.flatMap { listOf(it.income, it.expense) }.maxOrNull() ?: 1.0
@@ -826,7 +861,7 @@ private fun AttractiveBarChart(
                 drawIntoCanvas { canvas ->
                     paint.color = android.graphics.Color.GRAY
                     canvas.nativeCanvas.drawText(
-                        "${value}€",
+                        "$value$currencySymbol",
                         4f,
                         y + 10f,
                         paint
@@ -1049,7 +1084,7 @@ private fun CategoryPieChartCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = String.format(Locale.getDefault(), "%.2f €", total),
+                            text = CurrencyFormatter.format(LocalContext.current, total),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = labelColor
@@ -1127,6 +1162,7 @@ private fun CategoryLegendRow(
     amount: Double,
     percent: Float
 ) {
+    val currencySymbol = CurrencyFormatter.symbol(LocalContext.current)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -1150,6 +1186,7 @@ private fun CategoryLegendRow(
             text = stringResource(
                 R.string.chart_category_amount_percent,
                 amount,
+                currencySymbol,
                 percent
             ),
             style = MaterialTheme.typography.bodySmall,
@@ -1186,7 +1223,8 @@ fun StaticsScreenPreview() {
         StaticsScreen(
             navController = rememberNavController(),
             transactions = sampleTransactions,
-            categories = sampleCategories
+            categories = sampleCategories,
+            accounts = listOf(com.virtualworld.easyexpensecontrol.data.model.Account(1, "General"))
         )
     }
 }

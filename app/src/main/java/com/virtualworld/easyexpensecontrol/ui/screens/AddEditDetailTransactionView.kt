@@ -41,6 +41,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Category
@@ -108,6 +109,7 @@ import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
@@ -120,6 +122,8 @@ import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
+import com.virtualworld.easyexpensecontrol.ui.components.AccountSelectorChips
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
@@ -136,10 +140,20 @@ fun AddEditDetailTransactionView(
     id: Long,
     transactionViewModel: TransactionViewModel,
     categoryViewModel: CategoryViewModel,
+    accountViewModel: AccountViewModel,
     navController: NavController
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
+
+    LaunchedEffect(accounts, transactionViewModel.transactionAccountState) {
+        if (accounts.isEmpty()) return@LaunchedEffect
+        if (accounts.none { it.id == transactionViewModel.transactionAccountState }) {
+            transactionViewModel.transactionAccountState = accounts.first().id
+        }
+    }
+
     var categoryName by remember { mutableStateOf("") }
     var selectedIconKey by remember { mutableStateOf<String?>(null) }
     var showIconPicker by remember { mutableStateOf(false) }
@@ -257,6 +271,7 @@ fun AddEditDetailTransactionView(
             transactionViewModel.transactionDescriptionState = it.description
             transactionViewModel.transactionCategoryState = it.category
             transactionViewModel.transactionDateState = it.date
+            transactionViewModel.transactionAccountState = it.accountId
         }
 
         val category = categoryViewModel.getCategoryById(transactionViewModel.transactionCategoryState)
@@ -277,6 +292,7 @@ fun AddEditDetailTransactionView(
             transactionViewModel.transactionAmountState = 0.0
             transactionViewModel.transactionDescriptionState = ""
             transactionViewModel.transactionCategoryState = 0L
+            transactionViewModel.transactionAccountState = accounts.firstOrNull()?.id ?: 1L
             categoryName = ""
             selectedIconKey = null
             amountText = ""
@@ -353,6 +369,12 @@ fun AddEditDetailTransactionView(
             datePickerState.selectedDateMillis == null -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.err_date_required))
+                }
+                return false
+            }
+            accounts.isNotEmpty() && accounts.none { it.id == transactionViewModel.transactionAccountState } -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.err_account_required))
                 }
                 return false
             }
@@ -667,6 +689,19 @@ fun AddEditDetailTransactionView(
                                 accentColor = accentColor,
                                 isIngreso = isIngreso
                             )
+
+                            if (accounts.isNotEmpty()) {
+                                SectionTitle(
+                                    text = stringResource(R.string.account_label),
+                                    icon = Icons.Default.AccountBalanceWallet
+                                )
+                                AccountSelectorChips(
+                                    accounts = accounts,
+                                    selectedAccountId = transactionViewModel.transactionAccountState,
+                                    onAccountSelected = transactionViewModel::onTransactionAccountChanged,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
 
                             if (isAddMode) {
                                 SectionTitle(text = stringResource(R.string.quick_actions))
@@ -1051,6 +1086,7 @@ private fun HeroAmountCard(
     accentColor: androidx.compose.ui.graphics.Color,
     isIngreso: Boolean
 ) {
+    val currencySymbol = CurrencyFormatter.symbol(LocalContext.current)
     val hintText = stringResource(R.string.hint_amount)
     val amountTextStyle = TextStyle(
         fontSize = 42.sp,
@@ -1128,7 +1164,7 @@ private fun HeroAmountCard(
                     horizontalArrangement = Arrangement.Start
                 ) {
                     Text(
-                        text = "€",
+                        text = currencySymbol,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = accentColor,
@@ -1513,6 +1549,7 @@ private fun DetectedTransactionRow(
     isSelected: Boolean,
     onClick: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val rowShape = RoundedCornerShape(14.dp)
     val rowBorderColor = if (isSelected) {
         AccentBlue.copy(alpha = 0.55f)
@@ -1554,11 +1591,7 @@ private fun DetectedTransactionRow(
                 )
             }
             Text(
-                text = if (isIngreso) {
-                    "+%.2f €".format(Locale.getDefault(), item.amount)
-                } else {
-                    "-%.2f €".format(Locale.getDefault(), item.amount)
-                },
+                text = CurrencyFormatter.formatSigned(context, item.amount, isIngreso),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = if (isIngreso) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error

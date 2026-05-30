@@ -14,6 +14,13 @@ import androidx.room.PrimaryKey
             childColumns = ["transaction-category"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Account::class,
+            parentColumns = ["id"],
+            childColumns = ["transaction-account"],
+            onDelete = ForeignKey.RESTRICT,
+            onUpdate = ForeignKey.CASCADE
         )
     ]
 )
@@ -29,5 +36,7 @@ data class Transaction(
     @ColumnInfo(name = "transaction-date")
     val date: Long = 0L,
     @ColumnInfo(name = "transaction-description")
-    val description: String = ""
+    val description: String = "",
+    @ColumnInfo(name = "transaction-account", index = true)
+    val accountId: Long = 1L
 )

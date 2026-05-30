@@ -17,28 +17,37 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,15 +64,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyHelper
 import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
+import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentPink
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 
 @Composable
-fun SettingsScreen(navController: NavHostController) {
+fun SettingsScreen(
+    navController: NavHostController,
+    accountViewModel: AccountViewModel
+) {
     val context = LocalContext.current
+    val accounts by accountViewModel.accounts.collectAsState(initial = emptyList())
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showCurrencyDialog by remember { mutableStateOf(false) }
+    var showAccountsDialog by remember { mutableStateOf(false) }
+    var showEditAccountDialog by remember { mutableStateOf(false) }
+    var editingAccount by remember { mutableStateOf<Account?>(null) }
+    var editAccountName by remember { mutableStateOf("") }
+    var editAccountHidden by remember { mutableStateOf(false) }
+    var editAccountError by remember { mutableStateOf<String?>(null) }
+    val currentCurrencyCode = remember { CurrencyHelper.getSavedCurrencyCode(context) }
+    val currentCurrencyInfo = remember(currentCurrencyCode) {
+        CurrencyHelper.currencyInfo(context, currentCurrencyCode)
+    }
 
     Scaffold(
         modifier = Modifier
@@ -98,6 +125,27 @@ fun SettingsScreen(navController: NavHostController) {
                 title = stringResource(R.string.settings_language),
                 subtitle = currentLanguageDisplay(LocaleHelper.getSavedLanguageTag(context)),
                 onClick = { showLanguageDialog = true }
+            )
+
+            SettingsItemCard(
+                icon = Icons.Filled.AttachMoney,
+                iconBackground = Brush.linearGradient(listOf(Color(0xFF2E7D32), Color(0xFF66BB6A))),
+                title = stringResource(R.string.settings_currency),
+                subtitle = stringResource(
+                    R.string.settings_currency_subtitle,
+                    currentCurrencyInfo.displayName,
+                    currentCurrencyInfo.code,
+                    currentCurrencyInfo.symbol
+                ),
+                onClick = { showCurrencyDialog = true }
+            )
+
+            SettingsItemCard(
+                icon = Icons.Filled.AccountBalance,
+                iconBackground = Brush.linearGradient(listOf(Color(0xFF1565C0), Color(0xFF42A5F5))),
+                title = stringResource(R.string.settings_accounts),
+                subtitle = buildAccountsSettingsSubtitle(accounts),
+                onClick = { showAccountsDialog = true }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -150,6 +198,79 @@ fun SettingsScreen(navController: NavHostController) {
                     LocaleHelper.setLanguageTag(context, tag)
                     (context as? Activity)?.recreate()
                 }
+            }
+        )
+    }
+
+    if (showCurrencyDialog) {
+        CurrencyPickerDialog(
+            currentCode = CurrencyHelper.getSavedCurrencyCode(context),
+            onDismiss = { showCurrencyDialog = false },
+            onCurrencySelected = { code ->
+                showCurrencyDialog = false
+                if (code != CurrencyHelper.getSavedCurrencyCode(context)) {
+                    CurrencyHelper.setCurrencyCode(context, code)
+                    (context as? Activity)?.recreate()
+                }
+            }
+        )
+    }
+
+    if (showAccountsDialog) {
+        AccountsPickerDialog(
+            accounts = accounts,
+            onDismiss = { showAccountsDialog = false },
+            onAccountSelected = { account ->
+                showAccountsDialog = false
+                editingAccount = account
+                editAccountName = account.name
+                editAccountHidden = account.isHidden
+                editAccountError = null
+                showEditAccountDialog = true
+            }
+        )
+    }
+
+    if (showEditAccountDialog && editingAccount != null) {
+        EditAccountDialog(
+            accountName = editAccountName,
+            isHidden = editAccountHidden,
+            error = editAccountError,
+            onAccountNameChange = {
+                editAccountName = it
+                editAccountError = null
+            },
+            onHiddenChange = { editAccountHidden = it },
+            onDismiss = {
+                showEditAccountDialog = false
+                editingAccount = null
+                editAccountName = ""
+                editAccountHidden = false
+                editAccountError = null
+            },
+            onConfirm = {
+                val account = editingAccount ?: return@EditAccountDialog
+                if (editAccountName.isBlank()) {
+                    editAccountError = context.getString(R.string.err_account_name_empty)
+                    return@EditAccountDialog
+                }
+                accountViewModel.updateAccount(
+                    account = account,
+                    name = editAccountName,
+                    isHidden = editAccountHidden,
+                    onError = { error ->
+                        editAccountError = error.ifBlank {
+                            context.getString(R.string.error_unknown)
+                        }
+                    },
+                    onSuccess = {
+                        showEditAccountDialog = false
+                        editingAccount = null
+                        editAccountName = ""
+                        editAccountHidden = false
+                        editAccountError = null
+                    }
+                )
             }
         )
     }
@@ -280,6 +401,263 @@ private fun LanguagePickerDialog(
             }
         }
     )
+}
+
+@Composable
+private fun CurrencyPickerDialog(
+    currentCode: String,
+    onDismiss: () -> Unit,
+    onCurrencySelected: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val allCurrencies = remember(context) { CurrencyHelper.getAllCurrencies(context) }
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredCurrencies = remember(allCurrencies, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isEmpty()) {
+            allCurrencies
+        } else {
+            allCurrencies.filter { currency ->
+                currency.code.contains(query, ignoreCase = true) ||
+                    currency.displayName.contains(query, ignoreCase = true) ||
+                    currency.symbol.contains(query, ignoreCase = true) ||
+                    currency.pickerLabel.contains(query, ignoreCase = true)
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.AttachMoney,
+                    contentDescription = null,
+                    tint = Color(0xFF2E7D32),
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.settings_currency))
+            }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    placeholder = { Text(stringResource(R.string.settings_currency_search_hint)) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 360.dp)
+                ) {
+                    items(filteredCurrencies, key = { it.code }) { currency ->
+                        val isSelected = currency.code == currentCode
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onCurrencySelected(currency.code) }
+                                .padding(horizontal = 8.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = currency.pickerLabel,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = AccentBlue,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun AccountsPickerDialog(
+    accounts: List<Account>,
+    onDismiss: () -> Unit,
+    onAccountSelected: (Account) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.AccountBalance,
+                    contentDescription = null,
+                    tint = Color(0xFF1565C0),
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.settings_accounts))
+            }
+        },
+        text = {
+            if (accounts.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.settings_accounts_subtitle_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Column {
+                    accounts.forEach { account ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onAccountSelected(account) }
+                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = account.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (account.isHidden) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
+                                    fontWeight = if (account.isHidden) FontWeight.Normal else FontWeight.Medium
+                                )
+                                if (account.isHidden) {
+                                    Text(
+                                        text = stringResource(R.string.account_hidden_label),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            if (account.isHidden) {
+                                Icon(
+                                    imageVector = Icons.Filled.VisibilityOff,
+                                    contentDescription = stringResource(R.string.account_hidden_label),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(18.dp)
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun EditAccountDialog(
+    accountName: String,
+    isHidden: Boolean,
+    error: String?,
+    onAccountNameChange: (String) -> Unit,
+    onHiddenChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.edit_account_title)) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = accountName,
+                    onValueChange = onAccountNameChange,
+                    label = { Text(stringResource(R.string.account_name_label)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.account_show_in_app),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.account_show_in_app_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = !isHidden,
+                        onCheckedChange = { onHiddenChange(!it) }
+                    )
+                }
+                error?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.accept))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun buildAccountsSettingsSubtitle(accounts: List<Account>): String {
+    if (accounts.isEmpty()) {
+        return stringResource(R.string.settings_accounts_subtitle_empty)
+    }
+    val visibleNames = accounts.filterNot { it.isHidden }.joinToString(", ") { it.name }
+    val hiddenCount = accounts.count { it.isHidden }
+    return when {
+        hiddenCount == 0 -> visibleNames
+        visibleNames.isBlank() -> stringResource(R.string.settings_accounts_all_hidden, hiddenCount)
+        else -> stringResource(R.string.settings_accounts_subtitle_with_hidden, visibleNames, hiddenCount)
+    }
 }
 
 @Composable

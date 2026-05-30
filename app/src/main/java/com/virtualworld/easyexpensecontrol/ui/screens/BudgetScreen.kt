@@ -64,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -355,6 +356,8 @@ fun ExpenseBudgetItem(
     isActionEnabled: Boolean = true,
     showActionButton: Boolean = true
 ) {
+    val context = LocalContext.current
+    val currencySymbol = CurrencyFormatter.symbol(context)
     val hasBudget = budget != null
     val limit = budget?.monthlyLimit ?: 0.0
     val safeProgress = animationProgress.coerceIn(0f, 1f)
@@ -421,6 +424,7 @@ fun ExpenseBudgetItem(
                             text = stringResource(
                                 R.string.budget_spent_limit,
                                 displayedSpent,
+                                currencySymbol,
                                 limit
                             ),
                             style = MaterialTheme.typography.bodyMedium,
@@ -445,7 +449,11 @@ fun ExpenseBudgetItem(
                             exit = fadeOut()
                         ) {
                             Text(
-                                text = stringResource(R.string.budget_remaining, remaining),
+                                text = stringResource(
+                                    R.string.budget_remaining,
+                                    remaining,
+                                    currencySymbol
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = BudgetProgressGreen
                             )

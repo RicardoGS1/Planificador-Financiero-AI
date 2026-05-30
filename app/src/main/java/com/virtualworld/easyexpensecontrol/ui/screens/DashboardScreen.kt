@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
@@ -60,6 +61,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.getLastThreeDayPeriods
 import com.virtualworld.easyexpensecontrol.core.util.getLastThreeMonthPeriods
 import com.virtualworld.easyexpensecontrol.core.util.getLastThreeWeekPeriods
@@ -70,10 +72,17 @@ import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TextButton
+import com.virtualworld.easyexpensecontrol.data.model.Account
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
+import kotlin.random.Random
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
-import java.util.Locale
-import kotlin.random.Random
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -87,15 +96,23 @@ private var hasAnimatedBalanceInSession = false
 fun DashboardScreen(
     navController: NavHostController,
     transactionViewModel: TransactionViewModel,
-    categoryViewModel: CategoryViewModel
+    categoryViewModel: CategoryViewModel,
+    accountViewModel: AccountViewModel
 ) {
     val listaTransacciones by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
     val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
+    val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
+    val allAccounts by accountViewModel.accounts.collectAsState(initial = emptyList())
 
     DashboardScreen(
         navController = navController,
         transactions = listaTransacciones,
         categories = categories,
+        accounts = accounts,
+        allAccounts = allAccounts,
+        onAddAccount = { name, onError, onSuccess ->
+            accountViewModel.addAccount(name, onError, onSuccess)
+        },
         onSettingsClick = { navController.navigate(Screen.SettingsScreen.route) }
     )
 }
@@ -105,8 +122,114 @@ fun DashboardScreen(
     navController: NavController,
     transactions: List<Transaction>,
     categories: List<Category>,
+    accounts: List<Account>,
+    allAccounts: List<Account> = accounts,
+    onAddAccount: (name: String, onError: suspend (String) -> Unit, onSuccess: suspend (Long) -> Unit) -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    var showAddAccountDialog by remember { mutableStateOf(false) }
+    var newAccountName by remember { mutableStateOf("") }
+    var addAccountError by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    val isAddTab = selectedTabIndex == accounts.size + 1
+
+    LaunchedEffect(accounts.size) {
+        if (selectedTabIndex > 0 && selectedTabIndex <= accounts.size) return@LaunchedEffect
+        if (selectedTabIndex == accounts.size + 1) return@LaunchedEffect
+        if (selectedTabIndex != 0) {
+            selectedTabIndex = 0
+        }
+    }
+
+    val filteredTransactions = remember(transactions, selectedTabIndex, accounts) {
+        when {
+            selectedTabIndex == 0 -> transactions
+            isAddTab -> transactions
+            else -> {
+                val accountId = accounts.getOrNull(selectedTabIndex - 1)?.id
+                if (accountId != null) transactions.filter { it.accountId == accountId }
+                else transactions
+            }
+        }
+    }
+
+    val accountNameMap = remember(allAccounts) { allAccounts.associate { it.id to it.name } }
+    val balanceLabel = when {
+        selectedTabIndex == 0 -> stringResource(R.string.total_balance)
+        isAddTab -> stringResource(R.string.total_balance)
+        else -> accounts.getOrNull(selectedTabIndex - 1)?.name ?: stringResource(R.string.total_balance)
+    }
+
+    if (showAddAccountDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddAccountDialog = false
+                newAccountName = ""
+                addAccountError = null
+            },
+            title = { Text(stringResource(R.string.add_account_title)) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = newAccountName,
+                        onValueChange = {
+                            newAccountName = it
+                            addAccountError = null
+                        },
+                        label = { Text(stringResource(R.string.account_name_label)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    addAccountError?.let { error ->
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newAccountName.isBlank()) {
+                            addAccountError = context.getString(R.string.err_account_name_empty)
+                            return@TextButton
+                        }
+                        onAddAccount(
+                            newAccountName,
+                            { error ->
+                                addAccountError = error.ifBlank {
+                                    context.getString(R.string.error_unknown)
+                                }
+                            },
+                            { newId ->
+                                showAddAccountDialog = false
+                                newAccountName = ""
+                                addAccountError = null
+                                selectedTabIndex = accounts.size + 1
+                            }
+                        )
+                    }
+                ) {
+                    Text(stringResource(R.string.add_button))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAddAccountDialog = false
+                    newAccountName = ""
+                    addAccountError = null
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -116,7 +239,7 @@ fun DashboardScreen(
     ) { paddingValues ->
         var income = 0.0
         var expenses = 0.0
-        transactions.forEach { t ->
+        filteredTransactions.forEach { t ->
             if (t.type == TransactionType.Ingreso) income += t.amount
             else if (t.type == TransactionType.Gasto) expenses += t.amount
         }
@@ -149,42 +272,102 @@ fun DashboardScreen(
                     }
                 }
             )
-            TotalBalanceSection(balance = balance)
-            Spacer(modifier = Modifier.height(12.dp))
-            PeriodChart(
-                transactions = transactions,
-                todayLabel = stringResource(R.string.day_today),
-                yesterdayLabel = stringResource(R.string.day_yesterday),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.last_entries),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            LatestTransactionsList(
-                transactions = transactions,
-                categories = categories,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
+
+            ScrollableTabRow(
+                selectedTabIndex = selectedTabIndex.coerceAtMost(accounts.size + 1),
+                edgePadding = 16.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Tab(
+                    selected = selectedTabIndex == 0,
+                    onClick = { selectedTabIndex = 0 },
+                    text = { Text(stringResource(R.string.tab_all_accounts)) }
+                )
+                accounts.forEachIndexed { index, account ->
+                    Tab(
+                        selected = selectedTabIndex == index + 1,
+                        onClick = { selectedTabIndex = index + 1 },
+                        text = { Text(account.name, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    )
+                }
+                Tab(
+                    selected = isAddTab,
+                    onClick = {
+                        selectedTabIndex = accounts.size + 1
+                        showAddAccountDialog = true
+                    },
+                    text = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.add_account_title),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                )
+            }
+
+            if (isAddTab) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.add_account_hint),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TextButton(onClick = { showAddAccountDialog = true }) {
+                            Text(stringResource(R.string.add_account_title))
+                        }
+                    }
+                }
+            } else {
+                TotalBalanceSection(balance = balance, label = balanceLabel)
+                Spacer(modifier = Modifier.height(12.dp))
+                PeriodChart(
+                    transactions = filteredTransactions,
+                    todayLabel = stringResource(R.string.day_today),
+                    yesterdayLabel = stringResource(R.string.day_yesterday),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.last_entries),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LatestTransactionsList(
+                    transactions = filteredTransactions,
+                    categories = categories,
+                    accountNameMap = if (selectedTabIndex == 0) accountNameMap else emptyMap(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun TotalBalanceSection(balance: Double) {
+fun TotalBalanceSection(balance: Double, label: String? = null) {
+    val context = LocalContext.current
     val animatedBalance = remember { Animatable(0f) }
+    val balanceLabel = label ?: stringResource(R.string.total_balance)
 
     LaunchedEffect(balance) {
         if (!hasAnimatedBalanceInSession) {
@@ -207,13 +390,13 @@ fun TotalBalanceSection(balance: Double) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.total_balance),
+            text = balanceLabel,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "%.2f €".format(Locale.getDefault(), animatedBalance.value),
+            text = CurrencyFormatter.format(context, animatedBalance.value.toDouble()),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold
@@ -450,6 +633,7 @@ fun LatestTransactionsList(
 fun LatestTransactionsList(
     transactions: List<Transaction>,
     categories: List<Category>,
+    accountNameMap: Map<Long, String> = emptyMap(),
     modifier: Modifier = Modifier
 ) {
     val sorted = transactions
@@ -484,7 +668,8 @@ fun LatestTransactionsList(
                         ?: Category(0L, "", TransactionType.Ingreso)
                     LatestTransactionRow(
                         transaction = transaction,
-                        category = category
+                        category = category,
+                        accountName = accountNameMap[transaction.accountId]
                     )
                     if (index < sorted.size - 1) {
                         HorizontalDivider(
@@ -514,7 +699,8 @@ fun LatestTransactionRow(
 @Composable
 fun LatestTransactionRow(
     transaction: Transaction,
-    category: Category
+    category: Category,
+    accountName: String? = null
 ) {
     val isIngreso = transaction.type == TransactionType.Ingreso
     val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
@@ -547,15 +733,21 @@ fun LatestTransactionRow(
                 maxLines = 1
             )
             Text(
-                text = category.name.ifEmpty { stringResource(R.string.no_category) },
+                text = buildString {
+                    append(category.name.ifEmpty { stringResource(R.string.no_category) })
+                    if (!accountName.isNullOrBlank()) {
+                        append(" · ")
+                        append(accountName)
+                    }
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
+        val context = LocalContext.current
         Text(
-            text = if (isIngreso) "+%.2f €".format(Locale.getDefault(), transaction.amount)
-            else "-%.2f €".format(Locale.getDefault(), transaction.amount),
+            text = CurrencyFormatter.formatSigned(context, transaction.amount, isIngreso),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = if (isIngreso) Color(0xFF4CAF50) else Color(0xFFE33936)
@@ -591,6 +783,8 @@ fun DashboardScreenPreview() {
             navController = rememberNavController(),
             transactions = sampleTransactions,
             categories = sampleCategories,
+            accounts = listOf(Account(1, "General")),
+            onAddAccount = { _, _, _ -> },
             onSettingsClick = {}
         )
     }

@@ -6,14 +6,20 @@ import com.virtualworld.easyexpensecontrol.data.local.BudgetListVisibilityReposi
 import com.virtualworld.easyexpensecontrol.data.local.FinancialDatabase
 import com.virtualworld.easyexpensecontrol.data.remote.GeminiApi
 import com.virtualworld.easyexpensecontrol.data.remote.ReceiptRemoteDataSource
+import com.virtualworld.easyexpensecontrol.data.repository.AccountRepository
 import com.virtualworld.easyexpensecontrol.data.repository.BudgetRepository
 import com.virtualworld.easyexpensecontrol.data.repository.CategoryRepository
 import com.virtualworld.easyexpensecontrol.data.repository.ReceiptAnalysisRepositoryImpl
 import com.virtualworld.easyexpensecontrol.data.repository.TransactionRepository
+import com.virtualworld.easyexpensecontrol.domain.repository.AccountRepository as AccountRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.BudgetRepository as BudgetRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.CategoryRepository as CategoryRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.ReceiptAnalysisRepository
 import com.virtualworld.easyexpensecontrol.domain.repository.TransactionRepository as TransactionRepositoryDomain
+import com.virtualworld.easyexpensecontrol.domain.usecase.account.AddAccountUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.account.GetAccountsUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.account.GetVisibleAccountsUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.account.UpdateAccountUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.AddBudgetUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.DeleteBudgetUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetForCategoryMonthAndYearUseCase
@@ -31,6 +37,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransac
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsByCategoryAndDateUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.SaveTransactionUseCase
+import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -51,13 +58,19 @@ val appModule = module {
             FinancialDatabase::class.java,
             "financialapp.db"
         )
-            .addMigrations(FinancialDatabase.MIGRATION_1_2)
+            .addMigrations(
+                FinancialDatabase.MIGRATION_1_2,
+                FinancialDatabase.MIGRATION_2_3,
+                FinancialDatabase.MIGRATION_3_4,
+                FinancialDatabase.MIGRATION_4_5
+            )
             .build()
     }
 
     single { get<FinancialDatabase>().transactionDao() }
     single { get<FinancialDatabase>().categoryDao() }
     single { get<FinancialDatabase>().budgetDao() }
+    single { get<FinancialDatabase>().accountDao() }
 
     single { BudgetListVisibilityRepository(androidContext()) }
 
@@ -65,6 +78,13 @@ val appModule = module {
     single<TransactionRepositoryDomain> { TransactionRepository(get()) }
     single<CategoryRepositoryDomain> { CategoryRepository(get()) }
     single<BudgetRepositoryDomain> { BudgetRepository(get()) }
+    single<AccountRepositoryDomain> { AccountRepository(get()) }
+
+    // Casos de uso - Account
+    single { GetAccountsUseCase(get()) }
+    single { GetVisibleAccountsUseCase(get()) }
+    single { AddAccountUseCase(get()) }
+    single { UpdateAccountUseCase(get()) }
 
     // Casos de uso - Transaction
     single { GetTransactionsUseCase(get()) }
@@ -131,6 +151,15 @@ val appModule = module {
             addBudgetUseCase = get(),
             updateBudgetUseCase = get(),
             deleteBudgetUseCase = get()
+        )
+    }
+    viewModel {
+        AccountViewModel(
+            getAccountsUseCase = get(),
+            getVisibleAccountsUseCase = get(),
+            addAccountUseCase = get(),
+            updateAccountUseCase = get(),
+            accountRepository = get()
         )
     }
     viewModel {
