@@ -2,8 +2,11 @@ package com.virtualworld.easyexpensecontrol.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +29,6 @@ import androidx.compose.material.icons.outlined.Settings
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +47,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
@@ -75,8 +85,6 @@ import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.TextButton
 import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
@@ -89,6 +97,8 @@ import kotlinx.coroutines.launch
 private enum class ChartPeriod { DAY, WEEK, MONTH }
 
 private const val MAX_ULTIMAS_ENTRADAS = 15
+private val DashboardCardShape = RoundedCornerShape(20.dp)
+private val DashboardChipShape = RoundedCornerShape(12.dp)
 private var hasAnimatedDashboardBarsInSession = false
 private var hasAnimatedBalanceInSession = false
 
@@ -268,35 +278,13 @@ fun DashboardScreen(
                 }
             )
 
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex.coerceAtMost(accounts.size + 1),
-                edgePadding = 16.dp,
+            DashboardAccountTabs(
+                accounts = accounts,
+                selectedTabIndex = selectedTabIndex,
+                isAddTab = isAddTab,
+                onSelectTab = { selectedTabIndex = it },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    text = { Text(stringResource(R.string.tab_all_accounts)) }
-                )
-                accounts.forEachIndexed { index, account ->
-                    Tab(
-                        selected = selectedTabIndex == index + 1,
-                        onClick = { selectedTabIndex = index + 1 },
-                        text = { Text(account.name, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    )
-                }
-                Tab(
-                    selected = isAddTab,
-                    onClick = { selectedTabIndex = accounts.size + 1 },
-                    text = {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.add_account_title),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                )
-            }
+            )
 
             if (isAddTab) {
                 Box(
@@ -321,7 +309,7 @@ fun DashboardScreen(
                 }
             } else {
                 TotalBalanceSection(balance = balance, label = balanceLabel)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 PeriodChart(
                     transactions = filteredTransactions,
                     todayLabel = stringResource(R.string.day_today),
@@ -331,15 +319,19 @@ fun DashboardScreen(
                         .padding(horizontal = 16.dp)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.last_entries),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.SemiBold,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                )
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.last_entries),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 LatestTransactionsList(
                     transactions = filteredTransactions,
@@ -356,10 +348,99 @@ fun DashboardScreen(
 }
 
 @Composable
+private fun DashboardAccountTabs(
+    accounts: List<Account>,
+    selectedTabIndex: Int,
+    isAddTab: Boolean,
+    onSelectTab: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scrollState = rememberScrollState()
+    Row(
+        modifier = modifier
+            .horizontalScroll(scrollState)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        DashboardTabChip(
+            label = stringResource(R.string.tab_all_accounts),
+            selected = selectedTabIndex == 0,
+            onClick = { onSelectTab(0) }
+        )
+        accounts.forEachIndexed { index, account ->
+            DashboardTabChip(
+                label = account.name,
+                selected = selectedTabIndex == index + 1,
+                onClick = { onSelectTab(index + 1) }
+            )
+        }
+        DashboardTabChip(
+            label = null,
+            selected = isAddTab,
+            onClick = { onSelectTab(accounts.size + 1) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_account_title),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun DashboardTabChip(
+    label: String?,
+    selected: Boolean,
+    onClick: () -> Unit,
+    leadingIcon: (@Composable () -> Unit)? = null
+) {
+    val backgroundColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    }
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Row(
+        modifier = Modifier
+            .clip(DashboardChipShape)
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = if (label != null) 14.dp else 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        leadingIcon?.invoke()
+        if (!label.isNullOrBlank()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = contentColor,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
 fun TotalBalanceSection(balance: Double, label: String? = null) {
     val context = LocalContext.current
     val animatedBalance = remember { Animatable(0f) }
     val balanceLabel = label ?: stringResource(R.string.total_balance)
+    val gradient = Brush.linearGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            AccentBlue,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+        )
+    )
 
     LaunchedEffect(balance) {
         if (!hasAnimatedBalanceInSession) {
@@ -375,24 +456,36 @@ fun TotalBalanceSection(balance: Double, label: String? = null) {
         }
     }
 
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 16.dp)
+            .shadow(8.dp, DashboardCardShape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+        shape = DashboardCardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Text(
-            text = balanceLabel,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = CurrencyFormatter.format(context, animatedBalance.value.toDouble()),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(gradient)
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = balanceLabel,
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White.copy(alpha = 0.85f),
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = CurrencyFormatter.format(context, animatedBalance.value.toDouble()),
+                style = MaterialTheme.typography.displaySmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -455,32 +548,53 @@ fun PeriodChart(
     val dayLabel = stringResource(R.string.period_day)
     val weekLabel = stringResource(R.string.period_week)
     val monthLabel = stringResource(R.string.period_month)
+    val incomeColor = colorResource(R.color.green_transaction)
+    val expenseColor = colorResource(R.color.red_transaction)
+    val gridColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+    val density = LocalDensity.current
+    val axisLabelSizePx = with(density) { 10.sp.toPx() }
 
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = DashboardCardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    shape = DashboardCardShape
+                )
+                .padding(18.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.label_income) + " / " + stringResource(R.string.label_expense),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.label_income) + " / " + stringResource(R.string.label_expense),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = when (selectedPeriod) {
+                            ChartPeriod.DAY -> dayLabel
+                            ChartPeriod.WEEK -> weekLabel
+                            ChartPeriod.MONTH -> monthLabel
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Spacer(modifier = Modifier.size(8.dp))
                 PeriodSelector(
                     selected = selectedPeriod,
@@ -490,20 +604,33 @@ fun PeriodChart(
                     monthLabel = monthLabel
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(190.dp)
             ) {
-                val barGroupWidth = size.width / 3f
-                val barWidth = barGroupWidth / 3f
-                val bottomPadding = 28f
+                val bottomPadding = 32f
                 val chartHeight = size.height - bottomPadding
-                val gap = barWidth * 0.2f
+                val barGroupWidth = size.width / 3f
+                val barWidth = barGroupWidth / 3.2f
+                val gap = barWidth * 0.25f
+                val cornerRadius = androidx.compose.ui.geometry.CornerRadius(8f, 8f)
+                val gridSteps = 3
 
-                periodData.forEachIndexed { index, (_, ing, gas) ->
-                    val groupLeft = index * barGroupWidth
+                for (step in 0..gridSteps) {
+                    val y = chartHeight * (1f - step.toFloat() / gridSteps)
+                    drawLine(
+                        color = gridColor,
+                        start = Offset(0f, y),
+                        end = Offset(size.width, y),
+                        strokeWidth = 1f,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f))
+                    )
+                }
+
+                periodData.forEachIndexed { index, (label, ing, gas) ->
+                    val groupLeft = index * barGroupWidth + barGroupWidth * 0.08f
                     val ingHeight = (ing / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
                     val gasHeight = (gas / maxHeight).toFloat().coerceIn(0f, 1f) * chartHeight
                     val ingProgress = barProgresses.getOrNull(index * 2) ?: 1f
@@ -512,60 +639,68 @@ fun PeriodChart(
                     val animatedGasHeight = gasHeight + (chartHeight - gasHeight) * (1f - gasProgress)
 
                     val bar1Left = groupLeft + gap
-                    val bar2Left = groupLeft + barWidth + gap * 2
+                    val bar2Left = groupLeft + barWidth + gap * 1.5f
+                    val actualBarWidth = barWidth - gap
 
-                    drawRect(
-                        color = Color(0xFF4CAF50),
+                    drawRoundRect(
+                        color = incomeColor,
                         topLeft = Offset(bar1Left, chartHeight - animatedIngHeight),
-                        size = Size(barWidth - gap, animatedIngHeight.coerceAtLeast(4f))
+                        size = Size(actualBarWidth, animatedIngHeight.coerceAtLeast(6f)),
+                        cornerRadius = cornerRadius
                     )
-                    drawRect(
-                        color = Color(0xFFE33936),
+                    drawRoundRect(
+                        color = expenseColor,
                         topLeft = Offset(bar2Left, chartHeight - animatedGasHeight),
-                        size = Size(barWidth - gap, animatedGasHeight.coerceAtLeast(4f))
+                        size = Size(actualBarWidth, animatedGasHeight.coerceAtLeast(6f)),
+                        cornerRadius = cornerRadius
                     )
+
+                    drawIntoCanvas { canvas ->
+                        val paint = android.graphics.Paint().apply {
+                            isAntiAlias = true
+                            textSize = axisLabelSizePx
+                            color = labelColor
+                            textAlign = android.graphics.Paint.Align.CENTER
+                        }
+                        canvas.nativeCanvas.drawText(
+                            label,
+                            groupLeft + barGroupWidth * 0.42f,
+                            size.height - 6f,
+                            paint
+                        )
+                    }
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                periods.forEach { period ->
-                    Text(
-                        text = period.label,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(Color(0xFF4CAF50), RoundedCornerShape(2.dp))
-                    )
-                    Spacer(modifier = Modifier.size(6.dp))
-                    Text(stringResource(R.string.label_income), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(modifier = Modifier.size(16.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .background(Color(0xFFE33936), RoundedCornerShape(2.dp))
-                    )
-                    Spacer(modifier = Modifier.size(6.dp))
-                    Text(stringResource(R.string.label_expense), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                ChartLegendItem(color = incomeColor, label = stringResource(R.string.label_income))
+                Spacer(modifier = Modifier.size(20.dp))
+                ChartLegendItem(color = expenseColor, label = stringResource(R.string.label_expense))
             }
         }
+    }
+}
+
+@Composable
+private fun ChartLegendItem(color: Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(14.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(color)
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -579,8 +714,9 @@ private fun PeriodSelector(
 ) {
     Row(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
-            .padding(2.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
+            .padding(3.dp)
     ) {
         listOf(
             ChartPeriod.DAY to dayLabel,
@@ -591,17 +727,17 @@ private fun PeriodSelector(
             Text(
                 text = label,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(8.dp))
                     .background(
                         if (isSelected) MaterialTheme.colorScheme.primary
                         else Color.Transparent
                     )
                     .clickable { onSelect(period) }
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.labelSmall,
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.labelMedium,
                 color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                 else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
             )
         }
     }
@@ -633,40 +769,44 @@ fun LatestTransactionsList(
         .take(MAX_ULTIMAS_ENTRADAS)
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = DashboardCardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        if (sorted.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.no_recent_transactions),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                    shape = DashboardCardShape
                 )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.padding(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
-                itemsIndexed(sorted, key = { _, t -> t.id }) { index, transaction ->
-                    val category = categories.find { it.id == transaction.category }
-                        ?: Category(0L, "", TransactionType.Ingreso)
-                    LatestTransactionRow(
-                        transaction = transaction,
-                        category = category,
-                        accountName = accountNameMap[transaction.accountId]
+        ) {
+            if (sorted.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_recent_transactions),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (index < sorted.size - 1) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    itemsIndexed(sorted, key = { _, t -> t.id }) { _, transaction ->
+                        val category = categories.find { it.id == transaction.category }
+                            ?: Category(0L, "", TransactionType.Ingreso)
+                        LatestTransactionRow(
+                            transaction = transaction,
+                            category = category,
+                            accountName = accountNameMap[transaction.accountId]
                         )
                     }
                 }
@@ -696,22 +836,29 @@ fun LatestTransactionRow(
 ) {
     val isIngreso = transaction.type == TransactionType.Ingreso
     val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
+    val incomeColor = colorResource(R.color.green_transaction)
+    val expenseColor = colorResource(R.color.red_transaction)
+    val accentColor = if (isIngreso) incomeColor else expenseColor
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .background(AccentBlue, CircleShape),
+                .size(44.dp)
+                .background(accentColor.copy(alpha = 0.15f), CircleShape)
+                .border(1.dp, accentColor.copy(alpha = 0.3f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = displayIcon,
                 contentDescription = null,
-                tint = Color.White,
+                tint = accentColor,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -721,8 +868,9 @@ fun LatestTransactionRow(
                 text = transaction.description.ifEmpty { stringResource(R.string.no_description) },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = buildString {
@@ -734,15 +882,17 @@ fun LatestTransactionRow(
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
+        Spacer(modifier = Modifier.size(8.dp))
         val context = LocalContext.current
         Text(
             text = CurrencyFormatter.formatSigned(context, transaction.amount, isIngreso),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isIngreso) Color(0xFF4CAF50) else Color(0xFFE33936)
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = accentColor
         )
     }
 }

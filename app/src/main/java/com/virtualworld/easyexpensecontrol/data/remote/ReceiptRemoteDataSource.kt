@@ -30,25 +30,45 @@ class ReceiptRemoteDataSource(
     private val appContext: Context
 ) {
 
-    suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String> = emptyList()): Result<List<ReceiptLineItemDto>> {
-        val prompt = buildPrompt(AiPromptBuilder.InputMode.RECEIPT, TransactionType.Gasto, categoryNames)
+    suspend fun analyzeReceipt(
+        imageBase64: String,
+        expenseCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList()
+    ): Result<List<ReceiptLineItemDto>> {
+        val prompt = buildPrompt(
+            mode = AiPromptBuilder.InputMode.RECEIPT,
+            transactionType = TransactionType.Gasto,
+            expenseCategoryNames = expenseCategoryNames,
+            incomeCategoryNames = emptyList(),
+            accountNames = accountNames
+        )
         return sendInlineDataRequest(prompt, "image/jpeg", imageBase64)
     }
 
     suspend fun analyzeAudio(
         audioBase64: String,
-        type: TransactionType,
-        categoryNames: List<String> = emptyList(),
+        type: TransactionType?,
+        expenseCategoryNames: List<String> = emptyList(),
+        incomeCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList(),
         mimeType: String = "audio/aac"
     ): Result<List<ReceiptLineItemDto>> {
-        val prompt = buildPrompt(AiPromptBuilder.InputMode.AUDIO, type, categoryNames)
+        val prompt = buildPrompt(
+            mode = AiPromptBuilder.InputMode.AUDIO,
+            transactionType = type,
+            expenseCategoryNames = expenseCategoryNames,
+            incomeCategoryNames = incomeCategoryNames,
+            accountNames = accountNames
+        )
         return sendInlineDataRequest(prompt, mimeType, audioBase64)
     }
 
     private fun buildPrompt(
         mode: AiPromptBuilder.InputMode,
-        transactionType: TransactionType,
-        categoryNames: List<String>
+        transactionType: TransactionType?,
+        expenseCategoryNames: List<String>,
+        incomeCategoryNames: List<String>,
+        accountNames: List<String>
     ): String {
         val localizedContext = LocaleHelper.applySavedLocale(appContext)
         val effectiveLocale = LocaleHelper.getEffectiveLocale(appContext)
@@ -60,7 +80,9 @@ class ReceiptRemoteDataSource(
         return AiPromptBuilder.buildPrompt(
             mode = mode,
             transactionType = transactionType,
-            categoryNames = categoryNames,
+            expenseCategoryNames = expenseCategoryNames,
+            incomeCategoryNames = incomeCategoryNames,
+            accountNames = accountNames,
             outputLanguageTag = outputLanguageTag,
             defaultOtherCategory = defaultOtherCategory
         )
@@ -181,7 +203,10 @@ class ReceiptRemoteDataSource(
         dto.copy(
             amount = dto.amount.coerceAtLeast(0.0),
             description = dto.description.trim().take(50),
-            categoryName = dto.categoryName.trim().take(30)
+            categoryName = dto.categoryName.trim().take(30),
+            date = dto.date.trim(),
+            transactionType = dto.transactionType.trim(),
+            accountName = dto.accountName.trim().take(50)
         )
 
     private companion object {

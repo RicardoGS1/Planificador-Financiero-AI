@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Mic
@@ -94,6 +95,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.TextRange
@@ -200,15 +202,10 @@ fun AddEditDetailTransactionView(
     }
 
     fun stopRecordingAndAnalyze() {
-        val type = transactionViewModel.transactionTypeState
         val bytes = audioRecorder.stopAndRead()
         isRecordingAudio = false
-        if (type != null && bytes != null && bytes.isNotEmpty()) {
-            transactionViewModel.processAudio(bytes, type)
-        } else if (type == null) {
-            scope.launch {
-                snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
-            }
+        if (bytes != null && bytes.isNotEmpty()) {
+            transactionViewModel.processAudio(bytes, transactionViewModel.transactionTypeState)
         } else {
             scope.launch {
                 snackbarHostState.showSnackbar(context.getString(R.string.error_audio_record))
@@ -226,6 +223,7 @@ fun AddEditDetailTransactionView(
     val detectedTransactions by transactionViewModel.detectedTransactions.collectAsState()
     val isAddMode = id == 0L
     var selectedDetectedIndex by remember { mutableStateOf<Int?>(null) }
+    var showManualForm by remember { mutableStateOf(true) }
     var showExitConfirmDialog by remember { mutableStateOf(false) }
     var showAiAccessDialog by remember { mutableStateOf(false) }
     var pendingAiAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -244,6 +242,7 @@ fun AddEditDetailTransactionView(
                     categoryName = firstDetected.categoryName
                     categoryViewModel.categoryNameState = categoryName
                     selectedDetectedIndex = newStartIndex
+                    showManualForm = true
                 }
                 val message = if (count == 1) {
                     context.getString(R.string.receipt_analyzed)
@@ -288,6 +287,7 @@ fun AddEditDetailTransactionView(
         LaunchedEffect(id) {
             transactionViewModel.clearDetectedTransactions()
             selectedDetectedIndex = null
+            showManualForm = true
             transactionViewModel.transactionTypeState = null
             transactionViewModel.transactionAmountState = 0.0
             transactionViewModel.transactionDescriptionState = ""
@@ -326,6 +326,12 @@ fun AddEditDetailTransactionView(
     )
     LaunchedEffect(datePickerState.selectedDateMillis) {
         datePickerState.selectedDateMillis?.let { transactionViewModel.onTransactionDateChanged(it) }
+    }
+    LaunchedEffect(transactionViewModel.transactionDateState) {
+        val modelDate = transactionViewModel.transactionDateState
+        if (modelDate != 0L && datePickerState.selectedDateMillis != modelDate) {
+            datePickerState.selectedDateMillis = modelDate
+        }
     }
 
     val currentType = transactionViewModel.transactionTypeState
@@ -467,6 +473,7 @@ fun AddEditDetailTransactionView(
 
     val isAnalyzingReceipt = receiptState is ReceiptProcessingState.Loading
     val isIngreso = currentType == TransactionType.Ingreso
+    val showForm = !isAddMode || showManualForm || detectedTransactions.isNotEmpty()
     val accentColor = when (currentType) {
         TransactionType.Ingreso -> MaterialTheme.colorScheme.primary
         TransactionType.Gasto -> MaterialTheme.colorScheme.error
@@ -667,22 +674,74 @@ fun AddEditDetailTransactionView(
                         )
                     }
 
-                    SectionTitle(text = stringResource(R.string.transaction_type))
-                    TransactionTypeSelector(
-                        selectedType = currentType,
-                        onTypeChanged = transactionViewModel::onTransactionTypeChanged
-                    )
-
-                    if (currentType == null && isAddMode) {
-                        TypeSelectionHintCard()
+                    if (isAddMode) {
+                        SectionTitle(text = stringResource(R.string.quick_actions))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (currentType != TransactionType.Ingreso) {
+                                AiQuickActionCard(
+                                    icon = Icons.Default.CameraAlt,
+                                    label = if (isAnalyzingReceipt) {
+                                        stringResource(R.string.analyzing)
+                                    } else {
+                                        stringResource(R.string.take_photo)
+                                    },
+                                    isActive = isAnalyzingReceipt,
+                                    isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                    onClick = onCameraClick,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            AiQuickActionCard(
+                                icon = if (isRecordingAudio) Icons.Default.Stop else Icons.Default.Mic,
+                                label = when {
+                                    isAnalyzingReceipt -> stringResource(R.string.analyzing)
+                                    isRecordingAudio -> stringResource(R.string.recording_in_progress)
+                                    else -> stringResource(R.string.record_audio)
+                                },
+                                isActive = isRecordingAudio || isAnalyzingReceipt,
+                                isEnabled = !isAnalyzingReceipt,
+                                onClick = onMicClick,
+                                modifier = Modifier.weight(1f)
+                            )
+                            AiQuickActionCard(
+                                icon = Icons.Default.Edit,
+                                label = stringResource(R.string.manual_entry),
+                                isActive = showManualForm,
+                                isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                onClick = { showManualForm = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (!showForm) {
+                            AiOrManualHintCard()
+                        }
                     }
 
                     AnimatedVisibility(
-                        visible = currentType != null,
+                        visible = showForm,
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            SectionTitle(text = stringResource(R.string.transaction_type))
+                            TransactionTypeSelector(
+                                selectedType = currentType,
+                                onTypeChanged = transactionViewModel::onTransactionTypeChanged
+                            )
+
+                            if (currentType == null && isAddMode) {
+                                TypeSelectionHintCard()
+                            }
+
+                            AnimatedVisibility(
+                                visible = currentType != null,
+                                enter = fadeIn() + expandVertically(),
+                                exit = fadeOut() + shrinkVertically()
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             HeroAmountCard(
                                 amountText = amountText,
                                 onAmountChange = ::onAmountInputChange,
@@ -701,41 +760,6 @@ fun AddEditDetailTransactionView(
                                     onAccountSelected = transactionViewModel::onTransactionAccountChanged,
                                     modifier = Modifier.fillMaxWidth()
                                 )
-                            }
-
-                            if (isAddMode) {
-                                SectionTitle(text = stringResource(R.string.quick_actions))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    if (currentType == TransactionType.Gasto) {
-                                        AiQuickActionCard(
-                                            icon = Icons.Default.CameraAlt,
-                                            label = if (isAnalyzingReceipt) {
-                                                stringResource(R.string.analyzing)
-                                            } else {
-                                                stringResource(R.string.take_photo)
-                                            },
-                                            isActive = isAnalyzingReceipt,
-                                            isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
-                                            onClick = onCameraClick,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
-                                    AiQuickActionCard(
-                                        icon = if (isRecordingAudio) Icons.Default.Stop else Icons.Default.Mic,
-                                        label = when {
-                                            isAnalyzingReceipt -> stringResource(R.string.analyzing)
-                                            isRecordingAudio -> stringResource(R.string.recording_in_progress)
-                                            else -> stringResource(R.string.record_audio)
-                                        },
-                                        isActive = isRecordingAudio || isAnalyzingReceipt,
-                                        isEnabled = !isAnalyzingReceipt,
-                                        onClick = onMicClick,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
                             }
 
                             SectionTitle(
@@ -945,8 +969,10 @@ fun AddEditDetailTransactionView(
                                         }
                                     }
                                 }
+                                }
                             }
                         }
+                    }
                     }
 
                     Spacer(
@@ -1061,7 +1087,7 @@ private fun SectionTitle(
 }
 
 @Composable
-private fun TypeSelectionHintCard() {
+private fun AiOrManualHintCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -1070,12 +1096,115 @@ private fun TypeSelectionHintCard() {
         )
     ) {
         Text(
-            text = stringResource(R.string.select_type_to_continue),
+            text = stringResource(R.string.ai_or_manual_hint),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+private fun TypeSelectionHintCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            
+            InputOptionHintRow(
+                icon = Icons.Default.Edit,
+                title = stringResource(R.string.manual_entry),
+                leadingNote = stringResource(R.string.select_type_to_continue),
+                description = stringResource(R.string.input_option_manual_desc)
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
+            InputOptionHintRow(
+                icon = Icons.Default.Mic,
+                title = stringResource(R.string.record_audio),
+                description = stringResource(R.string.input_option_audio_desc),
+                example = stringResource(R.string.input_option_audio_example)
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
+            InputOptionHintRow(
+                icon = Icons.Default.CameraAlt,
+                title = stringResource(R.string.take_photo),
+                description = stringResource(R.string.input_option_scan_desc)
+            )
+        }
+    }
+}
+
+@Composable
+private fun InputOptionHintRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    leadingNote: String? = null,
+    example: String? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.65f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            leadingNote?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            example?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontStyle = FontStyle.Italic
+                )
+            }
+        }
     }
 }
 

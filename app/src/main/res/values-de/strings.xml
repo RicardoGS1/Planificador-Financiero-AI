@@ -105,6 +105,13 @@
     <string name="transaction_type_income">Einnahme</string>
     <string name="transaction_type_expense">Ausgabe</string>
     <string name="select_type_to_continue">Wähle Einnahme oder Ausgabe, um fortzufahren</string>
+    <string name="manual_entry">Manuelle Eingabe</string>
+    <string name="ai_or_manual_hint">Nutze die KI zum Ausfüllen des Formulars oder gib die Daten manuell ein</string>
+    <string name="input_options_header">Oder nutze eine der Optionen oben:</string>
+    <string name="input_option_manual_desc">Trage Betrag, Kategorie, Datum und Konto selbst ein.</string>
+    <string name="input_option_audio_desc">Sage laut, was du ausgegeben oder eingenommen hast, und die KI füllt alle Felder aus.</string>
+    <string name="input_option_audio_example">Z. B. \"Ausgabe von 25 Euro im Supermarkt gestern, Konto Bargeld.\"</string>
+    <string name="input_option_scan_desc">Fotografiere einen Beleg und die KI erkennt Betrag, Datum und Kategorie.</string>
     <string name="quick_actions">Schnellaktionen</string>
     <string name="transaction_details">Details</string>
     <string name="take_photo">Foto aufnehmen</string>

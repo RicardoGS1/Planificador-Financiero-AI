@@ -118,8 +118,8 @@ val appModule = module {
     single { get<Retrofit>().create(GeminiApi::class.java) }
     single { ReceiptRemoteDataSource(get(), BuildConfig.GEMINI_API_KEY, get(), androidContext()) }
     single<ReceiptAnalysisRepository> { ReceiptAnalysisRepositoryImpl(get()) }
-    single { ProcessReceiptUseCase(get(), get()) }
-    single { ProcessAudioUseCase(get(), get()) }
+    single { ProcessReceiptUseCase(get(), get(), get()) }
+    single { ProcessAudioUseCase(get(), get(), get()) }
 
     // Casos de uso - Budget
     single { GetBudgetsUseCase(get()) }
@@ -141,6 +141,7 @@ val appModule = module {
             processAudioUseCase = get(),
             getCategoryByNameUseCase = get(),
             getCategoriesByTypeUseCase = get(),
+            getVisibleAccountsUseCase = get(),
             appContext = androidContext()
         )
     }

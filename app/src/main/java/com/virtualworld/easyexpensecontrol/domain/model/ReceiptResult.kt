@@ -6,7 +6,10 @@ package com.virtualworld.easyexpensecontrol.domain.model
 data class ReceiptLineItem(
     val amount: Double,
     val description: String,
-    val suggestedCategoryName: String
+    val suggestedCategoryName: String,
+    val suggestedDateIso: String = "",
+    val suggestedTransactionType: String = "",
+    val suggestedAccountName: String = ""
 )
 
 /**

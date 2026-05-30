@@ -13,6 +13,10 @@ import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult
 import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
+import com.virtualworld.easyexpensecontrol.core.util.AccountNameMatcher
+import com.virtualworld.easyexpensecontrol.core.util.AiDateParser
+import com.virtualworld.easyexpensecontrol.core.util.AiPromptBuilder
+import com.virtualworld.easyexpensecontrol.domain.usecase.account.GetVisibleAccountsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoriesByTypeUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
@@ -37,7 +41,10 @@ data class DetectedTransactionItem(
     val amount: Double,
     val description: String,
     val categoryName: String,
-    val categoryId: Long = 0L
+    val categoryId: Long = 0L,
+    val date: Long? = null,
+    val transactionType: TransactionType? = null,
+    val accountId: Long? = null
 )
 
 class TransactionViewModel(
@@ -50,6 +57,7 @@ class TransactionViewModel(
     private val processAudioUseCase: ProcessAudioUseCase,
     private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
     private val getCategoriesByTypeUseCase: GetCategoriesByTypeUseCase,
+    private val getVisibleAccountsUseCase: GetVisibleAccountsUseCase,
     private val appContext: Context
 ) : ViewModel() {
     var transactionTypeState by mutableStateOf<TransactionType?>(null)
@@ -108,12 +116,12 @@ class TransactionViewModel(
         }
     }
 
-    fun processAudio(audioBytes: ByteArray, type: TransactionType, mimeType: String = "audio/aac") {
+    fun processAudio(audioBytes: ByteArray, type: TransactionType?, mimeType: String = "audio/aac") {
         viewModelScope.launch(Dispatchers.IO) {
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             handleAnalysisResult(
                 result = processAudioUseCase(audioBytes, type, mimeType),
-                defaultType = type
+                defaultType = type ?: TransactionType.Gasto
             )
         }
     }
@@ -132,25 +140,42 @@ class TransactionViewModel(
                 }
 
                 val categories = getCategoriesByTypeUseCase(defaultType).firstOrNull().orEmpty()
+                val accounts = getVisibleAccountsUseCase().firstOrNull().orEmpty()
                 val defaultOtherLabel = appContext.getString(R.string.category_default_other)
                 val detected = data.items.map { item ->
+                    val itemType = AiPromptBuilder.parseTransactionType(
+                        raw = item.suggestedTransactionType,
+                        fallback = defaultType
+                    )
+                    val itemCategories = if (item.suggestedTransactionType.isNotBlank()) {
+                        getCategoriesByTypeUseCase(itemType).firstOrNull().orEmpty()
+                    } else {
+                        categories
+                    }
                     val matched = CategoryNameMatcher.resolve(
                         suggestedName = item.suggestedCategoryName,
-                        categories = categories,
+                        categories = itemCategories,
                         defaultOtherLabel = defaultOtherLabel
                     ) ?: getCategoryByNameUseCase(item.suggestedCategoryName).firstOrNull()
+                    val matchedAccount = AccountNameMatcher.resolve(item.suggestedAccountName, accounts)
                     DetectedTransactionItem(
                         amount = item.amount,
                         description = item.description,
                         categoryName = matched?.name ?: item.suggestedCategoryName,
-                        categoryId = matched?.id ?: 0L
+                        categoryId = matched?.id ?: 0L,
+                        date = AiDateParser.parseIsoDateOrNull(item.suggestedDateIso),
+                        transactionType = itemType.takeIf { item.suggestedTransactionType.isNotBlank() },
+                        accountId = matchedAccount?.id
                     )
                 }
                 val first = detected.first()
                 withContext(Dispatchers.Main) {
+                    first.transactionType?.let { transactionTypeState = it }
                     if (transactionTypeState == null) {
                         transactionTypeState = defaultType
                     }
+                    first.date?.let { transactionDateState = it }
+                    first.accountId?.let { transactionAccountState = it }
                     _detectedTransactions.value = _detectedTransactions.value + detected
                     loadDetectedTransaction(first)
                 }
@@ -168,6 +193,9 @@ class TransactionViewModel(
         transactionAmountState = item.amount
         transactionDescriptionState = item.description
         transactionCategoryState = item.categoryId
+        item.transactionType?.let { transactionTypeState = it }
+        item.date?.let { transactionDateState = it }
+        item.accountId?.let { transactionAccountState = it }
     }
 
     fun clearReceiptProcessingState() {
@@ -202,7 +230,10 @@ class TransactionViewModel(
             amount = transactionAmountState,
             description = transactionDescriptionState.trim(),
             categoryName = categoryName.trim(),
-            categoryId = categoryId
+            categoryId = categoryId,
+            date = transactionDateState.takeIf { it != 0L },
+            transactionType = transactionTypeState,
+            accountId = transactionAccountState.takeIf { it != 0L }
         )
         val current = _detectedTransactions.value.toMutableList()
         if (updateIndex != null && updateIndex in current.indices) {
@@ -219,10 +250,6 @@ class TransactionViewModel(
         onError: suspend (String) -> Unit,
         onSuccess: suspend (Int) -> Unit
     ) {
-        val type = transactionTypeState ?: run {
-            viewModelScope.launch { onSuccess(0) }
-            return
-        }
         val date = transactionDateState
         val items = _detectedTransactions.value.toList()
         if (items.isEmpty()) {
@@ -231,9 +258,12 @@ class TransactionViewModel(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val categories = getCategoriesByTypeUseCase(type).firstOrNull().orEmpty()
             val defaultOtherLabel = appContext.getString(R.string.category_default_other)
             for ((index, item) in items.withIndex()) {
+                val type = item.transactionType ?: transactionTypeState ?: TransactionType.Gasto
+                val itemDate = item.date ?: date
+                val itemAccountId = item.accountId ?: transactionAccountState
+                val categories = getCategoriesByTypeUseCase(type).firstOrNull().orEmpty()
                 val category = CategoryNameMatcher.resolve(
                     suggestedName = item.categoryName,
                     categories = categories,
@@ -245,9 +275,9 @@ class TransactionViewModel(
                     description = item.description,
                     categoryName = item.categoryName,
                     category = category,
-                    date = date,
+                    date = itemDate,
                     iconName = null,
-                    accountId = transactionAccountState
+                    accountId = itemAccountId
                 )
                 if (saveResult.isFailure) {
                     val message = saveResult.exceptionOrNull()?.message.orEmpty()

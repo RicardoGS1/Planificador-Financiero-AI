@@ -8,22 +8,18 @@ import com.virtualworld.easyexpensecontrol.domain.model.ReceiptResult
  */
 interface ReceiptAnalysisRepository {
 
-    /**
-     * Analiza la imagen de un comprobante de gasto.
-     * @param categoryNames categorías de gasto de la BD para que la IA elija una de la lista.
-     */
-    suspend fun analyzeReceipt(imageBase64: String, categoryNames: List<String> = emptyList()): Result<ReceiptResult>
+    suspend fun analyzeReceipt(
+        imageBase64: String,
+        expenseCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList()
+    ): Result<ReceiptResult>
 
-    /**
-     * Analiza un audio descrito por el usuario para extraer importe, descripción y categoría.
-     * @param type tipo de transacción (Gasto/Ingreso) para adaptar el prompt y las categorías.
-     * @param categoryNames categorías existentes del tipo indicado.
-     * @param mimeType formato del audio enviado (por defecto AAC).
-     */
     suspend fun analyzeAudio(
         audioBase64: String,
-        type: TransactionType,
-        categoryNames: List<String> = emptyList(),
+        type: TransactionType?,
+        expenseCategoryNames: List<String> = emptyList(),
+        incomeCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList(),
         mimeType: String = "audio/aac"
     ): Result<ReceiptResult>
 }

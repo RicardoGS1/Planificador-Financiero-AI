@@ -105,6 +105,13 @@
     <string name="transaction_type_income">Доход</string>
     <string name="transaction_type_expense">Расход</string>
     <string name="select_type_to_continue">Выберите доход или расход, чтобы продолжить</string>
+    <string name="manual_entry">Ручной ввод</string>
+    <string name="ai_or_manual_hint">Используйте ИИ для заполнения формы или введите данные вручную</string>
+    <string name="input_options_header">Или воспользуйтесь одним из вариантов выше:</string>
+    <string name="input_option_manual_desc">Заполните сумму, категорию, дату и счёт самостоятельно.</string>
+    <string name="input_option_audio_desc">Произнесите вслух, что потратили или получили, и ИИ заполнит все поля.</string>
+    <string name="input_option_audio_example">Напр.: \"Расход 25 евро в супермаркете вчера, счёт Наличные.\"</string>
+    <string name="input_option_scan_desc">Сфотографируйте чек, и ИИ определит сумму, дату и категорию.</string>
     <string name="quick_actions">Быстрые действия</string>
     <string name="transaction_details">Детали</string>
     <string name="take_photo">Сделать фото</string>

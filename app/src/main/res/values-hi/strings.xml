@@ -105,6 +105,13 @@
     <string name="transaction_type_income">आय</string>
     <string name="transaction_type_expense">खर्च</string>
     <string name="select_type_to_continue">जारी रखने के लिए आय या खर्च चुनें</string>
+    <string name="manual_entry">मैन्युअल प्रविष्टि</string>
+    <string name="ai_or_manual_hint">फॉर्म भरने के लिए AI का उपयोग करें या मैन्युअल रूप से डेटा दर्ज करें</string>
+    <string name="input_options_header">या ऊपर दिए गए विकल्पों में से एक का उपयोग करें:</string>
+    <string name="input_option_manual_desc">राशि, श्रेणी, तिथि और खाता स्वयं भरें।</string>
+    <string name="input_option_audio_desc">जो खर्च या आय हुई, उसे बोलें और AI सभी फ़ील्ड भर देगा।</string>
+    <string name="input_option_audio_example">उदा.: \"कल सुपरमार्केट में 25 यूरो का खर्च, नकद खाता।\"</string>
+    <string name="input_option_scan_desc">रसीद की फोटो लें और AI राशि, तिथि और श्रेणी पहचान लेगा।</string>
     <string name="quick_actions">त्वरित क्रियाएँ</string>
     <string name="transaction_details">विवरण</string>
     <string name="take_photo">फोटो लें</string>

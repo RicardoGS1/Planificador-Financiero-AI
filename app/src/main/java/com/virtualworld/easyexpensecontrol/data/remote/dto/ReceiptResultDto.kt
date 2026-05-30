@@ -8,7 +8,10 @@ import com.google.gson.annotations.SerializedName
 data class ReceiptLineItemDto(
     @SerializedName("amount") val amount: Double,
     @SerializedName("description") val description: String,
-    @SerializedName("categoryName") val categoryName: String
+    @SerializedName("categoryName") val categoryName: String,
+    @SerializedName("date") val date: String = "",
+    @SerializedName("transactionType") val transactionType: String = "",
+    @SerializedName("accountName") val accountName: String = ""
 )
 
 /**
