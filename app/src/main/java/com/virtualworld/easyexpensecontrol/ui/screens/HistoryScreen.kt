@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -55,7 +56,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -77,6 +77,8 @@ import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBackground
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBorder
 import com.virtualworld.easyexpensecontrol.ui.components.AccountFilterDropdown
 import com.virtualworld.easyexpensecontrol.ui.components.ALL_ACCOUNTS_FILTER_ID
 import com.virtualworld.easyexpensecontrol.ui.components.filterTransactionsByAccount
@@ -440,21 +442,16 @@ private fun TransactionFiltersCard(
 ) {
     val gradient = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary,
-            AccentBlue,
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+            AccentBlue.copy(alpha = 0.5f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         )
     )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(
-                8.dp,
-                HistoryFiltersCardShape,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-            ),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = HistoryFiltersCardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -499,9 +496,14 @@ private fun SortControls(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val chipColor = if (embedded) {
-        Color.White.copy(alpha = 0.18f)
+        EmbeddedControlBackground
     } else {
         MaterialTheme.colorScheme.surface
+    }
+    val chipBorder = if (embedded) {
+        BorderStroke(1.dp, EmbeddedControlBorder)
+    } else {
+        null
     }
     val chipElevation = if (embedded) 0.dp else 2.dp
     val textColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
@@ -522,7 +524,9 @@ private fun SortControls(
                 onClick = { expanded = true },
                 shape = RoundedCornerShape(12.dp),
                 color = chipColor,
+                border = chipBorder,
                 tonalElevation = chipElevation,
+                shadowElevation = chipElevation,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -567,7 +571,9 @@ private fun SortControls(
             onClick = onToggleDirection,
             shape = RoundedCornerShape(12.dp),
             color = chipColor,
+            border = chipBorder,
             tonalElevation = chipElevation,
+            shadowElevation = chipElevation,
             modifier = Modifier.size(44.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {

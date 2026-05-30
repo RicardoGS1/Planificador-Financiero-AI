@@ -47,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -459,9 +458,9 @@ fun TotalBalanceSection(balance: Double, label: String? = null) {
     val balanceLabel = label ?: stringResource(R.string.total_balance)
     val gradient = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary,
-            AccentBlue,
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+            AccentBlue.copy(alpha = 0.5f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         )
     )
 
@@ -482,8 +481,7 @@ fun TotalBalanceSection(balance: Double, label: String? = null) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .shadow(8.dp, DashboardCardShape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+            .padding(horizontal = 16.dp),
         shape = DashboardCardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)

@@ -51,7 +51,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -73,6 +72,9 @@ import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlActive
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBackground
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBorder
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfDay
 import com.virtualworld.easyexpensecontrol.core.util.getEndOfMonth
@@ -452,21 +454,16 @@ private fun StatisticsFiltersCard(
 ) {
     val gradient = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary,
-            AccentBlue,
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+            AccentBlue.copy(alpha = 0.5f),
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         )
     )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(
-                8.dp,
-                StatisticsFiltersCardShape,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-            ),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = StatisticsFiltersCardShape,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -527,15 +524,15 @@ private fun PeriodTypeSelector(
     embedded: Boolean = false
 ) {
     val primary = MaterialTheme.colorScheme.primary
-    val surface = if (embedded) Color.White.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface
+    val surface = if (embedded) EmbeddedControlBackground else MaterialTheme.colorScheme.surface
     val onSurface = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
     val onPrimary = if (embedded) primary else Color.White
     val outline = if (embedded) {
-        Color.White.copy(alpha = 0.35f)
+        EmbeddedControlBorder
     } else {
         MaterialTheme.colorScheme.outlineVariant
     }
-    val activeContainer = if (embedded) Color.White else primary
+    val activeContainer = if (embedded) EmbeddedControlActive else primary
     val cornerRadius = 6.dp
 
     SingleChoiceSegmentedButtonRow(
@@ -646,12 +643,12 @@ private fun DaySelector(
     }
     val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
     val panelBackground = if (embedded) {
-        Color.White.copy(alpha = 0.18f)
+        EmbeddedControlBackground
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
     val panelBorder = if (embedded) {
-        Color.White.copy(alpha = 0.35f)
+        EmbeddedControlBorder
     } else {
         MaterialTheme.colorScheme.outlineVariant
     }
@@ -713,10 +710,11 @@ private fun MonthYearSelector(
     }
     val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
     val panelBackground = if (embedded) {
-        Color.White.copy(alpha = 0.18f)
+        EmbeddedControlBackground
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
+    val panelBorder = if (embedded) EmbeddedControlBorder else null
     val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
 
     Column(modifier = modifier.then(contentPadding)) {
@@ -729,6 +727,13 @@ private fun MonthYearSelector(
                 .fillMaxWidth()
                 .clip(DateSelectorPanelShape)
                 .background(panelBackground)
+                .then(
+                    if (panelBorder != null) {
+                        Modifier.border(1.dp, panelBorder, DateSelectorPanelShape)
+                    } else {
+                        Modifier
+                    }
+                )
                 .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
@@ -811,10 +816,11 @@ private fun YearSelector(
     }
     val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
     val panelBackground = if (embedded) {
-        Color.White.copy(alpha = 0.18f)
+        EmbeddedControlBackground
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
+    val panelBorder = if (embedded) EmbeddedControlBorder else null
     val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
 
     Column(modifier = modifier.then(contentPadding)) {
@@ -827,6 +833,13 @@ private fun YearSelector(
                 .fillMaxWidth()
                 .clip(DateSelectorPanelShape)
                 .background(panelBackground)
+                .then(
+                    if (panelBorder != null) {
+                        Modifier.border(1.dp, panelBorder, DateSelectorPanelShape)
+                    } else {
+                        Modifier
+                    }
+                )
                 .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically

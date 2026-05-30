@@ -31,3 +31,8 @@ val Pink40 = Color(0xFF7D5260)
 // Acento rosa para bottom bar y FAB (estilo imagen referencia)
 val AccentPink = Color(0xFFEC407A)
 val AccentPinkLight = Color(0xFFF48FB1)
+
+// Controles embebidos en cards azules semitransparentes
+val EmbeddedControlBackground = Color.Transparent
+val EmbeddedControlBorder = Color.White.copy(alpha = 0.35f)
+val EmbeddedControlActive = Color.White.copy(alpha = 0.25f)

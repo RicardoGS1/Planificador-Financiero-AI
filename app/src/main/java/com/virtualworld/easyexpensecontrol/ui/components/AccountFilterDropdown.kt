@@ -1,5 +1,6 @@
 package com.virtualworld.easyexpensecontrol.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Account
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBackground
+import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBorder
 
 const val ALL_ACCOUNTS_FILTER_ID = -1L
 
@@ -51,11 +54,17 @@ fun AccountFilterDropdown(
             onClick = { expanded = true },
             shape = RoundedCornerShape(12.dp),
             color = if (embedded) {
-                Color.White.copy(alpha = 0.18f)
+                EmbeddedControlBackground
             } else {
                 MaterialTheme.colorScheme.surface
             },
+            border = if (embedded) {
+                BorderStroke(1.dp, EmbeddedControlBorder)
+            } else {
+                null
+            },
             tonalElevation = if (embedded) 0.dp else 2.dp,
+            shadowElevation = if (embedded) 0.dp else 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(

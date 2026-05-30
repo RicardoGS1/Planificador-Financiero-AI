@@ -54,12 +54,14 @@ abstract class FinancialDatabase : RoomDatabase() {
 
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL(
-                    """
-                    ALTER TABLE `Account`
-                    ADD COLUMN `account-hidden` INTEGER NOT NULL DEFAULT 0
-                    """.trimIndent()
-                )
+                if (!accountHasHiddenColumn(db)) {
+                    db.execSQL(
+                        """
+                        ALTER TABLE `Account`
+                        ADD COLUMN `account-hidden` INTEGER NOT NULL DEFAULT 0
+                        """.trimIndent()
+                    )
+                }
             }
         }
 
@@ -80,6 +82,19 @@ abstract class FinancialDatabase : RoomDatabase() {
                 VALUES (1, 'General', NULL)
                 """.trimIndent()
             )
+        }
+
+        private fun accountHasHiddenColumn(db: SupportSQLiteDatabase): Boolean {
+            db.query("PRAGMA table_info(`Account`)").use { cursor ->
+                val nameIndex = cursor.getColumnIndex("name")
+                if (nameIndex < 0) return false
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(nameIndex) == "account-hidden") {
+                        return true
+                    }
+                }
+            }
+            return false
         }
 
         private fun transactionHasAccountColumn(db: SupportSQLiteDatabase): Boolean {
