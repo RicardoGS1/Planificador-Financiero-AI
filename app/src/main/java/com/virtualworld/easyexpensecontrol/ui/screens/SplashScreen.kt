@@ -41,6 +41,9 @@ import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import kotlin.math.max
 import kotlinx.coroutines.delay
 
+import androidx.compose.ui.tooling.preview.Preview
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
+
 private const val MAX_WAIT_MS = 10_000L
 private const val POLL_INTERVAL_MS = 200L
 
@@ -106,6 +109,11 @@ fun SplashScreen(navController: NavHostController) {
         }
     }
 
+    SplashScreenContent(progress = animatedProgress)
+}
+
+@Composable
+fun SplashScreenContent(progress: Float) {
     val colorScheme = MaterialTheme.colorScheme
 
     Box(
@@ -134,7 +142,7 @@ fun SplashScreen(navController: NavHostController) {
         }
 
         LinearProgressIndicator(
-            progress = { animatedProgress },
+            progress = { progress },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(start = 24.dp, end = 24.dp, bottom = 48.dp)
@@ -145,5 +153,13 @@ fun SplashScreen(navController: NavHostController) {
             trackColor = colorScheme.surfaceVariant,
             strokeCap = StrokeCap.Round,
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    EasyExpenseControlTheme {
+        SplashScreenContent(progress = 0.5f)
     }
 }
