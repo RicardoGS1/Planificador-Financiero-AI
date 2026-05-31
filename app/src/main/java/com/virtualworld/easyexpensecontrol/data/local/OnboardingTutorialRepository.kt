@@ -25,6 +25,10 @@ class OnboardingTutorialRepository(context: Context) {
         prefs[ADD_TRANSACTION_TIP_SEEN_KEY] == true
     }
 
+    val currencyTipSeen: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[CURRENCY_TIP_SEEN_KEY] == true
+    }
+
     suspend fun markDefaultAccountTipSeen() {
         dataStore.edit { prefs ->
             prefs[DEFAULT_ACCOUNT_TIP_SEEN_KEY] = true
@@ -37,10 +41,17 @@ class OnboardingTutorialRepository(context: Context) {
         }
     }
 
+    suspend fun markCurrencyTipSeen() {
+        dataStore.edit { prefs ->
+            prefs[CURRENCY_TIP_SEEN_KEY] = true
+        }
+    }
+
     companion object {
         const val DEFAULT_ACCOUNT_ID = 1L
 
         private val DEFAULT_ACCOUNT_TIP_SEEN_KEY = booleanPreferencesKey("default_account_tip_seen")
         private val ADD_TRANSACTION_TIP_SEEN_KEY = booleanPreferencesKey("add_transaction_tip_seen")
+        private val CURRENCY_TIP_SEEN_KEY = booleanPreferencesKey("currency_tip_seen")
     }
 }

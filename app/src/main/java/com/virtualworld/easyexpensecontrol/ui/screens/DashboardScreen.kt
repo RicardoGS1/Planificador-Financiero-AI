@@ -107,6 +107,7 @@ private enum class ChartPeriod { DAY, WEEK, MONTH }
 private enum class DashboardTutorialStep {
     None,
     DefaultAccount,
+    TotalBalance,
     AddTransaction
 }
 
@@ -129,6 +130,7 @@ fun DashboardScreen(
     val allAccounts by accountViewModel.accounts.collectAsState(initial = emptyList())
     val tutorialRepository: OnboardingTutorialRepository = koinInject()
     val accountTipSeen by tutorialRepository.defaultAccountTipSeen.collectAsState(initial = true)
+    val currencyTipSeen by tutorialRepository.currencyTipSeen.collectAsState(initial = true)
     val addTransactionTipSeen by tutorialRepository.addTransactionTipSeen.collectAsState(initial = true)
     var preferAddAccountTab by remember { mutableStateOf<Boolean?>(null) }
 
@@ -144,8 +146,10 @@ fun DashboardScreen(
         allAccounts = allAccounts,
         preferAddAccountTab = preferAddAccountTab,
         accountTipSeen = accountTipSeen,
+        currencyTipSeen = currencyTipSeen,
         addTransactionTipSeen = addTransactionTipSeen,
         onDefaultAccountTipDismissed = { tutorialRepository.markDefaultAccountTipSeen() },
+        onCurrencyTipDismissed = { tutorialRepository.markCurrencyTipSeen() },
         onAddTransactionTipDismissed = { tutorialRepository.markAddTransactionTipSeen() },
         onAddAccount = { name, onError, onSuccess ->
             accountViewModel.addAccount(name, onError, onSuccess)
@@ -163,8 +167,10 @@ fun DashboardScreen(
     allAccounts: List<Account> = accounts,
     preferAddAccountTab: Boolean? = null,
     accountTipSeen: Boolean = true,
+    currencyTipSeen: Boolean = true,
     addTransactionTipSeen: Boolean = true,
     onDefaultAccountTipDismissed: suspend () -> Unit = {},
+    onCurrencyTipDismissed: suspend () -> Unit = {},
     onAddTransactionTipDismissed: suspend () -> Unit = {},
     onAddAccount: (name: String, onError: suspend (String) -> Unit, onSuccess: suspend (Long) -> Unit) -> Unit,
     onSettingsClick: () -> Unit
@@ -176,25 +182,32 @@ fun DashboardScreen(
     var hasAppliedInitialTab by remember { mutableStateOf(false) }
     var tutorialStep by remember { mutableStateOf(DashboardTutorialStep.None) }
     var defaultAccountBounds by remember { mutableStateOf<Rect?>(null) }
+    var totalBalanceBounds by remember { mutableStateOf<Rect?>(null) }
     var fabBounds by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val defaultAccountVisible = accounts.any { it.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID }
 
-    LaunchedEffect(accountTipSeen, addTransactionTipSeen, defaultAccountVisible) {
+    LaunchedEffect(accountTipSeen, currencyTipSeen, addTransactionTipSeen, defaultAccountVisible) {
         tutorialStep = when {
             !accountTipSeen && defaultAccountVisible -> DashboardTutorialStep.DefaultAccount
-            accountTipSeen && !addTransactionTipSeen -> DashboardTutorialStep.AddTransaction
+            accountTipSeen && !currencyTipSeen -> DashboardTutorialStep.TotalBalance
+            accountTipSeen && currencyTipSeen && !addTransactionTipSeen -> DashboardTutorialStep.AddTransaction
             else -> DashboardTutorialStep.None
         }
     }
 
-    LaunchedEffect(tutorialStep, accounts) {
-        if (tutorialStep != DashboardTutorialStep.DefaultAccount) return@LaunchedEffect
-        val defaultIndex = accounts.indexOfFirst { it.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID }
-        if (defaultIndex >= 0) {
-            selectedTabIndex = defaultIndex + 1
+    LaunchedEffect(tutorialStep, accounts, selectedTabIndex) {
+        if (tutorialStep == DashboardTutorialStep.DefaultAccount) {
+            val defaultIndex = accounts.indexOfFirst { it.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID }
+            if (defaultIndex >= 0) {
+                selectedTabIndex = defaultIndex + 1
+            }
+            return@LaunchedEffect
+        }
+        if (tutorialStep == DashboardTutorialStep.TotalBalance && selectedTabIndex == accounts.size + 1) {
+            selectedTabIndex = 0
         }
     }
 
@@ -390,7 +403,13 @@ fun DashboardScreen(
                     }
                 }
             } else {
-                TotalBalanceSection(balance = balance, label = balanceLabel)
+                TotalBalanceSection(
+                    balance = balance,
+                    label = balanceLabel,
+                    modifier = Modifier.onGloballyPositioned { coordinates ->
+                        totalBalanceBounds = coordinates.boundsInWindow()
+                    }
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 PeriodChart(
                     transactions = filteredTransactions,
@@ -438,6 +457,19 @@ fun DashboardScreen(
                         arrowDirection = CoachmarkArrowDirection.Up,
                         onDismiss = {
                             scope.launch { onDefaultAccountTipDismissed() }
+                        }
+                    )
+                }
+            }
+            DashboardTutorialStep.TotalBalance -> {
+                totalBalanceBounds?.let { bounds ->
+                    TutorialCoachmarkOverlay(
+                        targetBounds = bounds,
+                        message = stringResource(R.string.tutorial_currency_message),
+                        buttonText = stringResource(R.string.tutorial_got_it),
+                        arrowDirection = CoachmarkArrowDirection.Up,
+                        onDismiss = {
+                            scope.launch { onCurrencyTipDismissed() }
                         }
                     )
                 }
@@ -551,7 +583,11 @@ private fun DashboardTabChip(
 }
 
 @Composable
-fun TotalBalanceSection(balance: Double, label: String? = null) {
+fun TotalBalanceSection(
+    balance: Double,
+    label: String? = null,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val animatedBalance = remember { Animatable(0f) }
     val balanceLabel = label ?: stringResource(R.string.total_balance)
@@ -578,7 +614,7 @@ fun TotalBalanceSection(balance: Double, label: String? = null) {
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = DashboardCardShape,

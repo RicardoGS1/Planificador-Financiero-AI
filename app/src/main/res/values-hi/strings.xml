@@ -91,6 +91,7 @@
     <string name="settings_accounts_all_hidden">%1$d छिपे खाते</string>
     <string name="add_account_hint">अपने लेनदेन को अलग से व्यवस्थित करने के लिए एक नया खाता बनाएं।</string>
     <string name="tutorial_default_account_message">यह आपका डिफ़ॉल्ट खाता है। आप सेटिंग्स → खातों में जाकर इसका नाम बदल सकते हैं।</string>
+    <string name="tutorial_currency_message">यह आपका कुल शेष है। आप सेटिंग्स → मुद्रा में मुद्रा बदल सकते हैं।</string>
     <string name="tutorial_add_transaction_message">अपनी पहली आय या खर्च जोड़ने के लिए यहाँ टैप करें।</string>
     <string name="tutorial_got_it">समझ गया</string>
     <string name="add_account_examples">उदाहरण: नकद, ING कार्ड, डेबिट कार्ड, बचत…</string>

@@ -91,6 +91,7 @@
     <string name="settings_accounts_all_hidden">Скрытых счетов: %1$d</string>
     <string name="add_account_hint">Создайте новый счёт, чтобы отдельно организовать транзакции.</string>
     <string name="tutorial_default_account_message">Это ваш счёт по умолчанию. Вы можете изменить его название в Настройки → Счета.</string>
+    <string name="tutorial_currency_message">Это ваш общий баланс. Вы можете изменить валюту в Настройки → Валюта.</string>
     <string name="tutorial_add_transaction_message">Нажмите здесь, чтобы добавить первый доход или расход.</string>
     <string name="tutorial_got_it">Понятно</string>
     <string name="add_account_examples">Примеры: Наличные, Карта ING, Дебетовая карта, Сбережения…</string>

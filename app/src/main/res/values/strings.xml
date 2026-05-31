@@ -114,6 +114,7 @@
     <string name="settings_accounts_all_hidden">%1$d hidden accounts</string>
     <string name="add_account_hint">Create a new account to organize your transactions separately.</string>
     <string name="tutorial_default_account_message">This is your default account. You can rename it anytime in Settings → Accounts.</string>
+    <string name="tutorial_currency_message">This is your total balance. You can change the currency in Settings → Currency.</string>
     <string name="tutorial_add_transaction_message">Tap here to add your first income or expense.</string>
     <string name="tutorial_got_it">Got it</string>
     <string name="add_account_examples">Examples: Cash, ING card, Debit card, Savings…</string>
