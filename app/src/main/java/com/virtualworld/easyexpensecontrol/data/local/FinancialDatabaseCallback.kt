@@ -13,7 +13,7 @@ class FinancialDatabaseCallback(
         db.execSQL(
             """
             INSERT OR IGNORE INTO `Account` (`id`, `account-name`, `account-color`, `account-hidden`)
-            VALUES (1, 'General', NULL, 0)
+            VALUES (1, '0001', NULL, 0)
             """.trimIndent()
         )
         DefaultCategories.seedIfEmpty(context, db)
