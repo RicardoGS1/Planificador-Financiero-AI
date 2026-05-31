@@ -56,7 +56,10 @@ data class CurvedNavItem(
 )
 
 @Composable
-fun CurvedBottomBar(navController: NavController) {
+fun CurvedBottomBar(
+    navController: NavController,
+    fabModifier: Modifier = Modifier
+) {
     val items = listOf(
         CurvedNavItem(Screen.DashboardScreen.route, stringResource(R.string.nav_home), Icons.Outlined.Home),
         CurvedNavItem(Screen.HistoryScreen.route, stringResource(R.string.nav_history), Icons.Outlined.History),
@@ -147,6 +150,7 @@ fun CurvedBottomBar(navController: NavController) {
                 .align(Alignment.BottomCenter)
                 .offset(y = (-BottomBarHeight / 2).minus(8.dp))
                 .size(FabSize)
+                .then(fabModifier)
                 .background(AccentPink, CircleShape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },

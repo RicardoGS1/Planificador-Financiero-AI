@@ -43,6 +43,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +59,9 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -77,14 +81,17 @@ import com.virtualworld.easyexpensecontrol.core.util.getLastThreeWeekPeriods
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
+import com.virtualworld.easyexpensecontrol.ui.components.CoachmarkArrowDirection
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
+import com.virtualworld.easyexpensecontrol.ui.components.TutorialCoachmarkOverlay
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
+import com.virtualworld.easyexpensecontrol.data.local.OnboardingTutorialRepository
 import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import kotlin.random.Random
@@ -93,8 +100,15 @@ import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 private enum class ChartPeriod { DAY, WEEK, MONTH }
+
+private enum class DashboardTutorialStep {
+    None,
+    DefaultAccount,
+    AddTransaction
+}
 
 private const val MAX_ULTIMAS_ENTRADAS = 15
 private val DashboardCardShape = RoundedCornerShape(20.dp)
@@ -113,6 +127,9 @@ fun DashboardScreen(
     val categories by categoryViewModel.getAllCategories.collectAsState(initial = emptyList())
     val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
     val allAccounts by accountViewModel.accounts.collectAsState(initial = emptyList())
+    val tutorialRepository: OnboardingTutorialRepository = koinInject()
+    val accountTipSeen by tutorialRepository.defaultAccountTipSeen.collectAsState(initial = true)
+    val addTransactionTipSeen by tutorialRepository.addTransactionTipSeen.collectAsState(initial = true)
     var preferAddAccountTab by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
@@ -126,6 +143,10 @@ fun DashboardScreen(
         accounts = accounts,
         allAccounts = allAccounts,
         preferAddAccountTab = preferAddAccountTab,
+        accountTipSeen = accountTipSeen,
+        addTransactionTipSeen = addTransactionTipSeen,
+        onDefaultAccountTipDismissed = { tutorialRepository.markDefaultAccountTipSeen() },
+        onAddTransactionTipDismissed = { tutorialRepository.markAddTransactionTipSeen() },
         onAddAccount = { name, onError, onSuccess ->
             accountViewModel.addAccount(name, onError, onSuccess)
         },
@@ -141,6 +162,10 @@ fun DashboardScreen(
     accounts: List<Account>,
     allAccounts: List<Account> = accounts,
     preferAddAccountTab: Boolean? = null,
+    accountTipSeen: Boolean = true,
+    addTransactionTipSeen: Boolean = true,
+    onDefaultAccountTipDismissed: suspend () -> Unit = {},
+    onAddTransactionTipDismissed: suspend () -> Unit = {},
     onAddAccount: (name: String, onError: suspend (String) -> Unit, onSuccess: suspend (Long) -> Unit) -> Unit,
     onSettingsClick: () -> Unit
 ) {
@@ -149,7 +174,29 @@ fun DashboardScreen(
     var newAccountName by remember { mutableStateOf("") }
     var addAccountError by remember { mutableStateOf<String?>(null) }
     var hasAppliedInitialTab by remember { mutableStateOf(false) }
+    var tutorialStep by remember { mutableStateOf(DashboardTutorialStep.None) }
+    var defaultAccountBounds by remember { mutableStateOf<Rect?>(null) }
+    var fabBounds by remember { mutableStateOf<Rect?>(null) }
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val defaultAccountVisible = accounts.any { it.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID }
+
+    LaunchedEffect(accountTipSeen, addTransactionTipSeen, defaultAccountVisible) {
+        tutorialStep = when {
+            !accountTipSeen && defaultAccountVisible -> DashboardTutorialStep.DefaultAccount
+            accountTipSeen && !addTransactionTipSeen -> DashboardTutorialStep.AddTransaction
+            else -> DashboardTutorialStep.None
+        }
+    }
+
+    LaunchedEffect(tutorialStep, accounts) {
+        if (tutorialStep != DashboardTutorialStep.DefaultAccount) return@LaunchedEffect
+        val defaultIndex = accounts.indexOfFirst { it.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID }
+        if (defaultIndex >= 0) {
+            selectedTabIndex = defaultIndex + 1
+        }
+    }
 
     val isAddTab = selectedTabIndex == accounts.size + 1
 
@@ -262,13 +309,23 @@ fun DashboardScreen(
         )
     }
 
-    Scaffold(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(WindowInsets.systemBars.asPaddingValues()),
-        bottomBar = { CurvedBottomBar(navController = navController) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
+            .padding(WindowInsets.systemBars.asPaddingValues())
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                CurvedBottomBar(
+                    navController = navController,
+                    fabModifier = Modifier.onGloballyPositioned { coordinates ->
+                        fabBounds = coordinates.boundsInWindow()
+                    }
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { paddingValues ->
         var income = 0.0
         var expenses = 0.0
         filteredTransactions.forEach { t ->
@@ -305,6 +362,9 @@ fun DashboardScreen(
                 selectedTabIndex = selectedTabIndex,
                 isAddTab = isAddTab,
                 onSelectTab = { selectedTabIndex = it },
+                defaultAccountChipModifier = Modifier.onGloballyPositioned { coordinates ->
+                    defaultAccountBounds = coordinates.boundsInWindow()
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -366,6 +426,37 @@ fun DashboardScreen(
                 )
             }
         }
+        }
+
+        when (tutorialStep) {
+            DashboardTutorialStep.DefaultAccount -> {
+                defaultAccountBounds?.let { bounds ->
+                    TutorialCoachmarkOverlay(
+                        targetBounds = bounds,
+                        message = stringResource(R.string.tutorial_default_account_message),
+                        buttonText = stringResource(R.string.tutorial_got_it),
+                        arrowDirection = CoachmarkArrowDirection.Up,
+                        onDismiss = {
+                            scope.launch { onDefaultAccountTipDismissed() }
+                        }
+                    )
+                }
+            }
+            DashboardTutorialStep.AddTransaction -> {
+                fabBounds?.let { bounds ->
+                    TutorialCoachmarkOverlay(
+                        targetBounds = bounds,
+                        message = stringResource(R.string.tutorial_add_transaction_message),
+                        buttonText = stringResource(R.string.tutorial_got_it),
+                        arrowDirection = CoachmarkArrowDirection.Down,
+                        onDismiss = {
+                            scope.launch { onAddTransactionTipDismissed() }
+                        }
+                    )
+                }
+            }
+            DashboardTutorialStep.None -> Unit
+        }
     }
 }
 
@@ -375,6 +466,7 @@ private fun DashboardAccountTabs(
     selectedTabIndex: Int,
     isAddTab: Boolean,
     onSelectTab: (Int) -> Unit,
+    defaultAccountChipModifier: Modifier = Modifier,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -390,10 +482,16 @@ private fun DashboardAccountTabs(
             onClick = { onSelectTab(0) }
         )
         accounts.forEachIndexed { index, account ->
+            val chipModifier = if (account.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID) {
+                defaultAccountChipModifier
+            } else {
+                Modifier
+            }
             DashboardTabChip(
                 label = account.name,
                 selected = selectedTabIndex == index + 1,
-                onClick = { onSelectTab(index + 1) }
+                onClick = { onSelectTab(index + 1) },
+                modifier = chipModifier
             )
         }
         DashboardTabChip(
@@ -416,6 +514,7 @@ private fun DashboardTabChip(
     label: String?,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     leadingIcon: (@Composable () -> Unit)? = null
 ) {
     val backgroundColor = if (selected) {
@@ -429,7 +528,7 @@ private fun DashboardTabChip(
         MaterialTheme.colorScheme.onSurfaceVariant
     }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(DashboardChipShape)
             .background(backgroundColor)
             .clickable(onClick = onClick)

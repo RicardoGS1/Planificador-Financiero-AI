@@ -90,6 +90,9 @@
     <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d versteckt</string>
     <string name="settings_accounts_all_hidden">%1$d versteckte Konten</string>
     <string name="add_account_hint">Erstellen Sie ein neues Konto, um Ihre Transaktionen getrennt zu verwalten.</string>
+    <string name="tutorial_default_account_message">Dies ist Ihr Standardkonto. Sie können den Namen jederzeit unter Einstellungen → Konten ändern.</string>
+    <string name="tutorial_add_transaction_message">Tippen Sie hier, um Ihre erste Einnahme oder Ausgabe hinzuzufügen.</string>
+    <string name="tutorial_got_it">Verstanden</string>
     <string name="add_account_examples">Beispiele: Bargeld, ING-Karte, Debitkarte, Sparkonto…</string>
     <string name="err_account_name_empty">Geben Sie einen Kontonamen ein</string>
     <string name="err_account_required">Wählen Sie ein Konto aus</string>

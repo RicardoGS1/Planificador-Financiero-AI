@@ -102,6 +102,9 @@
     <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d ocultas</string>
     <string name="settings_accounts_all_hidden">%1$d cuentas ocultas</string>
     <string name="add_account_hint">Crea una nueva cuenta para organizar tus transacciones por separado.</string>
+    <string name="tutorial_default_account_message">Esta es tu cuenta por defecto. Puedes cambiar su nombre en Ajustes → Cuentas.</string>
+    <string name="tutorial_add_transaction_message">Pulsa aquí para registrar tu primer ingreso o gasto.</string>
+    <string name="tutorial_got_it">Entendido</string>
     <string name="add_account_examples">Ejemplos: Efectivo, Tarjeta ING, Tarjeta débito, Ahorros…</string>
     <string name="err_account_name_empty">Introduce un nombre para la cuenta</string>
     <string name="err_account_required">Selecciona una cuenta</string>

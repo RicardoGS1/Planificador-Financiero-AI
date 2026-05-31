@@ -3,6 +3,7 @@ package com.virtualworld.easyexpensecontrol.di
 import androidx.room.Room
 import com.virtualworld.easyexpensecontrol.BuildConfig
 import com.virtualworld.easyexpensecontrol.data.local.BudgetListVisibilityRepository
+import com.virtualworld.easyexpensecontrol.data.local.OnboardingTutorialRepository
 import com.virtualworld.easyexpensecontrol.data.local.FinancialDatabase
 import com.virtualworld.easyexpensecontrol.data.local.FinancialDatabaseCallback
 import com.virtualworld.easyexpensecontrol.data.remote.GeminiApi
@@ -77,6 +78,7 @@ val appModule = module {
     single { get<FinancialDatabase>().accountDao() }
 
     single { BudgetListVisibilityRepository(androidContext()) }
+    single { OnboardingTutorialRepository(androidContext()) }
 
     // Repositorios (implementaciones data que cumplen interfaces domain)
     single<TransactionRepositoryDomain> { TransactionRepository(get()) }
