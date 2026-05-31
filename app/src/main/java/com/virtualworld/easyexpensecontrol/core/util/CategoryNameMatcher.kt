@@ -46,6 +46,12 @@ object CategoryNameMatcher {
             ?: categories.firstOrNull { normalize(it.name) in otherLabels }
     }
 
+    fun matchesFilter(categoryName: String, query: String): Boolean {
+        val normalizedQuery = normalize(query)
+        if (normalizedQuery.isBlank()) return true
+        return normalize(categoryName).contains(normalizedQuery)
+    }
+
     private fun normalize(value: String): String =
         Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
             .replace(Regex("\\p{M}+"), "")

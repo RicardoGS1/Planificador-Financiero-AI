@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.virtualworld.easyexpensecontrol.R
@@ -24,14 +25,21 @@ fun AppTextField(
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
     readOnly: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    labelStyle: TextStyle? = null
 ) {
     val isDarkTheme = isSystemInDarkTheme()
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(text = label) },
+        label = {
+            if (labelStyle != null) {
+                Text(text = label, style = labelStyle)
+            } else {
+                Text(text = label)
+            }
+        },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = modifier
             .padding(5.dp)

@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.virtualworld.easyexpensecontrol.BuildConfig
 import com.virtualworld.easyexpensecontrol.data.local.BudgetListVisibilityRepository
 import com.virtualworld.easyexpensecontrol.data.local.FinancialDatabase
+import com.virtualworld.easyexpensecontrol.data.local.FinancialDatabaseCallback
 import com.virtualworld.easyexpensecontrol.data.remote.GeminiApi
 import com.virtualworld.easyexpensecontrol.data.remote.ReceiptRemoteDataSource
 import com.virtualworld.easyexpensecontrol.data.repository.AccountRepository
@@ -30,6 +31,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategories
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
@@ -53,8 +55,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 val appModule = module {
 
     single {
+        val appContext = androidContext()
         Room.databaseBuilder(
-            androidContext(),
+            appContext,
             FinancialDatabase::class.java,
             "financialapp.db"
         )
@@ -64,6 +67,7 @@ val appModule = module {
                 FinancialDatabase.MIGRATION_3_4,
                 FinancialDatabase.MIGRATION_4_5
             )
+            .addCallback(FinancialDatabaseCallback(appContext))
             .build()
     }
 
@@ -98,6 +102,7 @@ val appModule = module {
     single { GetCategoryByIdUseCase(get()) }
     single { GetCategoryByNameUseCase(get()) }
     single { GetCategoriesByTypeUseCase(get()) }
+    single { SeedDefaultCategoriesUseCase(get(), androidContext()) }
 
     // Red - Gemini / análisis de comprobantes (timeouts amplios: la IA puede tardar con imagen/audio)
     single {

@@ -19,4 +19,8 @@ interface CategoryRepository {
     fun getCategoryByName(name: String): Flow<Category>
 
     fun getCategoriesByType(type: TransactionType): Flow<List<Category>>
+
+    suspend fun getCategoryCount(): Int
+
+    suspend fun getCategoryCountByType(type: TransactionType): Int
 }

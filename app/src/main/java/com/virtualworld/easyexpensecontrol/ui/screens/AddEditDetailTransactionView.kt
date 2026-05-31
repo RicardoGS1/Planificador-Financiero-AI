@@ -19,6 +19,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -111,8 +112,10 @@ import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
+import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
@@ -159,11 +162,14 @@ fun AddEditDetailTransactionView(
     var categoryName by remember { mutableStateOf("") }
     var selectedIconKey by remember { mutableStateOf<String?>(null) }
     var showIconPicker by remember { mutableStateOf(false) }
+    var isCategoryFocused by remember { mutableStateOf(false) }
     var amountText by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var isFinishing by remember { mutableStateOf(false) }
     var datePickerExpanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val density = LocalDensity.current
+    val imeBottomPadding = with(density) { WindowInsets.ime.getBottom(this).toDp() }
     val context = LocalContext.current
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
     val takePictureLauncher = rememberLauncherForActivityResult(
@@ -339,7 +345,12 @@ fun AddEditDetailTransactionView(
         if (currentType != null) categoryViewModel.getCategoriesByType(currentType)
         else kotlinx.coroutines.flow.flowOf(emptyList())
     ).collectAsState(initial = emptyList())
-    val category by categoryViewModel.getCategoryByName(categoryName).collectAsState(initial = null)
+    val filteredCategories = remember(categoriesByType, categoryName) {
+        categoriesByType.filter { CategoryNameMatcher.matchesFilter(it.name, categoryName) }
+    }
+    val resolvedCategory = remember(categoriesByType, categoryName) {
+        categoriesByType.firstOrNull { it.name.equals(categoryName.trim(), ignoreCase = true) }
+    }
 
     fun resetLocalCategoryFields() {
         categoryName = ""
@@ -391,7 +402,7 @@ fun AddEditDetailTransactionView(
     fun addCurrentFormToDetected(onDone: () -> Unit) {
         transactionViewModel.addOrUpdateDetectedTransaction(
             categoryName = categoryName,
-            categoryId = category?.id ?: transactionViewModel.transactionCategoryState,
+            categoryId = resolvedCategory?.id ?: transactionViewModel.transactionCategoryState,
             updateIndex = selectedDetectedIndex,
             onSuccess = {
                 selectedDetectedIndex = null
@@ -552,7 +563,7 @@ fun AddEditDetailTransactionView(
             transactionViewModel.saveTransaction(
                 id = id,
                 categoryName = categoryName,
-                category = category,
+                category = resolvedCategory,
                 iconName = selectedIconKey,
                 onError = { error ->
                     scope.launch {
@@ -770,102 +781,37 @@ fun AddEditDetailTransactionView(
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(
                                         text = stringResource(R.string.description_label),
-                                        style = MaterialTheme.typography.labelLarge,
+                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     AppTextField(
                                         label = stringResource(R.string.hint_description),
                                         value = transactionViewModel.transactionDescriptionState,
                                         onValueChange = transactionViewModel::onTransactionDescriptionChanged,
+                                        labelStyle = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.focusScrollIntoView()
                                     )
                                 }
 
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Category,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.category_label),
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape)
-                                                .background(accentColor.copy(alpha = 0.15f))
-                                                .border(
-                                                    width = 2.dp,
-                                                    color = accentColor.copy(alpha = 0.35f),
-                                                    shape = CircleShape
-                                                )
-                                                .clickable { showIconPicker = true },
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = CategoryIcons.getIcon(selectedIconKey),
-                                                contentDescription = stringResource(R.string.cd_change_icon),
-                                                modifier = Modifier.size(24.dp),
-                                                tint = accentColor
-                                            )
-                                        }
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            AppTextField(
-                                                label = stringResource(R.string.hint_category),
-                                                value = categoryName,
-                                                onValueChange = { categoryName = it },
-                                                modifier = Modifier.focusScrollIntoView()
-                                            )
-                                        }
-                                    }
-                                    Text(
-                                        text = stringResource(R.string.tap_icon_to_change),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    if (categoriesByType.isNotEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.existing_categories),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .horizontalScroll(rememberScrollState()),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            categoriesByType.forEach { cat ->
-                                                CategoryChip(
-                                                    name = cat.name,
-                                                    iconKey = cat.iconName,
-                                                    isSelected = categoryName.equals(cat.name, ignoreCase = true),
-                                                    accentColor = accentColor,
-                                                    onClick = {
-                                                        categoryName = cat.name
-                                                        selectedIconKey = cat.iconName
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+                                CategoryFormSection(
+                                    categoryName = categoryName,
+                                    onCategoryNameChange = { value ->
+                                        categoryName = value
+                                        categoryViewModel.categoryNameState = value
+                                    },
+                                    filteredCategories = filteredCategories,
+                                    selectedIconKey = selectedIconKey,
+                                    accentColor = accentColor,
+                                    onIconPickerClick = { showIconPicker = true },
+                                    onCategorySelected = { cat ->
+                                        categoryName = cat.name
+                                        categoryViewModel.categoryNameState = cat.name
+                                        selectedIconKey = cat.iconName
+                                    },
+                                    onFocusChanged = { isCategoryFocused = it }
+                                )
 
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
@@ -977,7 +923,12 @@ fun AddEditDetailTransactionView(
 
                     Spacer(
                         modifier = Modifier.height(
-                            if (isAddMode && detectedTransactions.isNotEmpty()) 88.dp else 8.dp
+                            when {
+                                isCategoryFocused && imeBottomPadding > 0.dp ->
+                                    imeBottomPadding + 16.dp
+                                isAddMode && detectedTransactions.isNotEmpty() -> 88.dp
+                                else -> 8.dp
+                            }
                         )
                     )
                 }
@@ -1040,6 +991,133 @@ fun AddEditDetailTransactionView(
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CategoryFormSection(
+    categoryName: String,
+    onCategoryNameChange: (String) -> Unit,
+    filteredCategories: List<Category>,
+    selectedIconKey: String?,
+    accentColor: androidx.compose.ui.graphics.Color,
+    onIconPickerClick: () -> Unit,
+    onCategorySelected: (Category) -> Unit,
+    onFocusChanged: (Boolean) -> Unit
+) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+    var isFocused by remember { mutableStateOf(false) }
+
+    fun scrollSectionIntoView() {
+        scope.launch {
+            delay(300)
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
+
+    LaunchedEffect(isFocused, filteredCategories) {
+        if (isFocused) {
+            delay(300)
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Category,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = stringResource(R.string.category_label),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (filteredCategories.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.existing_categories),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                filteredCategories.forEach { cat ->
+                    CategoryChip(
+                        name = cat.name,
+                        iconKey = cat.iconName,
+                        isSelected = categoryName.equals(cat.name, ignoreCase = true),
+                        accentColor = accentColor,
+                        onClick = { onCategorySelected(cat) }
+                    )
+                }
+            }
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = 0.15f))
+                    .border(
+                        width = 2.dp,
+                        color = accentColor.copy(alpha = 0.35f),
+                        shape = CircleShape
+                    )
+                    .clickable(onClick = onIconPickerClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = CategoryIcons.getIcon(selectedIconKey),
+                    contentDescription = stringResource(R.string.cd_change_icon),
+                    modifier = Modifier.size(24.dp),
+                    tint = accentColor
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                AppTextField(
+                    label = stringResource(R.string.hint_category),
+                    value = categoryName,
+                    onValueChange = onCategoryNameChange,
+                    labelStyle = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.onFocusEvent { focusState ->
+                        isFocused = focusState.isFocused
+                        onFocusChanged(focusState.isFocused)
+                        if (focusState.isFocused) {
+                            scrollSectionIntoView()
+                        }
+                    }
+                )
+            }
+        }
+
+        Text(
+            text = stringResource(R.string.tap_icon_to_change),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

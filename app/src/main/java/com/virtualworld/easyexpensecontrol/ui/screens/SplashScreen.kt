@@ -37,9 +37,11 @@ import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.FinancialApp
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.ads.ConsentManager
+import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import kotlin.math.max
 import kotlinx.coroutines.delay
+import org.koin.compose.koinInject
 
 import androidx.compose.ui.tooling.preview.Preview
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
@@ -52,6 +54,7 @@ fun SplashScreen(navController: NavHostController) {
     val context = LocalContext.current
     val activity = context as? Activity
     val app = context.applicationContext as? FinancialApp
+    val seedDefaultCategoriesUseCase: SeedDefaultCategoriesUseCase = koinInject()
 
     var targetProgress by remember { mutableFloatStateOf(0f) }
     var navigated by remember { mutableStateOf(false) }
@@ -71,6 +74,8 @@ fun SplashScreen(navController: NavHostController) {
     }
 
     LaunchedEffect(Unit) {
+        seedDefaultCategoriesUseCase()
+
         if (activity == null || app == null || !ConsentManager.canRequestAds(context)) {
             targetProgress = 1f
             delay(600)

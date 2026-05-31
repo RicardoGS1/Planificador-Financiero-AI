@@ -8,7 +8,7 @@
     <string name="admob_app_open_test" translatable="false">ca-app-pub-3940256099942544/9257395921</string>
     <string name="admob_rewarded_camera" translatable="false">ca-app-pub-7595196761874810/7638540800</string>
     <string name="admob_rewarded_camera_test" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
-    <string name="admob_rewarded_ai" translatable="false">ca-app-pub-7595196761874810/7638540800</string>
+    <string name="admob_rewarded_ai" translatable="false">ca-app-pub-7595196761874810/6448386672</string>
     <string name="admob_rewarded_ai_test" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
 
     <string name="app_name">AI-Powered Expense Control</string>
@@ -160,7 +160,7 @@
     <string name="description_label">Description</string>
     <string name="hint_description">e.g. Grocery shopping</string>
     <string name="category_label">Category</string>
-    <string name="hint_category">Type a new one or choose below</string>
+    <string name="hint_category">Type a new one or choose above</string>
     <string name="existing_categories">Existing categories</string>
     <string name="date_label">Date</string>
     <string name="tap_pick_date">Tap to pick a date</string>
@@ -248,6 +248,59 @@
     <string name="share_text">Take control of your finances with AI-Powered Expense Control. Download it here: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Could not analyze the receipt</string>
+    <string name="default_category_grocery">Groceries</string>
+    <string name="default_category_restaurant">Restaurants</string>
+    <string name="default_category_coffee">Cafés &amp; bars</string>
+    <string name="default_category_food_delivery">Food delivery</string>
+    <string name="default_category_rent">Rent / mortgage</string>
+    <string name="default_category_hoa">Homeowners association</string>
+    <string name="default_category_electricity">Electricity</string>
+    <string name="default_category_water">Water</string>
+    <string name="default_category_gas">Gas</string>
+    <string name="default_category_internet_phone">Internet &amp; landline</string>
+    <string name="default_category_home_maintenance">Home maintenance</string>
+    <string name="default_category_furniture">Furniture &amp; décor</string>
+    <string name="default_category_fuel">Fuel</string>
+    <string name="default_category_public_transport">Public transport</string>
+    <string name="default_category_parking">Parking &amp; tolls</string>
+    <string name="default_category_car_maintenance">Car maintenance</string>
+    <string name="default_category_car_insurance">Car insurance</string>
+    <string name="default_category_taxi">Taxi / ride-hailing</string>
+    <string name="default_category_pharmacy">Pharmacy</string>
+    <string name="default_category_medical">Doctor / medical visits</string>
+    <string name="default_category_dental">Dentist</string>
+    <string name="default_category_health_insurance">Health insurance</string>
+    <string name="default_category_entertainment">Movies / streaming</string>
+    <string name="default_category_music">Music / concerts</string>
+    <string name="default_category_fitness">Sports / gym</string>
+    <string name="default_category_travel">Travel / vacations</string>
+    <string name="default_category_hobbies">Hobbies</string>
+    <string name="default_category_clothing">Clothing &amp; footwear</string>
+    <string name="default_category_technology">Technology</string>
+    <string name="default_category_gifts">Gifts</string>
+    <string name="default_category_beauty">Beauty / personal care</string>
+    <string name="default_category_education">School / university</string>
+    <string name="default_category_courses">Courses / training</string>
+    <string name="default_category_books">Books / school supplies</string>
+    <string name="default_category_subscriptions">Subscriptions</string>
+    <string name="default_category_insurance">Insurance</string>
+    <string name="default_category_bank_fees">Bank fees</string>
+    <string name="default_category_taxes">Taxes</string>
+    <string name="default_category_childcare">Childcare</string>
+    <string name="default_category_pets">Pets</string>
+    <string name="default_category_donations">Donations / charity</string>
+    <string name="default_category_fines">Fines</string>
+    <string name="default_income_salary">Salary / wages</string>
+    <string name="default_income_freelance">Freelance / self-employed</string>
+    <string name="default_income_investments">Investments / dividends</string>
+    <string name="default_income_interest">Bank interest</string>
+    <string name="default_income_rental">Rental income</string>
+    <string name="default_income_sales">Sale of goods</string>
+    <string name="default_income_refunds">Refunds</string>
+    <string name="default_income_bonuses">Bonuses / tips</string>
+    <string name="default_income_pension">Pension</string>
+    <string name="default_income_grants">Grants / subsidies</string>
+    <string name="default_income_gifts">Gifts received</string>
     <string name="category_default_other">Other</string>
     <string name="gemini_empty_response">Empty response from AI</string>
     <string name="gemini_parse_error">Could not interpret the AI response</string>

@@ -1,6 +1,8 @@
 package com.virtualworld.easyexpensecontrol.core.util
 
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Locale
 
 /**
@@ -43,9 +45,10 @@ object AiPromptBuilder {
             appLanguageName = appLanguageName
         )
         val accountSection = buildAccountSection(accountNames)
+        val referenceDateIso = LocalDate.now(ZoneId.systemDefault()).toString()
         val modeRules = when (mode) {
             InputMode.RECEIPT -> receiptRules()
-            InputMode.AUDIO -> audioRules(typeLabel, transactionType == null)
+            InputMode.AUDIO -> audioRules(typeLabel, transactionType == null, referenceDateIso)
         }
         val defaultTypeRule = when (transactionType) {
             TransactionType.Gasto -> "Default transactionType to \"expense\" when not specified."
@@ -175,7 +178,7 @@ object AiPromptBuilder {
         - transactionType is usually "expense"; leave empty only if truly unclear.
     """.trimIndent()
 
-    private fun audioRules(typeLabel: String, typeUndetermined: Boolean): String {
+    private fun audioRules(typeLabel: String, typeUndetermined: Boolean, referenceDateIso: String): String {
         val typeRule = if (typeUndetermined) {
             "- Detect whether each item is expense or income and set transactionType accordingly."
         } else {
@@ -183,11 +186,14 @@ object AiPromptBuilder {
         }
         return """
             Audio rules:
+            - Reference date (today on the user's device): $referenceDateIso. ALWAYS use this as the anchor for relative dates.
+            - Resolve relative or partial dates against the reference date, then output yyyy-MM-dd in "date".
+            - Relative examples (reference=$referenceDateIso): "yesterday"/"ayer" → previous calendar day; "day before yesterday"/"antier" → two days before; "last Monday"/"el lunes pasado" → most recent Monday before today; "3 days ago"/"hace tres días" → subtract 3 days; "15 March"/"15 de marzo" → use current year from reference date unless the user states another year.
+            - If the user does NOT mention any date, return empty string "" for "date" (do NOT default to today).
             $typeRule
             - One transaction per distinct item mentioned.
             - Single item: return one transaction.
             - Empty description if nothing meaningful can be inferred.
-            - If the user says a date (e.g. yesterday, last Monday, 15 March), convert it to yyyy-MM-dd in "date".
             - If the user names an account, set accountName to the matching name from the list.
         """.trimIndent()
     }

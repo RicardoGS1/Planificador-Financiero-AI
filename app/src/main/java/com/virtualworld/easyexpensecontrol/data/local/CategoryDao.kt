@@ -33,4 +33,10 @@ abstract class CategoryDao {
 
     @Query("SELECT * FROM `Category` WHERE type=:type")
     abstract fun getCategoriesByType(type: TransactionType): Flow<List<Category>>
+
+    @Query("SELECT COUNT(*) FROM `Category`")
+    abstract suspend fun getCategoryCount(): Int
+
+    @Query("SELECT COUNT(*) FROM `Category` WHERE type = :type")
+    abstract suspend fun getCategoryCountByType(type: TransactionType): Int
 }

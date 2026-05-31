@@ -31,4 +31,9 @@ class CategoryRepository(private val categoryDao: CategoryDao) : CategoryReposit
     }
 
     override fun getCategoriesByType(type: TransactionType): Flow<List<Category>> = categoryDao.getCategoriesByType(type)
+
+    override suspend fun getCategoryCount(): Int = categoryDao.getCategoryCount()
+
+    override suspend fun getCategoryCountByType(type: TransactionType): Int =
+        categoryDao.getCategoryCountByType(type)
 }
