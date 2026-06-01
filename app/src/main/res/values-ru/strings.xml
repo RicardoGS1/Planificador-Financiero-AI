@@ -131,6 +131,8 @@
     <string name="ai_access_feature_voice">Голосовой ввод</string>
     <string name="ai_access_session_hint">Открыто на эту сессию</string>
     <string name="ai_access_watch_ad">Смотреть рекламу</string>
+    <string name="ai_access_loading_ad">Загрузка рекламы…</string>
+    <string name="ai_access_retry_ad">Повторить</string>
     <string name="ai_access_not_now">Не сейчас</string>
     <string name="ai_access_ad_failed">Не удалось загрузить рекламу. Попробуйте снова через некоторое время.</string>
     <string name="ai_access_ad_not_completed">Чтобы открыть функции ИИ, нужно досмотреть рекламу до конца.</string>

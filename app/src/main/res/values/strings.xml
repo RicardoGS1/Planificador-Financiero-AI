@@ -154,6 +154,8 @@
     <string name="ai_access_feature_voice">Voice input</string>
     <string name="ai_access_session_hint">Unlocked for this session</string>
     <string name="ai_access_watch_ad">Watch ad</string>
+    <string name="ai_access_loading_ad">Loading ad…</string>
+    <string name="ai_access_retry_ad">Try again</string>
     <string name="ai_access_not_now">Not now</string>
     <string name="ai_access_ad_failed">The ad could not be loaded. Please try again in a moment.</string>
     <string name="ai_access_ad_not_completed">You must watch the full ad to unlock AI features.</string>

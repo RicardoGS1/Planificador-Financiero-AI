@@ -30,9 +30,40 @@ object AiRewardedAdHelper {
     private var preloadedAd: RewardedAd? = null
     private var isLoading = false
     private var sessionUnlocked = false
+    private var pendingLoadWait: LoadWait? = null
+
+    private data class LoadWait(
+        val onReady: () -> Unit,
+        val onFailed: () -> Unit
+    )
 
     fun hasSessionAccess(): Boolean {
         return sessionUnlocked || !RemoteConfigManager.isRewardedAdEnabled()
+    }
+
+    fun isAdReady(): Boolean = preloadedAd != null
+
+    fun isAdLoading(): Boolean = isLoading
+
+    /**
+     * Invoca [onReady] en el hilo principal cuando el anuncio está listo.
+     * Si falla la carga, invoca [onFailed]. Si ya hay una precarga en curso, espera su resultado.
+     */
+    fun whenAdReady(context: Context, onReady: () -> Unit, onFailed: () -> Unit) {
+        if (!RemoteConfigManager.isRewardedAdEnabled()) {
+            mainHandler.post { onReady() }
+            return
+        }
+        if (preloadedAd != null) {
+            mainHandler.post { onReady() }
+            return
+        }
+        pendingLoadWait = LoadWait(onReady, onFailed)
+        preload(context)
+    }
+
+    fun cancelPendingLoadWait() {
+        pendingLoadWait = null
     }
 
     fun preload(context: Context) {
@@ -48,6 +79,11 @@ object AiRewardedAdHelper {
                     Log.d(TAG, "Rewarded ad preloaded")
                     isLoading = false
                     preloadedAd = ad
+                    val wait = pendingLoadWait
+                    pendingLoadWait = null
+                    if (wait != null) {
+                        mainHandler.post { wait.onReady() }
+                    }
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
@@ -57,6 +93,11 @@ object AiRewardedAdHelper {
                     )
                     isLoading = false
                     preloadedAd = null
+                    val wait = pendingLoadWait
+                    pendingLoadWait = null
+                    if (wait != null) {
+                        mainHandler.post { wait.onFailed() }
+                    }
                 }
             }
         )
@@ -88,7 +129,6 @@ object AiRewardedAdHelper {
         val ad = preloadedAd
         if (ad == null) {
             Log.d(TAG, "Rewarded ad not ready for AI access")
-            preload(activity)
             onAdFailed()
             return
         }

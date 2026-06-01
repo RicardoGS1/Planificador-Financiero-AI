@@ -959,20 +959,22 @@ fun AddEditDetailTransactionView(
 
             if (showAiAccessDialog) {
                 AiAccessRewardedDialog(
+                    context = context,
                     onDismiss = {
                         showAiAccessDialog = false
                         pendingAiAction = null
                     },
-                    onWatchAd = {
+                    onShowAd = { activity ->
+                        val action = pendingAiAction ?: return@AiAccessRewardedDialog
                         showAiAccessDialog = false
-                        val activity = context as? Activity
-                        val action = pendingAiAction
-                        pendingAiAction = null
-                        if (activity == null || action == null) return@AiAccessRewardedDialog
                         AiRewardedAdHelper.showForSessionAccess(
                             activity = activity,
-                            onGranted = action,
+                            onGranted = {
+                                pendingAiAction = null
+                                action()
+                            },
                             onAdFailed = {
+                                showAiAccessDialog = true
                                 scope.launch {
                                     snackbarHostState.showSnackbar(
                                         context.getString(R.string.ai_access_ad_failed)
@@ -980,6 +982,7 @@ fun AddEditDetailTransactionView(
                                 }
                             },
                             onAdNotCompleted = {
+                                showAiAccessDialog = true
                                 scope.launch {
                                     snackbarHostState.showSnackbar(
                                         context.getString(R.string.ai_access_ad_not_completed)
@@ -987,6 +990,13 @@ fun AddEditDetailTransactionView(
                                 }
                             }
                         )
+                    },
+                    onLoadFailed = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                context.getString(R.string.ai_access_ad_failed)
+                            )
+                        }
                     }
                 )
             }

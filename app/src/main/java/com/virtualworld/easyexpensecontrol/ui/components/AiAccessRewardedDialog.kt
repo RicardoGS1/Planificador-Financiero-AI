@@ -25,15 +25,22 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Schedule
+import android.app.Activity
+import android.content.Context
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,16 +55,62 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 
 /**
  * Diálogo informativo previo al rewarded ad de acceso a funciones de IA (políticas AdMob).
+ * Si el anuncio aún no está precargado, muestra estado de carga y lo presenta al estar listo.
  */
 @Composable
 fun AiAccessRewardedDialog(
+    context: Context,
     onDismiss: () -> Unit,
-    onWatchAd: () -> Unit
+    onShowAd: (Activity) -> Unit,
+    onLoadFailed: () -> Unit
 ) {
+    var isLoadingAd by remember { mutableStateOf(false) }
+    var loadFailed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        AiRewardedAdHelper.preload(context)
+    }
+
+    fun dismiss() {
+        AiRewardedAdHelper.cancelPendingLoadWait()
+        isLoadingAd = false
+        onDismiss()
+    }
+
+    fun tryShowAd() {
+        val activity = context as? Activity ?: run {
+            loadFailed = true
+            isLoadingAd = false
+            onLoadFailed()
+            return
+        }
+        if (AiRewardedAdHelper.isAdReady()) {
+            isLoadingAd = false
+            loadFailed = false
+            onShowAd(activity)
+            return
+        }
+        isLoadingAd = true
+        loadFailed = false
+        AiRewardedAdHelper.whenAdReady(
+            context = context,
+            onReady = {
+                isLoadingAd = false
+                loadFailed = false
+                onShowAd(activity)
+            },
+            onFailed = {
+                isLoadingAd = false
+                loadFailed = true
+                onLoadFailed()
+            }
+        )
+    }
     val infinite = rememberInfiniteTransition(label = "ai_access_dialog")
     val iconScale by infinite.animateFloat(
         initialValue = 0.94f,
@@ -70,8 +123,14 @@ fun AiAccessRewardedDialog(
     )
 
     Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        onDismissRequest = {
+            if (!isLoadingAd) dismiss()
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = !isLoadingAd,
+            dismissOnClickOutside = !isLoadingAd
+        )
     ) {
         Surface(
             modifier = Modifier
@@ -99,12 +158,36 @@ fun AiAccessRewardedDialog(
                     )
 
                     Text(
-                        text = stringResource(R.string.ai_access_dialog_message),
+                        text = if (isLoadingAd) {
+                            stringResource(R.string.ai_access_loading_ad)
+                        } else if (loadFailed) {
+                            stringResource(R.string.ai_access_ad_failed)
+                        } else {
+                            stringResource(R.string.ai_access_dialog_message)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (loadFailed) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    if (isLoadingAd) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 3.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -147,7 +230,8 @@ fun AiAccessRewardedDialog(
                     }
 
                     Button(
-                        onClick = onWatchAd,
+                        onClick = { tryShowAd() },
+                        enabled = !isLoadingAd,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
@@ -156,21 +240,39 @@ fun AiAccessRewardedDialog(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.PlayCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.ai_access_watch_ad),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        if (isLoadingAd) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.ai_access_loading_ad),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.PlayCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(
+                                    if (loadFailed) R.string.ai_access_retry_ad
+                                    else R.string.ai_access_watch_ad
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
 
                     OutlinedButton(
-                        onClick = onDismiss,
+                        onClick = { dismiss() },
+                        enabled = !isLoadingAd,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),

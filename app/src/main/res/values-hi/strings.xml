@@ -131,6 +131,8 @@
     <string name="ai_access_feature_voice">वॉइस इनपुट</string>
     <string name="ai_access_session_hint">इस सत्र के लिए अनलॉक</string>
     <string name="ai_access_watch_ad">विज्ञापन देखें</string>
+    <string name="ai_access_loading_ad">विज्ञापन लोड हो रहा है…</string>
+    <string name="ai_access_retry_ad">फिर कोशिश करें</string>
     <string name="ai_access_not_now">अभी नहीं</string>
     <string name="ai_access_ad_failed">विज्ञापन लोड नहीं हो सका। कृपया थोड़ी देर बाद फिर कोशिश करें।</string>
     <string name="ai_access_ad_not_completed">AI सुविधाएँ अनलॉक करने के लिए पूरा विज्ञापन देखना ज़रूरी है।</string>
