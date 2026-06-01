@@ -164,7 +164,7 @@ class TransactionViewModel(
                         categoryName = matched?.name ?: item.suggestedCategoryName,
                         categoryId = matched?.id ?: 0L,
                         date = AiDateParser.parseIsoDateOrNull(item.suggestedDateIso),
-                        transactionType = itemType.takeIf { item.suggestedTransactionType.isNotBlank() },
+                        transactionType = itemType,
                         accountId = matchedAccount?.id
                     )
                 }

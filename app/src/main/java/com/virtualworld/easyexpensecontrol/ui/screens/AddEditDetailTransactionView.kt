@@ -674,7 +674,6 @@ fun AddEditDetailTransactionView(
                     if (isAddMode && detectedTransactions.isNotEmpty()) {
                         DetectedTransactionsList(
                             transactions = detectedTransactions,
-                            isIngreso = isIngreso,
                             selectedIndex = selectedDetectedIndex,
                             onItemClick = { index, item ->
                                 transactionViewModel.loadDetectedTransaction(item)
@@ -949,7 +948,6 @@ fun AddEditDetailTransactionView(
             if (showExitConfirmDialog) {
                 UnsavedPreparedTransactionsDialog(
                     transactions = detectedTransactions,
-                    isIngreso = isIngreso,
                     hasUnsavedFormData = hasUnsavedFormData(),
                     onDismiss = { showExitConfirmDialog = false },
                     onSave = { savePreparedAndExit() },
@@ -1654,7 +1652,6 @@ private fun TransactionBottomBar(
 @Composable
 private fun UnsavedPreparedTransactionsDialog(
     transactions: List<DetectedTransactionItem>,
-    isIngreso: Boolean,
     hasUnsavedFormData: Boolean,
     onDismiss: () -> Unit,
     onSave: () -> Unit,
@@ -1684,7 +1681,6 @@ private fun UnsavedPreparedTransactionsDialog(
                     transactions.forEach { item ->
                         DetectedTransactionRow(
                             item = item,
-                            isIngreso = isIngreso,
                             isSelected = false
                         )
                     }
@@ -1714,7 +1710,6 @@ private fun UnsavedPreparedTransactionsDialog(
 @Composable
 private fun DetectedTransactionsList(
     transactions: List<DetectedTransactionItem>,
-    isIngreso: Boolean,
     selectedIndex: Int?,
     onItemClick: (Int, DetectedTransactionItem) -> Unit,
     modifier: Modifier = Modifier
@@ -1750,7 +1745,6 @@ private fun DetectedTransactionsList(
             transactions.forEachIndexed { index, item ->
                 DetectedTransactionRow(
                     item = item,
-                    isIngreso = isIngreso,
                     isSelected = selectedIndex == index,
                     onClick = { onItemClick(index, item) }
                 )
@@ -1762,7 +1756,6 @@ private fun DetectedTransactionsList(
 @Composable
 private fun DetectedTransactionRow(
     item: DetectedTransactionItem,
-    isIngreso: Boolean,
     isSelected: Boolean,
     onClick: (() -> Unit)? = null
 ) {
@@ -1808,10 +1801,18 @@ private fun DetectedTransactionRow(
                 )
             }
             Text(
-                text = CurrencyFormatter.formatSigned(context, item.amount, isIngreso),
+                text = CurrencyFormatter.formatSigned(
+                    context,
+                    item.amount,
+                    item.transactionType == TransactionType.Ingreso
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = if (isIngreso) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                color = if (item.transactionType == TransactionType.Ingreso) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                }
             )
         }
     }
@@ -1936,7 +1937,6 @@ private fun DetectedTransactionsListPreview() {
     EasyExpenseControlTheme {
         DetectedTransactionsList(
             transactions = sampleTransactions,
-            isIngreso = false,
             selectedIndex = 1,
             onItemClick = { _, _ -> }
         )
