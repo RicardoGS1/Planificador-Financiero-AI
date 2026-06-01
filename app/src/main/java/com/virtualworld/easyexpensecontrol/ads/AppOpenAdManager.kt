@@ -62,6 +62,14 @@ class AppOpenAdManager(
     /** Callback del SplashScreen pendiente de ser invocado cuando el ad cargue (o falle). */
     private var startupOnDone: (() -> Unit)? = null
 
+    /** App Open de arranque en pantalla completa (el timeout del splash no cuenta en este estado). */
+    @Volatile
+    private var isStartupAdShowing = false
+
+    /** El splash agotó la espera: no mostrar ni invocar el callback de startup. */
+    @Volatile
+    private var startupAbandoned = false
+
     init {
         instance = this
         // Capturamos la Activity en primer plano en cold start para que el observer de
@@ -123,11 +131,18 @@ class AppOpenAdManager(
                     loadTime = Date().time
 
                     val onDone = startupOnDone
+                    if (onDone != null && !startupAbandoned) {
+                        startupOnDone = null
+                        isStartupAdShowing = true
+                        currentActivity?.let { showStartupAd(it, onDone) }
+                            ?: run {
+                                isStartupAdShowing = false
+                                finishStartup(onDone)
+                            }
+                        return
+                    }
                     if (onDone != null) {
                         startupOnDone = null
-                        currentActivity?.let { showStartupAd(it, onDone) }
-                            ?: run { finishStartup(onDone) }
-                        return
                     }
 
                     if (pendingShowWhenLoaded) {
@@ -144,12 +159,18 @@ class AppOpenAdManager(
                     val onDone = startupOnDone
                     if (onDone != null) {
                         startupOnDone = null
-                        finishStartup(onDone)
+                        if (!startupAbandoned) {
+                            finishStartup(onDone)
+                        } else {
+                            clearStartupState()
+                        }
                     }
                 }
             }
         )
     }
+
+    fun isStartupAdShowing(): Boolean = isStartupAdShowing
 
     private fun showAdIfAvailable(activity: Activity) {
         if (isShowingAd) return
@@ -204,6 +225,7 @@ class AppOpenAdManager(
      * cargue). Invoca [onDone] una sola vez cuando el ad se cierra, falla o no hay ad disponible.
      */
     fun showStartupAdIfAvailable(activity: Activity, onDone: () -> Unit) {
+        startupAbandoned = false
         if (!RemoteConfigManager.isAppOpenAdEnabled()) {
             finishStartup(onDone)
             return
@@ -219,11 +241,21 @@ class AppOpenAdManager(
     }
 
     private fun showStartupAd(activity: Activity, onDone: () -> Unit) {
+        if (startupAbandoned) {
+            isStartupAdShowing = false
+            clearStartupState()
+            return
+        }
         if (isShowingAd || activity.isFinishing || activity.isDestroyed) {
+            isStartupAdShowing = false
             finishStartup(onDone)
             return
         }
-        val ad = appOpenAd ?: run { finishStartup(onDone); return }
+        val ad = appOpenAd ?: run {
+            isStartupAdShowing = false
+            finishStartup(onDone)
+            return
+        }
 
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
@@ -231,8 +263,9 @@ class AppOpenAdManager(
                 appOpenAd?.fullScreenContentCallback = null
                 appOpenAd = null
                 isShowingAd = false
+                isStartupAdShowing = false
                 loadAd()
-                finishStartup(onDone)
+                completeStartup(onDone)
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
@@ -241,8 +274,9 @@ class AppOpenAdManager(
                 appOpenAd?.fullScreenContentCallback = null
                 appOpenAd = null
                 isShowingAd = false
+                isStartupAdShowing = false
                 loadAd()
-                finishStartup(onDone)
+                completeStartup(onDone)
             }
 
             override fun onAdShowedFullScreenContent() {
@@ -250,21 +284,37 @@ class AppOpenAdManager(
             }
         }
         isShowingAd = true
+        isStartupAdShowing = true
         ad.show(activity)
     }
 
     private fun finishStartup(onDone: () -> Unit) {
-        startupHandledBySplash = false
-        startupOnDone = null
+        clearStartupState()
         onDone()
     }
 
-    /** Libera el bloqueo de startup sin mostrar ad (para timeout del SplashScreen). */
-    fun cancelStartup() {
+    /** Tras cerrar/fallar el ad de arranque, o si el splash ya abandonó la espera. */
+    private fun completeStartup(onDone: () -> Unit) {
+        val invokeCallback = !startupAbandoned
+        clearStartupState()
+        if (invokeCallback) onDone()
+    }
+
+    private fun clearStartupState() {
         startupHandledBySplash = false
-        val onDone = startupOnDone
         startupOnDone = null
-        onDone?.invoke()
+        isStartupAdShowing = false
+        startupAbandoned = false
+    }
+
+    /**
+     * Timeout del splash: deja de esperar el App Open de arranque sin invocar [startupOnDone].
+     * Si el anuncio ya está visible, al cerrarlo no se navegará de nuevo desde el manager.
+     */
+    fun abandonStartup() {
+        startupAbandoned = true
+        startupHandledBySplash = false
+        startupOnDone = null
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}

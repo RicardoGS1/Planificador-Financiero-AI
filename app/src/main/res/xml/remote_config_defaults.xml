@@ -13,6 +13,9 @@
         show() se muestra realmente el intersticial (p. ej. 4 = 1 de cada 4).
       - rewarded_ad_enabled: boolean. Si es false, CameraRewardedAdHelper NO
         precargará ni mostrará anuncios rewarded.
+      - splash_app_open_max_wait_seconds: entero (3–60). Segundos máximos que el splash
+        espera a que cargue el App Open antes de ir a la home (no cuenta mientras el
+        anuncio está en pantalla). Por defecto 10.
       Permite desactivar cada formato de forma remota (sin actualizar la app)
       ante problemas de inventario, política o UX.
 -->
@@ -32,5 +35,9 @@
     <entry>
         <key>rewarded_ad_enabled</key>
         <value>true</value>
+    </entry>
+    <entry>
+        <key>splash_app_open_max_wait_seconds</key>
+        <value>10</value>
     </entry>
 </defaultsMap>

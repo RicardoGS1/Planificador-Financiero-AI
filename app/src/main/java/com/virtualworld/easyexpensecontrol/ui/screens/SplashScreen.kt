@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.virtualworld.easyexpensecontrol.FinancialApp
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.ads.AppOpenAdManager
 import com.virtualworld.easyexpensecontrol.ads.ConsentManager
+import com.virtualworld.easyexpensecontrol.ads.RemoteConfigManager
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import kotlin.math.max
@@ -46,7 +48,6 @@ import org.koin.compose.koinInject
 import androidx.compose.ui.tooling.preview.Preview
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 
-private const val MAX_WAIT_MS = 10_000L
 private const val POLL_INTERVAL_MS = 200L
 
 @Composable
@@ -84,23 +85,32 @@ fun SplashScreen(navController: NavHostController) {
         }
 
         // Tramo 0.2→0.45 mientras esperamos al manager (nunca bajar de un tick al siguiente).
+        val maxWaitMs = RemoteConfigManager.getSplashAppOpenMaxWaitMs()
         targetProgress = 0.2f
         var managerReady = false
+        var startupManager: AppOpenAdManager? = null
         var elapsed = 0L
 
         app.runWhenAppOpenAdManagerReady { manager ->
+            startupManager = manager
             managerReady = true
             manager.showStartupAdIfAvailable(activity) {
                 activity.runOnUiThread { navigateToDashboard() }
             }
         }
 
-        while (!navigated && elapsed < MAX_WAIT_MS) {
+        while (!navigated) {
             delay(POLL_INTERVAL_MS)
-            elapsed += POLL_INTERVAL_MS
 
-            val t = (elapsed.toFloat() / MAX_WAIT_MS).coerceIn(0f, 1f)
+            val startupAdVisible = startupManager?.isStartupAdShowing() == true
+            if (!startupAdVisible) {
+                elapsed += POLL_INTERVAL_MS
+                if (elapsed >= maxWaitMs) break
+            }
+
+            val t = (elapsed.toFloat() / maxWaitMs).coerceIn(0f, 1f)
             val next = when {
+                startupAdVisible -> 0.95f
                 managerReady -> (0.5f + t * 0.45f).coerceAtMost(0.95f)
                 else -> 0.2f + t * 0.25f // mismo tiempo: de 0.2 a 0.45
             }
@@ -108,6 +118,14 @@ fun SplashScreen(navController: NavHostController) {
         }
 
         if (!navigated) {
+            while (!navigated && startupManager?.isStartupAdShowing() == true) {
+                delay(POLL_INTERVAL_MS)
+                targetProgress = max(targetProgress, 0.95f)
+            }
+        }
+
+        if (!navigated) {
+            startupManager?.abandonStartup()
             targetProgress = max(targetProgress, 1f)
             delay(200)
             navigateToDashboard()

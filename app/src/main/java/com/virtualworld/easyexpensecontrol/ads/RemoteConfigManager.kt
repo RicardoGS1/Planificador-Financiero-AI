@@ -21,6 +21,8 @@ import com.virtualworld.easyexpensecontrol.R
  *  - [KEY_INTERSTITIAL_AD_FREQUENCY]: cada cuántas solicitudes de [InterstitialAdHelper.show]
  *    se muestra realmente el intersticial (p. ej. 4 = mostrar 1 de cada 4 solicitudes).
  *  - [KEY_REWARDED_AD_ENABLED]: activa/desactiva el rewarded ad de forma remota.
+ *  - [KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS]: segundos máximos que el splash espera a que
+ *    cargue el App Open antes de ir a la home (no cuenta mientras el anuncio está visible).
  */
 object RemoteConfigManager {
 
@@ -30,6 +32,11 @@ object RemoteConfigManager {
     const val KEY_INTERSTITIAL_AD_ENABLED = "interstitial_ad_enabled"
     const val KEY_INTERSTITIAL_AD_FREQUENCY = "interstitial_ad_frequency"
     const val KEY_REWARDED_AD_ENABLED = "rewarded_ad_enabled"
+    const val KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = "splash_app_open_max_wait_seconds"
+
+    private const val DEFAULT_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = 10L
+    private const val MIN_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = 3L
+    private const val MAX_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = 60L
 
     /**
      * En DEBUG refrescamos al instante para poder probar parámetros como
@@ -104,6 +111,30 @@ object RemoteConfigManager {
     }
 
     fun isRewardedAdEnabled(): Boolean = getBoolean(KEY_REWARDED_AD_ENABLED)
+
+    /**
+     * Tiempo máximo de espera del splash al App Open de arranque (en ms).
+     * Configurable en Firebase como entero en segundos ([KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS]).
+     */
+    fun getSplashAppOpenMaxWaitMs(): Long {
+        val seconds = getPositiveLong(
+            key = KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS,
+            default = DEFAULT_SPLASH_APP_OPEN_MAX_WAIT_SECONDS,
+        ).coerceIn(MIN_SPLASH_APP_OPEN_MAX_WAIT_SECONDS, MAX_SPLASH_APP_OPEN_MAX_WAIT_SECONDS)
+        return seconds * 1_000L
+    }
+
+    private fun getPositiveLong(key: String, default: Long): Long {
+        val remoteConfig = Firebase.remoteConfig
+        val value = remoteConfig.getValue(key)
+        val fromLong = value.asLong()
+        val fromString = value.asString().trim().toLongOrNull()
+        return when {
+            fromLong > 0L -> fromLong
+            fromString != null && fromString > 0L -> fromString
+            else -> default
+        }
+    }
 
     private fun getBoolean(key: String, default: Boolean = true): Boolean {
         return try {
