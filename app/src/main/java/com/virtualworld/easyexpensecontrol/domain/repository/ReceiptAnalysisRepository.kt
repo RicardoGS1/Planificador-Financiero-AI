@@ -31,4 +31,13 @@ interface ReceiptAnalysisRepository {
         incomeCategoryNames: List<String> = emptyList(),
         accountNames: List<String> = emptyList()
     ): Result<ReceiptResult>
+
+    suspend fun analyzePdf(
+        pdfBase64: String,
+        startDateIso: String,
+        endDateIso: String,
+        expenseCategoryNames: List<String> = emptyList(),
+        incomeCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList()
+    ): Result<ReceiptResult>
 }

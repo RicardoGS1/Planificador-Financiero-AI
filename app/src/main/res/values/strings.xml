@@ -141,11 +141,11 @@
     <string name="input_option_audio_desc">Say what you spent or earned and AI fills every field for you.</string>
     <string name="input_option_audio_example">E.g. \"Expense of 25 euros at the supermarket yesterday, Cash account.\"</string>
     <string name="input_option_scan_desc">Take a photo of a receipt and AI detects amount, date and category.</string>
-    <string name="input_option_excel_desc">Import a bank or budget .xlsx file, choose a date range, and AI extracts expenses and income.</string>
+    <string name="input_option_excel_desc">Import a bank statement or budget file (.xlsx or .pdf), choose a date range, and AI extracts expenses and income.</string>
     <string name="quick_actions">Quick actions</string>
     <string name="transaction_details">Details</string>
     <string name="take_photo">Take photo</string>
-    <string name="import_excel">Import Excel</string>
+    <string name="import_excel">Import Excel/PDF</string>
     <string name="record_audio">Record audio</string>
     <string name="recording_in_progress">Recording… tap to stop</string>
     <string name="cd_record_audio">Record audio to fill the form</string>
@@ -154,7 +154,7 @@
     <string name="ai_access_dialog_message">Watch a short rewarded ad to unlock AI features for this session.</string>
     <string name="ai_access_feature_scan">Receipt scan</string>
     <string name="ai_access_feature_voice">Voice input</string>
-    <string name="ai_access_feature_excel">Excel import</string>
+    <string name="ai_access_feature_excel">Excel/PDF import</string>
     <string name="ai_access_session_hint">Unlocked for this session</string>
     <string name="ai_access_watch_ad">Watch ad</string>
     <string name="ai_access_loading_ad">Loading ad…</string>
@@ -180,7 +180,7 @@
     <string name="spreadsheet_analyzed">Spreadsheet analyzed</string>
     <string name="spreadsheet_analyzed_multiple">Spreadsheet analyzed: %1$d transactions detected</string>
     <string name="excel_import_dialog_title">Import Excel</string>
-    <string name="excel_import_dialog_message">Choose the date range to extract expenses and income from the file.</string>
+    <string name="excel_import_dialog_message">Choose the date range to extract expenses and income from the Excel or PDF file.</string>
     <string name="excel_date_range_start">From</string>
     <string name="excel_date_range_end">To</string>
     <string name="excel_analyze">Analyze with AI</string>
@@ -274,7 +274,8 @@
     <string name="error_receipt_analysis">Could not analyze the receipt</string>
     <string name="error_spreadsheet_analysis">Could not analyze the spreadsheet</string>
     <string name="error_spreadsheet_empty">The Excel file is empty or has no readable data.</string>
-    <string name="error_spreadsheet_invalid_format">Unsupported file. Use a .xlsx Excel file.</string>
+    <string name="error_spreadsheet_invalid_format">Unsupported file. Use .xlsx or .pdf.</string>
+    <string name="error_import_file_too_large">File is too large (max 15 MB).</string>
     <string name="default_category_grocery">Groceries</string>
     <string name="default_category_restaurant">Restaurants</string>
     <string name="default_category_coffee">Cafés &amp; bars</string>

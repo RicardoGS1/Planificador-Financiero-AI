@@ -21,6 +21,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategories
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
+import com.virtualworld.easyexpensecontrol.core.util.ImportedFileType
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessSpreadsheetUseCase
 import java.time.Instant
 import java.time.ZoneId
@@ -132,14 +133,19 @@ class TransactionViewModel(
         }
     }
 
-    fun processSpreadsheet(fileBytes: ByteArray, startDateMillis: Long, endDateMillis: Long) {
+    fun processImportedFile(
+        fileBytes: ByteArray,
+        fileType: ImportedFileType,
+        startDateMillis: Long,
+        endDateMillis: Long
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             val zone = ZoneId.systemDefault()
             val startIso = Instant.ofEpochMilli(startDateMillis).atZone(zone).toLocalDate().toString()
             val endIso = Instant.ofEpochMilli(endDateMillis).atZone(zone).toLocalDate().toString()
             handleAnalysisResult(
-                result = processSpreadsheetUseCase(fileBytes, startIso, endIso),
+                result = processSpreadsheetUseCase(fileBytes, fileType, startIso, endIso),
                 defaultType = TransactionType.Gasto,
                 source = AiAnalysisSource.SPREADSHEET
             )

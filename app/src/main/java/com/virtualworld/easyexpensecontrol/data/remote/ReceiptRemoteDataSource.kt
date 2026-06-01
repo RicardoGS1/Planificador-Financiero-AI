@@ -89,6 +89,26 @@ class ReceiptRemoteDataSource(
         return sendTextRequest(fullPrompt)
     }
 
+    suspend fun analyzePdf(
+        pdfBase64: String,
+        startDateIso: String,
+        endDateIso: String,
+        expenseCategoryNames: List<String> = emptyList(),
+        incomeCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList()
+    ): Result<List<ReceiptLineItemDto>> {
+        val prompt = buildPrompt(
+            mode = AiPromptBuilder.InputMode.PDF,
+            transactionType = null,
+            expenseCategoryNames = expenseCategoryNames,
+            incomeCategoryNames = incomeCategoryNames,
+            accountNames = accountNames,
+            spreadsheetStartDateIso = startDateIso,
+            spreadsheetEndDateIso = endDateIso
+        )
+        return sendInlineDataRequest(prompt, "application/pdf", pdfBase64)
+    }
+
     private fun buildPrompt(
         mode: AiPromptBuilder.InputMode,
         transactionType: TransactionType?,

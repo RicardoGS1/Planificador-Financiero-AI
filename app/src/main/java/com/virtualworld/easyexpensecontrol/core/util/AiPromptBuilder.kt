@@ -12,7 +12,7 @@ import java.util.Locale
  */
 object AiPromptBuilder {
 
-    enum class InputMode { RECEIPT, AUDIO, EXCEL }
+    enum class InputMode { RECEIPT, AUDIO, EXCEL, PDF }
 
     fun buildPrompt(
         mode: InputMode,
@@ -34,12 +34,13 @@ object AiPromptBuilder {
         val descriptionRule = when (mode) {
             InputMode.AUDIO -> audioDescriptionRule(appLanguageName)
             InputMode.RECEIPT -> receiptDescriptionRule(appLanguageName)
-            InputMode.EXCEL -> excelDescriptionRule(appLanguageName)
+            InputMode.EXCEL, InputMode.PDF -> importFileDescriptionRule(appLanguageName)
         }
         val taskLine = when (mode) {
             InputMode.AUDIO -> "Listen to the attached voice note and extract financial transaction(s)."
             InputMode.RECEIPT -> "Analyze the attached receipt or invoice image and extract financial expense transaction(s)."
             InputMode.EXCEL -> "Analyze the spreadsheet data below and extract expense and income transaction(s)."
+            InputMode.PDF -> "Analyze the attached PDF document (bank statement, expense report, etc.) and extract expense and income transaction(s)."
         }
         val categorySection = buildCategorySection(
             transactionType = transactionType,
@@ -53,13 +54,14 @@ object AiPromptBuilder {
         val modeRules = when (mode) {
             InputMode.RECEIPT -> receiptRules()
             InputMode.AUDIO -> audioRules(typeLabel, transactionType == null, referenceDateIso)
-            InputMode.EXCEL -> excelRules(
+            InputMode.EXCEL, InputMode.PDF -> importFileRules(
                 startDateIso = spreadsheetStartDateIso.orEmpty(),
                 endDateIso = spreadsheetEndDateIso.orEmpty()
             )
         }
         val defaultTypeRule = when (mode) {
-            InputMode.EXCEL -> "Set transactionType to \"expense\" or \"income\" for EVERY row; never leave it empty."
+            InputMode.EXCEL, InputMode.PDF ->
+                "Set transactionType to \"expense\" or \"income\" for EVERY row; never leave it empty."
             else -> when (transactionType) {
                 TransactionType.Gasto -> "Default transactionType to \"expense\" when not specified."
                 TransactionType.Ingreso -> "Default transactionType to \"income\" when not specified."
@@ -103,9 +105,9 @@ object AiPromptBuilder {
         WRONG:     {"amount":50.0,"description":"Café en Starbucks","categoryName":"Restaurante","date":"","transactionType":"expense","accountName":""}
     """.trimIndent()
 
-    private fun excelDescriptionRule(appLanguageName: String): String = """
+    private fun importFileDescriptionRule(appLanguageName: String): String = """
         CRITICAL — DESCRIPTION LANGUAGE (follow strictly, highest priority):
-        1. Detect the dominant language of the spreadsheet text (headers and row descriptions).
+        1. Detect the dominant language of the document text (headers and row descriptions).
         2. Write "description" ONLY in that detected language.
         3. Do NOT translate "description" to $appLanguageName or any other language.
         4. Only "categoryName" must be in $appLanguageName (app language).
@@ -197,8 +199,8 @@ object AiPromptBuilder {
         - transactionType is usually "expense"; leave empty only if truly unclear.
     """.trimIndent()
 
-    private fun excelRules(startDateIso: String, endDateIso: String): String = """
-        Spreadsheet rules:
+    private fun importFileRules(startDateIso: String, endDateIso: String): String = """
+        Import file rules:
         - Date filter (inclusive): ONLY include rows whose date is between $startDateIso and $endDateIso.
         - Skip rows outside that range, headers, subtotals, running balances, and internal transfers between own accounts.
         - Include BOTH expenses and income (salary, refunds, deposits, payments received, etc.) when they are real transactions in range.

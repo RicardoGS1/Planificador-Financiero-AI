@@ -130,11 +130,11 @@
     <string name="input_option_audio_desc">Di en voz alta lo que gastaste o ingresaste y la IA rellenará todos los campos.</string>
     <string name="input_option_audio_example">Ej.: \"Gasto de 25 euros en el supermercado ayer, cuenta Efectivo.\"</string>
     <string name="input_option_scan_desc">Toma foto a un ticket y la IA detectará importe, fecha y categoría.</string>
-    <string name="input_option_excel_desc">Importa un .xlsx de banco o presupuesto, elige un rango de fechas y la IA extraerá gastos e ingresos.</string>
+    <string name="input_option_excel_desc">Importa un extracto o presupuesto (.xlsx o .pdf), elige un rango de fechas y la IA extraerá gastos e ingresos.</string>
     <string name="quick_actions">Acciones rápidas</string>
     <string name="transaction_details">Detalles</string>
     <string name="take_photo">Tomar foto</string>
-    <string name="import_excel">Importar Excel</string>
+    <string name="import_excel">Importar Excel/PDF</string>
     <string name="record_audio">Grabar audio</string>
     <string name="recording_in_progress">Grabando… toca para detener</string>
     <string name="cd_record_audio">Grabar audio para rellenar el formulario</string>
@@ -143,7 +143,7 @@
     <string name="ai_access_dialog_message">Mira un anuncio recompensado breve para desbloquear las funciones de IA en esta sesión.</string>
     <string name="ai_access_feature_scan">Escaneo de recibos</string>
     <string name="ai_access_feature_voice">Entrada por voz</string>
-    <string name="ai_access_feature_excel">Importar Excel</string>
+    <string name="ai_access_feature_excel">Importar Excel/PDF</string>
     <string name="ai_access_session_hint">Desbloqueado por sesión</string>
     <string name="ai_access_watch_ad">Ver anuncio</string>
     <string name="ai_access_loading_ad">Cargando anuncio…</string>
@@ -169,7 +169,7 @@
     <string name="spreadsheet_analyzed">Hoja analizada</string>
     <string name="spreadsheet_analyzed_multiple">Hoja analizada: %1$d transacciones detectadas</string>
     <string name="excel_import_dialog_title">Importar Excel</string>
-    <string name="excel_import_dialog_message">Elige el rango de fechas para extraer gastos e ingresos del archivo.</string>
+    <string name="excel_import_dialog_message">Elige el rango de fechas para extraer gastos e ingresos del Excel o PDF.</string>
     <string name="excel_date_range_start">Desde</string>
     <string name="excel_date_range_end">Hasta</string>
     <string name="excel_analyze">Analizar con IA</string>
@@ -263,7 +263,8 @@
     <string name="error_receipt_analysis">Error al analizar el comprobante</string>
     <string name="error_spreadsheet_analysis">Error al analizar la hoja de cálculo</string>
     <string name="error_spreadsheet_empty">El archivo Excel está vacío o no tiene datos legibles.</string>
-    <string name="error_spreadsheet_invalid_format">Archivo no compatible. Usa un Excel .xlsx.</string>
+    <string name="error_spreadsheet_invalid_format">Archivo no compatible. Usa .xlsx o .pdf.</string>
+    <string name="error_import_file_too_large">El archivo es demasiado grande (máx. 15 MB).</string>
     <string name="default_category_grocery">Supermercado</string>
     <string name="default_category_restaurant">Restaurantes</string>
     <string name="default_category_coffee">Cafetería y bares</string>

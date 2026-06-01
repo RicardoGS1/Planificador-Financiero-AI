@@ -115,6 +115,7 @@ import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
+import com.virtualworld.easyexpensecontrol.core.util.ImportedFileType
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Category
@@ -142,6 +143,8 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
 import java.util.Locale
+
+private const val MAX_IMPORT_FILE_BYTES = 15 * 1024 * 1024
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -238,8 +241,9 @@ fun AddEditDetailTransactionView(
     var showAiAccessDialog by remember { mutableStateOf(false) }
     var pendingAiAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     var showExcelDateRangeDialog by remember { mutableStateOf(false) }
-    var pendingExcelBytes by remember { mutableStateOf<ByteArray?>(null) }
-    var pendingExcelFileName by remember { mutableStateOf("") }
+    var pendingImportBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var pendingImportFileName by remember { mutableStateOf("") }
+    var pendingImportFileType by remember { mutableStateOf<ImportedFileType?>(null) }
 
     fun resolveDisplayFileName(uri: Uri): String {
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -248,21 +252,29 @@ fun AddEditDetailTransactionView(
                 return cursor.getString(nameIndex).orEmpty()
             }
         }
-        return uri.lastPathSegment?.substringAfterLast('/') ?: "spreadsheet.xlsx"
+        return uri.lastPathSegment?.substringAfterLast('/') ?: "document"
     }
 
-    fun isXlsxFile(uri: Uri, fileName: String): Boolean {
+    fun detectImportFileType(uri: Uri, fileName: String): ImportedFileType? {
         val mime = context.contentResolver.getType(uri).orEmpty()
-        if (mime.contains("spreadsheetml") || mime.contains("openxmlformats")) return true
-        return fileName.endsWith(".xlsx", ignoreCase = true)
+        if (mime == "application/pdf" || fileName.endsWith(".pdf", ignoreCase = true)) {
+            return ImportedFileType.PDF
+        }
+        if (mime.contains("spreadsheetml") || mime.contains("openxmlformats") ||
+            fileName.endsWith(".xlsx", ignoreCase = true)
+        ) {
+            return ImportedFileType.XLSX
+        }
+        return null
     }
 
-    val excelPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+    val importFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val fileName = resolveDisplayFileName(uri)
-        if (!isXlsxFile(uri, fileName)) {
+        val fileType = detectImportFileType(uri, fileName)
+        if (fileType == null) {
             scope.launch {
                 snackbarHostState.showSnackbar(context.getString(R.string.error_spreadsheet_invalid_format))
             }
@@ -279,8 +291,15 @@ fun AddEditDetailTransactionView(
             }
             return@rememberLauncherForActivityResult
         }
-        pendingExcelBytes = bytes
-        pendingExcelFileName = fileName
+        if (bytes.size > MAX_IMPORT_FILE_BYTES) {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.error_import_file_too_large))
+            }
+            return@rememberLauncherForActivityResult
+        }
+        pendingImportBytes = bytes
+        pendingImportFileName = fileName
+        pendingImportFileType = fileType
         showExcelDateRangeDialog = true
     }
 
@@ -670,8 +689,11 @@ fun AddEditDetailTransactionView(
     val onExcelClick: () -> Unit = onExcelClick@{
         if (isAnalyzingReceipt || isRecordingAudio) return@onExcelClick
         val openPicker = {
-            excelPickerLauncher.launch(
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            importFileLauncher.launch(
+                arrayOf(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/pdf"
+                )
             )
         }
         if (AiRewardedAdHelper.hasSessionAccess()) {
@@ -1064,22 +1086,25 @@ fun AddEditDetailTransactionView(
                 )
             }
 
-            if (showExcelDateRangeDialog && pendingExcelBytes != null) {
+            if (showExcelDateRangeDialog && pendingImportBytes != null && pendingImportFileType != null) {
                 ExcelImportDateRangeDialog(
-                    fileName = pendingExcelFileName,
+                    fileName = pendingImportFileName,
                     initialStartMillis = excelRangeDefaults.first,
                     initialEndMillis = excelRangeDefaults.second,
                     onDismiss = {
                         showExcelDateRangeDialog = false
-                        pendingExcelBytes = null
-                        pendingExcelFileName = ""
+                        pendingImportBytes = null
+                        pendingImportFileName = ""
+                        pendingImportFileType = null
                     },
                     onAnalyze = { startMillis, endMillis ->
-                        val bytes = pendingExcelBytes ?: return@ExcelImportDateRangeDialog
+                        val bytes = pendingImportBytes ?: return@ExcelImportDateRangeDialog
+                        val fileType = pendingImportFileType ?: return@ExcelImportDateRangeDialog
                         showExcelDateRangeDialog = false
-                        pendingExcelBytes = null
-                        pendingExcelFileName = ""
-                        transactionViewModel.processSpreadsheet(bytes, startMillis, endMillis)
+                        pendingImportBytes = null
+                        pendingImportFileName = ""
+                        pendingImportFileType = null
+                        transactionViewModel.processImportedFile(bytes, fileType, startMillis, endMillis)
                     }
                 )
             }
