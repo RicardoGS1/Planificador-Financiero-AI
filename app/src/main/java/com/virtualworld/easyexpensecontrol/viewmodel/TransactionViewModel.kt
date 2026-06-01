@@ -21,6 +21,9 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategories
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryByNameUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessSpreadsheetUseCase
+import java.time.Instant
+import java.time.ZoneId
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsByCategoryAndDateUseCase
@@ -55,6 +58,7 @@ class TransactionViewModel(
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val processReceiptUseCase: ProcessReceiptUseCase,
     private val processAudioUseCase: ProcessAudioUseCase,
+    private val processSpreadsheetUseCase: ProcessSpreadsheetUseCase,
     private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
     private val getCategoriesByTypeUseCase: GetCategoriesByTypeUseCase,
     private val getVisibleAccountsUseCase: GetVisibleAccountsUseCase,
@@ -111,7 +115,8 @@ class TransactionViewModel(
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             handleAnalysisResult(
                 result = processReceiptUseCase(imageBytes),
-                defaultType = TransactionType.Gasto
+                defaultType = TransactionType.Gasto,
+                source = AiAnalysisSource.RECEIPT
             )
         }
     }
@@ -121,14 +126,30 @@ class TransactionViewModel(
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             handleAnalysisResult(
                 result = processAudioUseCase(audioBytes, type, mimeType),
-                defaultType = type ?: TransactionType.Gasto
+                defaultType = type ?: TransactionType.Gasto,
+                source = AiAnalysisSource.AUDIO
+            )
+        }
+    }
+
+    fun processSpreadsheet(fileBytes: ByteArray, startDateMillis: Long, endDateMillis: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _receiptProcessingState.value = ReceiptProcessingState.Loading
+            val zone = ZoneId.systemDefault()
+            val startIso = Instant.ofEpochMilli(startDateMillis).atZone(zone).toLocalDate().toString()
+            val endIso = Instant.ofEpochMilli(endDateMillis).atZone(zone).toLocalDate().toString()
+            handleAnalysisResult(
+                result = processSpreadsheetUseCase(fileBytes, startIso, endIso),
+                defaultType = TransactionType.Gasto,
+                source = AiAnalysisSource.SPREADSHEET
             )
         }
     }
 
     private suspend fun handleAnalysisResult(
         result: Result<ReceiptResult>,
-        defaultType: TransactionType
+        defaultType: TransactionType,
+        source: AiAnalysisSource
     ) {
         result
             .onSuccess { data ->
@@ -140,23 +161,36 @@ class TransactionViewModel(
                 }
 
                 val categories = getCategoriesByTypeUseCase(defaultType).firstOrNull().orEmpty()
+                val spreadsheetCategories = if (source == AiAnalysisSource.SPREADSHEET) {
+                    val expense = getCategoriesByTypeUseCase(TransactionType.Gasto).firstOrNull().orEmpty()
+                    val income = getCategoriesByTypeUseCase(TransactionType.Ingreso).firstOrNull().orEmpty()
+                    expense + income
+                } else {
+                    emptyList()
+                }
                 val accounts = getVisibleAccountsUseCase().firstOrNull().orEmpty()
                 val defaultOtherLabel = appContext.getString(R.string.category_default_other)
                 val detected = data.items.map { item ->
-                    val itemType = AiPromptBuilder.parseTransactionType(
+                    val itemTypeFromAi = AiPromptBuilder.parseTransactionType(
                         raw = item.suggestedTransactionType,
                         fallback = defaultType
                     )
-                    val itemCategories = if (item.suggestedTransactionType.isNotBlank()) {
-                        getCategoriesByTypeUseCase(itemType).firstOrNull().orEmpty()
-                    } else {
-                        categories
+                    val itemCategories = when {
+                        source == AiAnalysisSource.SPREADSHEET -> spreadsheetCategories
+                        item.suggestedTransactionType.isNotBlank() ->
+                            getCategoriesByTypeUseCase(itemTypeFromAi).firstOrNull().orEmpty()
+                        else -> categories
                     }
                     val matched = CategoryNameMatcher.resolve(
                         suggestedName = item.suggestedCategoryName,
                         categories = itemCategories,
                         defaultOtherLabel = defaultOtherLabel
                     ) ?: getCategoryByNameUseCase(item.suggestedCategoryName).firstOrNull()
+                    val itemType = when {
+                        item.suggestedTransactionType.isNotBlank() -> itemTypeFromAi
+                        matched != null -> matched.type
+                        else -> itemTypeFromAi
+                    }
                     val matchedAccount = AccountNameMatcher.resolve(item.suggestedAccountName, accounts)
                     DetectedTransactionItem(
                         amount = item.amount,
@@ -179,10 +213,21 @@ class TransactionViewModel(
                     _detectedTransactions.value = _detectedTransactions.value + detected
                     loadDetectedTransaction(first)
                 }
-                _receiptProcessingState.value = ReceiptProcessingState.Success(detected.size)
+                _receiptProcessingState.value = ReceiptProcessingState.Success(
+                    transactionCount = detected.size,
+                    source = source
+                )
             }
             .onFailure { e ->
-                val rawMessage = e.message ?: appContext.getString(R.string.error_receipt_analysis)
+                val fallback = when (source) {
+                    AiAnalysisSource.SPREADSHEET -> when (e.message) {
+                        "empty_file", "empty_spreadsheet" ->
+                            appContext.getString(R.string.error_spreadsheet_empty)
+                        else -> appContext.getString(R.string.error_spreadsheet_analysis)
+                    }
+                    else -> appContext.getString(R.string.error_receipt_analysis)
+                }
+                val rawMessage = e.message?.takeIf { it.isNotBlank() } ?: fallback
                 _receiptProcessingState.value = ReceiptProcessingState.Error(
                     SensitiveDataSanitizer.sanitize(rawMessage)
                 )

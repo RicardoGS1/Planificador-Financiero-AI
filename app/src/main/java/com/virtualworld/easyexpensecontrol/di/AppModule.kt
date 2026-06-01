@@ -35,6 +35,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.category.GetCategoryBy
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessSpreadsheetUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsByCategoryAndDateUseCase
@@ -127,6 +128,7 @@ val appModule = module {
     single<ReceiptAnalysisRepository> { ReceiptAnalysisRepositoryImpl(get()) }
     single { ProcessReceiptUseCase(get(), get(), get()) }
     single { ProcessAudioUseCase(get(), get(), get()) }
+    single { ProcessSpreadsheetUseCase(get(), get(), get()) }
 
     // Casos de uso - Budget
     single { GetBudgetsUseCase(get()) }
@@ -146,6 +148,7 @@ val appModule = module {
             deleteTransactionUseCase = get(),
             processReceiptUseCase = get(),
             processAudioUseCase = get(),
+            processSpreadsheetUseCase = get(),
             getCategoryByNameUseCase = get(),
             getCategoriesByTypeUseCase = get(),
             getVisibleAccountsUseCase = get(),

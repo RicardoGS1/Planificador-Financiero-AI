@@ -43,6 +43,26 @@ class ReceiptAnalysisRepositoryImpl(
         }
     }
 
+    override suspend fun analyzeSpreadsheet(
+        spreadsheetText: String,
+        startDateIso: String,
+        endDateIso: String,
+        expenseCategoryNames: List<String>,
+        incomeCategoryNames: List<String>,
+        accountNames: List<String>
+    ): Result<ReceiptResult> {
+        return remoteDataSource.analyzeSpreadsheet(
+            spreadsheetText,
+            startDateIso,
+            endDateIso,
+            expenseCategoryNames,
+            incomeCategoryNames,
+            accountNames
+        ).map { items ->
+            ReceiptResult(items = items.map(::toDomainLineItem))
+        }
+    }
+
     private fun toDomainLineItem(dto: com.virtualworld.easyexpensecontrol.data.remote.dto.ReceiptLineItemDto) =
         ReceiptLineItem(
             amount = dto.amount,

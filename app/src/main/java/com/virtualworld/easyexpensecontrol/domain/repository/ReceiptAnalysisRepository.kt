@@ -22,4 +22,13 @@ interface ReceiptAnalysisRepository {
         accountNames: List<String> = emptyList(),
         mimeType: String = "audio/aac"
     ): Result<ReceiptResult>
+
+    suspend fun analyzeSpreadsheet(
+        spreadsheetText: String,
+        startDateIso: String,
+        endDateIso: String,
+        expenseCategoryNames: List<String> = emptyList(),
+        incomeCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList()
+    ): Result<ReceiptResult>
 }

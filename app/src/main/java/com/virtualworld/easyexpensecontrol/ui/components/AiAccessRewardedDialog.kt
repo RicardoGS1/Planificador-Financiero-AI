@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.TableChart
 import android.app.Activity
 import android.content.Context
 import androidx.compose.material3.Button
@@ -204,6 +205,12 @@ fun AiAccessRewardedDialog(
                             modifier = Modifier.weight(1f)
                         )
                     }
+
+                    AiAccessFeatureChip(
+                        icon = Icons.Filled.TableChart,
+                        label = stringResource(R.string.ai_access_feature_excel),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     Row(
                         modifier = Modifier

@@ -63,12 +63,40 @@ class ReceiptRemoteDataSource(
         return sendInlineDataRequest(prompt, mimeType, audioBase64)
     }
 
+    suspend fun analyzeSpreadsheet(
+        spreadsheetText: String,
+        startDateIso: String,
+        endDateIso: String,
+        expenseCategoryNames: List<String> = emptyList(),
+        incomeCategoryNames: List<String> = emptyList(),
+        accountNames: List<String> = emptyList()
+    ): Result<List<ReceiptLineItemDto>> {
+        val prompt = buildPrompt(
+            mode = AiPromptBuilder.InputMode.EXCEL,
+            transactionType = null,
+            expenseCategoryNames = expenseCategoryNames,
+            incomeCategoryNames = incomeCategoryNames,
+            accountNames = accountNames,
+            spreadsheetStartDateIso = startDateIso,
+            spreadsheetEndDateIso = endDateIso
+        )
+        val fullPrompt = """
+            $prompt
+
+            --- SPREADSHEET DATA ---
+            $spreadsheetText
+        """.trimIndent()
+        return sendTextRequest(fullPrompt)
+    }
+
     private fun buildPrompt(
         mode: AiPromptBuilder.InputMode,
         transactionType: TransactionType?,
         expenseCategoryNames: List<String>,
         incomeCategoryNames: List<String>,
-        accountNames: List<String>
+        accountNames: List<String>,
+        spreadsheetStartDateIso: String? = null,
+        spreadsheetEndDateIso: String? = null
     ): String {
         val localizedContext = LocaleHelper.applySavedLocale(appContext)
         val effectiveLocale = LocaleHelper.getEffectiveLocale(appContext)
@@ -84,8 +112,58 @@ class ReceiptRemoteDataSource(
             incomeCategoryNames = incomeCategoryNames,
             accountNames = accountNames,
             outputLanguageTag = outputLanguageTag,
-            defaultOtherCategory = defaultOtherCategory
+            defaultOtherCategory = defaultOtherCategory,
+            spreadsheetStartDateIso = spreadsheetStartDateIso,
+            spreadsheetEndDateIso = spreadsheetEndDateIso
         )
+    }
+
+    private suspend fun sendTextRequest(prompt: String): Result<List<ReceiptLineItemDto>> {
+        return try {
+            val request = GeminiRequest(
+                contents = listOf(
+                    GeminiContent(
+                        parts = listOf(GeminiPart(text = prompt))
+                    )
+                ),
+                generationConfig = GeminiGenerationConfig(responseMimeType = "application/json")
+            )
+            val response = geminiApi.generateContent(apiKey, request)
+            val text = response.candidates
+                ?.firstOrNull()
+                ?.content
+                ?.parts
+                ?.firstOrNull()
+                ?.text
+                ?: return Result.failure(
+                    IllegalStateException(appContext.getString(R.string.gemini_empty_response))
+                )
+
+            Log.d(TAG, "JSON recibido (excel): $text")
+            val items = parseReceiptJson(text)
+            if (items.isEmpty()) {
+                return Result.failure(
+                    IllegalStateException(appContext.getString(R.string.gemini_empty_response))
+                )
+            }
+            Result.success(items)
+        } catch (e: JsonSyntaxException) {
+            Result.failure(
+                IllegalArgumentException(appContext.getString(R.string.gemini_parse_error), e)
+            )
+        } catch (e: HttpException) {
+            val body = e.response()?.errorBody()?.string().orEmpty()
+            val msg = sanitizeUserMessage(buildHttpErrorMessage(e.code(), body))
+            Result.failure(IOException(msg))
+        } catch (e: Exception) {
+            Result.failure(
+                IOException(
+                    sanitizeUserMessage(
+                        e.message ?: appContext.getString(R.string.error_spreadsheet_analysis)
+                    )
+                )
+            )
+        }
     }
 
     private suspend fun sendInlineDataRequest(

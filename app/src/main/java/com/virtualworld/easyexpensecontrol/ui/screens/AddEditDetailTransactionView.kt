@@ -53,8 +53,10 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlaylistAddCheck
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
+import android.provider.OpenableColumns
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -121,6 +123,7 @@ import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
 import com.virtualworld.easyexpensecontrol.ui.components.AiAccessRewardedDialog
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
+import com.virtualworld.easyexpensecontrol.ui.components.ExcelImportDateRangeDialog
 import com.virtualworld.easyexpensecontrol.ui.components.GeminiAnalysisLoadingOverlay
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import com.virtualworld.easyexpensecontrol.ui.components.IconPickerDialog
@@ -130,6 +133,7 @@ import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.ui.components.AccountSelectorChips
 import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
+import com.virtualworld.easyexpensecontrol.viewmodel.AiAnalysisSource
 import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -233,6 +237,52 @@ fun AddEditDetailTransactionView(
     var showExitConfirmDialog by remember { mutableStateOf(false) }
     var showAiAccessDialog by remember { mutableStateOf(false) }
     var pendingAiAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var showExcelDateRangeDialog by remember { mutableStateOf(false) }
+    var pendingExcelBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var pendingExcelFileName by remember { mutableStateOf("") }
+
+    fun resolveDisplayFileName(uri: Uri): String {
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (cursor.moveToFirst() && nameIndex >= 0) {
+                return cursor.getString(nameIndex).orEmpty()
+            }
+        }
+        return uri.lastPathSegment?.substringAfterLast('/') ?: "spreadsheet.xlsx"
+    }
+
+    fun isXlsxFile(uri: Uri, fileName: String): Boolean {
+        val mime = context.contentResolver.getType(uri).orEmpty()
+        if (mime.contains("spreadsheetml") || mime.contains("openxmlformats")) return true
+        return fileName.endsWith(".xlsx", ignoreCase = true)
+    }
+
+    val excelPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val fileName = resolveDisplayFileName(uri)
+        if (!isXlsxFile(uri, fileName)) {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.error_spreadsheet_invalid_format))
+            }
+            return@rememberLauncherForActivityResult
+        }
+        val bytes = try {
+            context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+        } catch (_: Exception) {
+            null
+        }
+        if (bytes == null || bytes.isEmpty()) {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.error_spreadsheet_empty))
+            }
+            return@rememberLauncherForActivityResult
+        }
+        pendingExcelBytes = bytes
+        pendingExcelFileName = fileName
+        showExcelDateRangeDialog = true
+    }
 
     LaunchedEffect(transactionViewModel.transactionTypeState) {
         AiRewardedAdHelper.preload(context)
@@ -241,7 +291,8 @@ fun AddEditDetailTransactionView(
     LaunchedEffect(receiptState) {
         when (receiptState) {
             is ReceiptProcessingState.Success -> {
-                val count = (receiptState as ReceiptProcessingState.Success).transactionCount
+                val success = receiptState as ReceiptProcessingState.Success
+                val count = success.transactionCount
                 val newStartIndex = (transactionViewModel.detectedTransactions.value.size - count).coerceAtLeast(0)
                 val firstDetected = transactionViewModel.detectedTransactions.value.getOrNull(newStartIndex)
                 if (firstDetected != null) {
@@ -250,10 +301,18 @@ fun AddEditDetailTransactionView(
                     selectedDetectedIndex = newStartIndex
                     showManualForm = true
                 }
-                val message = if (count == 1) {
-                    context.getString(R.string.receipt_analyzed)
-                } else {
-                    context.getString(R.string.receipt_analyzed_multiple, count)
+                val message = when (success.source) {
+                    AiAnalysisSource.SPREADSHEET -> if (count == 1) {
+                        context.getString(R.string.spreadsheet_analyzed)
+                    } else {
+                        context.getString(R.string.spreadsheet_analyzed_multiple, count)
+                    }
+                    AiAnalysisSource.AUDIO -> context.getString(R.string.audio_analyzed)
+                    AiAnalysisSource.RECEIPT -> if (count == 1) {
+                        context.getString(R.string.receipt_analyzed)
+                    } else {
+                        context.getString(R.string.receipt_analyzed_multiple, count)
+                    }
                 }
                 snackbarHostState.showSnackbar(message)
                 transactionViewModel.clearReceiptProcessingState()
@@ -608,6 +667,34 @@ fun AddEditDetailTransactionView(
         }
     }
 
+    val onExcelClick: () -> Unit = onExcelClick@{
+        if (isAnalyzingReceipt || isRecordingAudio) return@onExcelClick
+        val openPicker = {
+            excelPickerLauncher.launch(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        }
+        if (AiRewardedAdHelper.hasSessionAccess()) {
+            openPicker()
+        } else {
+            pendingAiAction = openPicker
+            showAiAccessDialog = true
+        }
+    }
+
+    val excelRangeDefaults = remember {
+        val end = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val start = (end.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+        }
+        start.timeInMillis to end.timeInMillis
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier.fillMaxSize(),
@@ -686,44 +773,66 @@ fun AddEditDetailTransactionView(
 
                     if (isAddMode) {
                         SectionTitle(text = stringResource(R.string.quick_actions))
-                        Row(
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (currentType != TransactionType.Ingreso) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                if (currentType != TransactionType.Ingreso) {
+                                    AiQuickActionCard(
+                                        icon = Icons.Default.CameraAlt,
+                                        label = if (isAnalyzingReceipt) {
+                                            stringResource(R.string.analyzing)
+                                        } else {
+                                            stringResource(R.string.take_photo)
+                                        },
+                                        isActive = isAnalyzingReceipt,
+                                        isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                        onClick = onCameraClick,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                                 AiQuickActionCard(
-                                    icon = Icons.Default.CameraAlt,
-                                    label = if (isAnalyzingReceipt) {
-                                        stringResource(R.string.analyzing)
-                                    } else {
-                                        stringResource(R.string.take_photo)
+                                    icon = if (isRecordingAudio) Icons.Default.Stop else Icons.Default.Mic,
+                                    label = when {
+                                        isAnalyzingReceipt -> stringResource(R.string.analyzing)
+                                        isRecordingAudio -> stringResource(R.string.recording_in_progress)
+                                        else -> stringResource(R.string.record_audio)
                                     },
-                                    isActive = isAnalyzingReceipt,
-                                    isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
-                                    onClick = onCameraClick,
+                                    isActive = isRecordingAudio || isAnalyzingReceipt,
+                                    isEnabled = !isAnalyzingReceipt,
+                                    onClick = onMicClick,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            AiQuickActionCard(
-                                icon = if (isRecordingAudio) Icons.Default.Stop else Icons.Default.Mic,
-                                label = when {
-                                    isAnalyzingReceipt -> stringResource(R.string.analyzing)
-                                    isRecordingAudio -> stringResource(R.string.recording_in_progress)
-                                    else -> stringResource(R.string.record_audio)
-                                },
-                                isActive = isRecordingAudio || isAnalyzingReceipt,
-                                isEnabled = !isAnalyzingReceipt,
-                                onClick = onMicClick,
-                                modifier = Modifier.weight(1f)
-                            )
-                            AiQuickActionCard(
-                                icon = Icons.Default.Edit,
-                                label = stringResource(R.string.manual_entry),
-                                isActive = showManualForm,
-                                isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
-                                onClick = { showManualForm = true },
-                                modifier = Modifier.weight(1f)
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                AiQuickActionCard(
+                                    icon = Icons.Default.TableChart,
+                                    label = if (isAnalyzingReceipt) {
+                                        stringResource(R.string.analyzing)
+                                    } else {
+                                        stringResource(R.string.import_excel)
+                                    },
+                                    isActive = isAnalyzingReceipt,
+                                    isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                    onClick = onExcelClick,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                AiQuickActionCard(
+                                    icon = Icons.Default.Edit,
+                                    label = stringResource(R.string.manual_entry),
+                                    isActive = showManualForm,
+                                    isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
+                                    onClick = { showManualForm = true },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                         if (!showForm) {
                             AiOrManualHintCard()
@@ -952,6 +1061,26 @@ fun AddEditDetailTransactionView(
                     onDismiss = { showExitConfirmDialog = false },
                     onSave = { savePreparedAndExit() },
                     onDiscard = { discardPreparedAndExit() }
+                )
+            }
+
+            if (showExcelDateRangeDialog && pendingExcelBytes != null) {
+                ExcelImportDateRangeDialog(
+                    fileName = pendingExcelFileName,
+                    initialStartMillis = excelRangeDefaults.first,
+                    initialEndMillis = excelRangeDefaults.second,
+                    onDismiss = {
+                        showExcelDateRangeDialog = false
+                        pendingExcelBytes = null
+                        pendingExcelFileName = ""
+                    },
+                    onAnalyze = { startMillis, endMillis ->
+                        val bytes = pendingExcelBytes ?: return@ExcelImportDateRangeDialog
+                        showExcelDateRangeDialog = false
+                        pendingExcelBytes = null
+                        pendingExcelFileName = ""
+                        transactionViewModel.processSpreadsheet(bytes, startMillis, endMillis)
+                    }
                 )
             }
 
@@ -1227,6 +1356,14 @@ private fun TypeSelectionHintCard() {
                 icon = Icons.Default.CameraAlt,
                 title = stringResource(R.string.take_photo),
                 description = stringResource(R.string.input_option_scan_desc)
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
+            InputOptionHintRow(
+                icon = Icons.Default.TableChart,
+                title = stringResource(R.string.import_excel),
+                description = stringResource(R.string.input_option_excel_desc)
             )
         }
     }

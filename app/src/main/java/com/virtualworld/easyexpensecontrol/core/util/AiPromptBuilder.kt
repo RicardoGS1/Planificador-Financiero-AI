@@ -12,7 +12,7 @@ import java.util.Locale
  */
 object AiPromptBuilder {
 
-    enum class InputMode { RECEIPT, AUDIO }
+    enum class InputMode { RECEIPT, AUDIO, EXCEL }
 
     fun buildPrompt(
         mode: InputMode,
@@ -21,7 +21,9 @@ object AiPromptBuilder {
         incomeCategoryNames: List<String>,
         accountNames: List<String>,
         outputLanguageTag: String,
-        defaultOtherCategory: String
+        defaultOtherCategory: String,
+        spreadsheetStartDateIso: String? = null,
+        spreadsheetEndDateIso: String? = null
     ): String {
         val appLanguageName = languageDisplayName(outputLanguageTag)
         val typeLabel = when (transactionType) {
@@ -32,10 +34,12 @@ object AiPromptBuilder {
         val descriptionRule = when (mode) {
             InputMode.AUDIO -> audioDescriptionRule(appLanguageName)
             InputMode.RECEIPT -> receiptDescriptionRule(appLanguageName)
+            InputMode.EXCEL -> excelDescriptionRule(appLanguageName)
         }
         val taskLine = when (mode) {
             InputMode.AUDIO -> "Listen to the attached voice note and extract financial transaction(s)."
             InputMode.RECEIPT -> "Analyze the attached receipt or invoice image and extract financial expense transaction(s)."
+            InputMode.EXCEL -> "Analyze the spreadsheet data below and extract expense and income transaction(s)."
         }
         val categorySection = buildCategorySection(
             transactionType = transactionType,
@@ -49,11 +53,18 @@ object AiPromptBuilder {
         val modeRules = when (mode) {
             InputMode.RECEIPT -> receiptRules()
             InputMode.AUDIO -> audioRules(typeLabel, transactionType == null, referenceDateIso)
+            InputMode.EXCEL -> excelRules(
+                startDateIso = spreadsheetStartDateIso.orEmpty(),
+                endDateIso = spreadsheetEndDateIso.orEmpty()
+            )
         }
-        val defaultTypeRule = when (transactionType) {
-            TransactionType.Gasto -> "Default transactionType to \"expense\" when not specified."
-            TransactionType.Ingreso -> "Default transactionType to \"income\" when not specified."
-            null -> "Infer transactionType from context; use \"expense\" or \"income\" only."
+        val defaultTypeRule = when (mode) {
+            InputMode.EXCEL -> "Set transactionType to \"expense\" or \"income\" for EVERY row; never leave it empty."
+            else -> when (transactionType) {
+                TransactionType.Gasto -> "Default transactionType to \"expense\" when not specified."
+                TransactionType.Ingreso -> "Default transactionType to \"income\" when not specified."
+                null -> "Infer transactionType from context; use \"expense\" or \"income\" only."
+            }
         }
 
         return """
@@ -90,6 +101,14 @@ object AiPromptBuilder {
         Example — app=$appLanguageName, user speaks Hindi:
         CORRECT:   {"amount":50.0,"description":"स्टारबक्स में कॉफी","categoryName":"Restaurante","date":"","transactionType":"expense","accountName":""}
         WRONG:     {"amount":50.0,"description":"Café en Starbucks","categoryName":"Restaurante","date":"","transactionType":"expense","accountName":""}
+    """.trimIndent()
+
+    private fun excelDescriptionRule(appLanguageName: String): String = """
+        CRITICAL — DESCRIPTION LANGUAGE (follow strictly, highest priority):
+        1. Detect the dominant language of the spreadsheet text (headers and row descriptions).
+        2. Write "description" ONLY in that detected language.
+        3. Do NOT translate "description" to $appLanguageName or any other language.
+        4. Only "categoryName" must be in $appLanguageName (app language).
     """.trimIndent()
 
     private fun receiptDescriptionRule(appLanguageName: String): String = """
@@ -176,6 +195,23 @@ object AiPromptBuilder {
         - Amounts should sum to the receipt total when possible.
         - Extract the receipt date into "date" when visible on the document.
         - transactionType is usually "expense"; leave empty only if truly unclear.
+    """.trimIndent()
+
+    private fun excelRules(startDateIso: String, endDateIso: String): String = """
+        Spreadsheet rules:
+        - Date filter (inclusive): ONLY include rows whose date is between $startDateIso and $endDateIso.
+        - Skip rows outside that range, headers, subtotals, running balances, and internal transfers between own accounts.
+        - Include BOTH expenses and income (salary, refunds, deposits, payments received, etc.) when they are real transactions in range.
+        - Classify each row:
+          * "expense" for debits, payments, purchases, charges, withdrawals, negative amounts in amount columns.
+          * "income" for credits, salary, deposits, refunds received, positive inflows in amount columns.
+        - Map columns flexibly (date, concept/description, amount, merchant, category/type column if present).
+        - Parse dates in any cell format; output yyyy-MM-dd in "date".
+        - amount: always positive in JSON; use absolute value if the sheet shows signed amounts.
+        - One transaction per qualifying row (expense or income).
+        - categoryName: must match the row's transactionType (expense categories for expenses, income categories for income).
+        - description: brief summary from the row (max 50 characters), language rule above.
+        - accountName: only when a column clearly indicates account/wallet and matches the account list.
     """.trimIndent()
 
     private fun audioRules(typeLabel: String, typeUndetermined: Boolean, referenceDateIso: String): String {
