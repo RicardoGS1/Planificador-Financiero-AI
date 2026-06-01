@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Yapay Zeka Destekli Harcama Kontrolü</string>
+    <string name="update_transaction">İşlemi güncelle</string>
+    <string name="add_transaction">İşlem ekle</string>
+    <string name="update_budget">Bütçeyi güncelle</string>
+    <string name="add_budget">Bütçe ekle</string>
+
+    <string name="nav_home">Ana sayfa</string>
+    <string name="nav_history">Geçmiş</string>
+    <string name="nav_statistics">İstatistikler</string>
+    <string name="nav_budgets">Bütçeler</string>
+
+    <string name="screen_financial_planner">Finansal planlayıcı</string>
+    <string name="screen_transactions">İşlemler</string>
+    <string name="screen_statistics">İstatistikler</string>
+    <string name="screen_budget">Bütçe</string>
+
+    <string name="total_balance">Toplam bakiye</string>
+    <string name="last_entries">Son kayıtlar</string>
+    <string name="last_3_days">Son 3 gün</string>
+    <string name="no_recent_transactions">Son işlem yok</string>
+    <string name="no_description">Açıklama yok</string>
+    <string name="no_category">Kategori yok</string>
+
+    <string name="day_today">Bugün</string>
+    <string name="day_yesterday">Dün</string>
+
+    <string name="statistics_no_data">Henüz veri yok. İstatistikleri görmek için işlem ekleyin.</string>
+    <string name="period_day">Gün</string>
+    <string name="period_week">Hafta</string>
+    <string name="period_month">Ay</string>
+    <string name="period_year">Yıl</string>
+    <string name="select_day">Gün seçin</string>
+    <string name="cd_day_previous">Önceki gün</string>
+    <string name="cd_day_next">Sonraki gün</string>
+    <string name="month_year">Ay ve yıl</string>
+    <string name="cd_month_next">Sonraki ay</string>
+    <string name="cd_month_previous">Önceki ay</string>
+    <string name="cd_year_next">Sonraki yıl</string>
+    <string name="cd_year_previous">Önceki yıl</string>
+    <string name="year_label">Yıl</string>
+
+    <string name="chart_subtitle_day">Günlük gelir ve gider</string>
+    <string name="chart_subtitle_month">Günlük gelir ve gider</string>
+    <string name="chart_subtitle_year">Aylık gelir ve gider</string>
+    <string name="comparison_currency">Karşılaştırma (%1$s)</string>
+    <string name="chart_no_data_period">Bu dönem için veri yok</string>
+    <string name="label_income">Gelir</string>
+    <string name="label_expense">Gider</string>
+    <string name="chart_subtitle_categories">Kategoriye göre giderler</string>
+    <string name="chart_subtitle_income_categories">Kategoriye göre gelirler</string>
+    <string name="chart_categories_breakdown">Kategoriye göre dağılım</string>
+    <string name="chart_no_expenses_period">Bu dönemde gider yok</string>
+    <string name="chart_no_income_period">Bu dönemde gelir yok</string>
+    <string name="chart_category_amount_percent">%1$.2f %2$s · %3$.0f%%</string>
+
+    <string name="budget_no_categories_message">Gider kategorisi yok. Bütçenizi yönetmek için gider türünde kategoriler oluşturun.</string>
+    <string name="add_button">Ekle</string>
+    <string name="budget_attention">UYARI</string>
+    <string name="budget_remaining">%1$.2f %2$s kaldı</string>
+    <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
+    <string name="set_budget">Bütçe belirle</string>
+    <string name="increase_budget">Bütçeyi artır</string>
+    <string name="budget_list_visibility_title">Bütçe listesindeki kategoriler</string>
+    <string name="budget_list_visibility_hint">Bir kategorinin işaretini kaldırarak bu listeden gizleyebilirsiniz. Seçiminiz bu cihazda kaydedilir.</string>
+    <string name="budget_list_visibility_apply">Uygula</string>
+    <string name="budget_list_visibility_show_all">Tümünü göster</string>
+    <string name="cd_budget_list_visibility">Bütçe listesinde hangi kategorilerin görüneceğini seçin</string>
+    <string name="budget_list_all_hidden_message">Hiçbir kategori gösterilmiyor. Görmek istediklerinizi seçmek için liste düğmesini kullanın.</string>
+    <string name="budget_history_title">Önceki bütçeler</string>
+    <string name="budget_history_empty_message">Mevcut aydan önce bütçe bulunamadı.</string>
+    <string name="cd_open_budget_history">Önceki bütçe listesini aç</string>
+    <string name="budget_summary_spent">Harcanan</string>
+    <string name="budget_summary_limit">Bütçe</string>
+    <string name="budget_usage_percent">%1$d%% kullanıldı</string>
+    <string name="budget_status_no_budget">Bütçe yok</string>
+    <string name="budget_status_over">Bütçe aşıldı</string>
+    <string name="budget_status_warning">Limite yakın</string>
+    <string name="budget_status_ok">Yolunda</string>
+    <string name="budget_categories_section">Kategoriye göre</string>
+    <string name="budget_spent_only">Harcanan: %1$.2f %2$s</string>
+
+    <string name="no_transactions">İşlem bulunmuyor.</string>
+    <string name="sort_by_label">Sırala</string>
+    <string name="sort_by_date">Tarih</string>
+    <string name="sort_by_amount">Tutar</string>
+    <string name="sort_by_type">Tür</string>
+    <string name="sort_by_category">Kategori</string>
+    <string name="all_accounts">Tüm hesaplar</string>
+    <string name="tab_all_accounts">Toplam</string>
+    <string name="filter_by_account">Hesap</string>
+    <string name="transaction_filters_title">Filtreler</string>
+    <string name="account_label">Hesap</string>
+    <string name="account_name_label">Hesap adı</string>
+    <string name="add_account_title">Hesap ekle</string>
+    <string name="edit_account_title">Hesap adını düzenle</string>
+    <string name="cd_edit_account_name">Hesap adını düzenle</string>
+    <string name="account_show_in_app">Hesabı uygulamada göster</string>
+    <string name="account_show_in_app_hint">Gizli hesaplar kaydedilir ancak sekmelerde veya filtrelerde görünmez.</string>
+    <string name="account_hidden_label">Gizli</string>
+    <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d gizli</string>
+    <string name="settings_accounts_all_hidden">%1$d gizli hesap</string>
+    <string name="add_account_hint">İşlemlerinizi ayrı ayrı düzenlemek için yeni bir hesap oluşturun.</string>
+    <string name="tutorial_default_account_message">Bu varsayılan hesabınızdır. Adını Ayarlar → Hesaplar bölümünden istediğiniz zaman değiştirebilirsiniz.</string>
+    <string name="tutorial_currency_message">Bu toplam bakiyenizdir. Para birimini Ayarlar → Para birimi bölümünden değiştirebilirsiniz.</string>
+    <string name="tutorial_add_transaction_message">İlk gelir veya giderinizi eklemek için buraya dokunun.</string>
+    <string name="tutorial_got_it">Anladım</string>
+    <string name="add_account_examples">Örnekler: Nakit, ING kartı, Banka kartı, Birikim…</string>
+    <string name="err_account_name_empty">Bir hesap adı girin</string>
+    <string name="err_account_required">Bir hesap seçin</string>
+    <string name="cd_account_filter">Hesap filtresi</string>
+    <string name="cd_sort_options">Sıralama seçenekleri</string>
+    <string name="cd_sort_invert">Sırayı ters çevir</string>
+    <string name="delete_transaction_title">Bu işlem silinsin mi?</string>
+    <string name="delete_transaction_message">Bu işlem ve ilgili tüm bilgiler uygulamadan kalıcı olarak silinecektir.</string>
+    <string name="accept">Kabul et</string>
+    <string name="cancel">İptal</string>
+    <string name="ok">Tamam</string>
+    <string name="cd_delete">Sil</string>
+
+    <string name="transaction_type">İşlem türü</string>
+    <string name="transaction_type_income">Gelir</string>
+    <string name="transaction_type_expense">Gider</string>
+    <string name="select_type_to_continue">Devam etmek için gelir veya gider seçin</string>
+    <string name="manual_entry">Manuel giriş</string>
+    <string name="ai_or_manual_hint">Formu doldurmak için yapay zekayı kullanın veya manuel girin</string>
+    <string name="input_options_header">Veya yukarıdaki seçeneklerden birini kullanın:</string>
+    <string name="input_option_manual_desc">Tutar, kategori, tarih ve hesabı kendiniz doldurun.</string>
+    <string name="input_option_audio_desc">Ne harcadığınızı veya kazandığınızı söyleyin, yapay zeka tüm alanları doldurur.</string>
+    <string name="input_option_audio_example">Örn.: \"Dün süpermarkette 25 euro harcama, Nakit hesabı.\"</string>
+    <string name="input_option_scan_desc">Fişin fotoğrafını çekin, yapay zeka tutar, tarih ve kategoriyi algılar.</string>
+    <string name="quick_actions">Hızlı işlemler</string>
+    <string name="transaction_details">Ayrıntılar</string>
+    <string name="take_photo">Fotoğraf çek</string>
+    <string name="record_audio">Ses kaydet</string>
+    <string name="recording_in_progress">Kaydediliyor… durdurmak için dokunun</string>
+    <string name="cd_record_audio">Formu doldurmak için ses kaydet</string>
+    <string name="error_audio_record">Ses kaydedilemedi</string>
+    <string name="ai_access_dialog_title">Yapay zeka özellikleri</string>
+    <string name="ai_access_dialog_message">Bu oturum için yapay zeka özelliklerinin kilidini açmak üzere kısa bir ödüllü reklam izleyin.</string>
+    <string name="ai_access_feature_scan">Fiş tarama</string>
+    <string name="ai_access_feature_voice">Sesli giriş</string>
+    <string name="ai_access_session_hint">Bu oturum için açıldı</string>
+    <string name="ai_access_watch_ad">Reklamı izle</string>
+    <string name="ai_access_loading_ad">Reklam yükleniyor…</string>
+    <string name="ai_access_retry_ad">Tekrar dene</string>
+    <string name="ai_access_not_now">Şimdi değil</string>
+    <string name="ai_access_ad_failed">Reklam yüklenemedi. Lütfen biraz sonra tekrar deneyin.</string>
+    <string name="ai_access_ad_not_completed">Yapay zeka özelliklerinin kilidini açmak için reklamın tamamını izlemelisiniz.</string>
+    <string name="audio_analyzed">Ses analiz edildi</string>
+    <string name="analyzing">Analiz ediliyor…</string>
+    <string name="amount_label">Tutar</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">Açıklama</string>
+    <string name="hint_description">Örn.: Market alışverişi</string>
+    <string name="category_label">Kategori</string>
+    <string name="hint_category">Yeni bir tane yazın veya yukarıdan seçin</string>
+    <string name="existing_categories">Mevcut kategoriler</string>
+    <string name="date_label">Tarih</string>
+    <string name="tap_pick_date">Tarih seçmek için dokunun</string>
+    <string name="cd_hide_calendar">Takvimi gizle</string>
+    <string name="cd_change_date">Tarihi değiştir</string>
+    <string name="receipt_analyzed">Fiş analiz edildi</string>
+    <string name="receipt_analyzed_multiple">Fiş analiz edildi: %1$d işlem algılandı</string>
+    <string name="detected_transactions">Algılanan işlemler (%1$d)</string>
+    <string name="tap_detected_to_edit">Kaydetmeden önce düzenlemek için bir işleme dokunun</string>
+    <string name="save_all_detected">Tümünü kaydet (%1$d)</string>
+    <string name="prepare_transaction">İşlemi hazırla</string>
+    <string name="finish_editing_prepared">Düzenlemeyi bitir</string>
+    <string name="remove_prepared_transaction">Kaldır</string>
+    <string name="prepared_transaction_removed">İşlem hazırlanan listeden kaldırıldı</string>
+    <string name="prepare_all_detected">Tümünü hazırla (%1$d)</string>
+    <string name="transaction_prepared_continue">İşlem hazırlandı. Başka bir tane ekleyebilirsiniz.</string>
+    <string name="all_detected_prepared">%1$d işlem hazırlandı</string>
+    <string name="prepared_transactions_session">Hazırlanan işlemler (%1$d)</string>
+    <string name="finish_and_save">İşlemleri ekle</string>
+    <string name="session_saved">%1$d işlem başarıyla kaydedildi</string>
+    <string name="all_detected_saved">%1$d işlem kaydedildi</string>
+    <string name="err_type_required">Lütfen bir işlem türü seçin.</string>
+    <string name="err_amount_gt_zero">Tutar 0\'dan büyük olmalıdır.</string>
+    <string name="err_description_empty">Açıklama boş olamaz.</string>
+    <string name="err_category_empty">Kategori boş olamaz.</string>
+    <string name="err_date_required">Bir tarih seçmelisiniz.</string>
+    <string name="error_prefix">Hata: %1$s</string>
+    <string name="success_operation">İşlem başarıyla tamamlandı</string>
+    <string name="transaction_added_continue">İşlem eklendi. Başka bir tane ekleyebilirsiniz.</string>
+    <string name="finish_adding">Bitir</string>
+    <string name="exit_without_saving_title">Eklemeden çıkılsın mı?</string>
+    <string name="exit_without_saving_message">%1$d hazırlanmış işleminiz var. Çıkmadan önce eklemek ister misiniz?</string>
+    <string name="exit_without_saving_form_only_message">Henüz eklenmemiş değişiklikleriniz var. Çıkmadan önce eklemek ister misiniz?</string>
+    <string name="exit_unsaved_form_hint">Formda ayrıca hazırlanmamış bir işlem de var.</string>
+    <string name="save_and_exit">Ekle</string>
+    <string name="discard_without_saving">Ekleme</string>
+    <string name="added_transactions_session">Eklenen işlemler (%1$d)</string>
+    <string name="error_unknown">Bilinmeyen hata</string>
+
+    <string name="tap_pick_month_year">Ay ve yıl seçmek için dokunun</string>
+    <string name="cd_hide_picker">Seçiciyi gizle</string>
+    <string name="cd_change_month_year">Ay ve yılı değiştir</string>
+    <string name="monthly_limit">Aylık limit</string>
+    <string name="err_select_category">Devam etmek için lütfen bir kategori seçin.</string>
+    <string name="err_select_month_year">Devam etmek için lütfen bir ay ve yıl seçin.</string>
+    <string name="err_monthly_limit_empty">Aylık limit boş olamaz.</string>
+    <string name="err_duplicate_budget">Aynı bütçeyi iki kez ekleyemezsiniz.</string>
+    <string name="apply_month_year">Ay ve yılı uygula</string>
+    <string name="select_category">Bir kategori seçin</string>
+    <string name="cd_pick_category">Kategori seç</string>
+    <string name="cd_year_decrease">Önceki yıl</string>
+    <string name="cd_year_increase">Sonraki yıl</string>
+
+    <string name="cd_back">Geri</string>
+    <string name="cd_navigate_back">Geri git</string>
+    <string name="cd_add_entry">Kayıt ekle</string>
+    <string name="cd_add_transactions">İşlem ekle</string>
+
+    <string name="icon_picker_title">Bir simge seçin</string>
+    <string name="cd_change_icon">Simgeyi değiştir</string>
+    <string name="tap_icon_to_change">Değiştirmek için simgeye dokunun</string>
+
+    <string name="screen_settings">Ayarlar</string>
+    <string name="cd_open_settings">Ayarları aç</string>
+    <string name="settings_section_general">Genel</string>
+    <string name="settings_section_about">Hakkında</string>
+    <string name="settings_language">Dil</string>
+    <string name="settings_language_subtitle">Uygulama dilini seçin</string>
+    <string name="settings_currency">Para birimi</string>
+    <string name="settings_currency_subtitle">%1$s (%2$s) · %3$s</string>
+    <string name="settings_currency_search_hint">Para birimi veya ülke ara</string>
+    <string name="settings_accounts">Hesaplar</string>
+    <string name="settings_accounts_subtitle_empty">Henüz hesap yok</string>
+    <string name="settings_share">Uygulamayı paylaş</string>
+    <string name="settings_share_subtitle">Bu uygulamayı arkadaşlarınıza önerin</string>
+    <string name="settings_rate_app">Uygulamayı değerlendir</string>
+    <string name="settings_rate_app_subtitle">Google Play\'de yorum bırakın</string>
+    <string name="language_system">Sistem varsayılanı</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_pt">Português</string>
+    <string name="language_fr">Français</string>
+    <string name="language_id">Bahasa Indonesia</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="share_subject">Yapay Zeka Destekli Harcama Kontrolü</string>
+    <string name="share_text">Yapay Zeka Destekli Harcama Kontrolü ile finanslarınızı yönetin. Buradan indirin: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
+    <string name="error_receipt_analysis">Fiş analiz edilemedi</string>
+    <string name="default_category_grocery">Market</string>
+    <string name="default_category_restaurant">Restoranlar</string>
+    <string name="default_category_coffee">Kafe &amp; barlar</string>
+    <string name="default_category_food_delivery">Yemek siparişi</string>
+    <string name="default_category_rent">Kira / ipotek</string>
+    <string name="default_category_hoa">Site yönetimi</string>
+    <string name="default_category_electricity">Elektrik</string>
+    <string name="default_category_water">Su</string>
+    <string name="default_category_gas">Doğalgaz</string>
+    <string name="default_category_internet_phone">İnternet &amp; sabit hat</string>
+    <string name="default_category_home_maintenance">Ev bakımı</string>
+    <string name="default_category_furniture">Mobilya &amp; dekorasyon</string>
+    <string name="default_category_fuel">Yakıt</string>
+    <string name="default_category_public_transport">Toplu taşıma</string>
+    <string name="default_category_parking">Otopark &amp; geçiş ücretleri</string>
+    <string name="default_category_car_maintenance">Araç bakımı</string>
+    <string name="default_category_car_insurance">Araç sigortası</string>
+    <string name="default_category_taxi">Taksi / paylaşımlı araç</string>
+    <string name="default_category_pharmacy">Eczane</string>
+    <string name="default_category_medical">Doktor / sağlık ziyaretleri</string>
+    <string name="default_category_dental">Diş hekimi</string>
+    <string name="default_category_health_insurance">Sağlık sigortası</string>
+    <string name="default_category_entertainment">Sinema / yayın platformları</string>
+    <string name="default_category_music">Müzik / konserler</string>
+    <string name="default_category_fitness">Spor / spor salonu</string>
+    <string name="default_category_travel">Seyahat / tatil</string>
+    <string name="default_category_hobbies">Hobiler</string>
+    <string name="default_category_clothing">Giyim &amp; ayakkabı</string>
+    <string name="default_category_technology">Teknoloji</string>
+    <string name="default_category_gifts">Hediyeler</string>
+    <string name="default_category_beauty">Güzellik / kişisel bakım</string>
+    <string name="default_category_education">Okul / üniversite</string>
+    <string name="default_category_courses">Kurslar / eğitim</string>
+    <string name="default_category_books">Kitaplar / okul malzemeleri</string>
+    <string name="default_category_subscriptions">Abonelikler</string>
+    <string name="default_category_insurance">Sigorta</string>
+    <string name="default_category_bank_fees">Banka ücretleri</string>
+    <string name="default_category_taxes">Vergiler</string>
+    <string name="default_category_childcare">Çocuk bakımı</string>
+    <string name="default_category_pets">Evcil hayvanlar</string>
+    <string name="default_category_donations">Bağış / hayır kurumu</string>
+    <string name="default_category_fines">Para cezaları</string>
+    <string name="default_income_salary">Maaş / ücret</string>
+    <string name="default_income_freelance">Serbest çalışma</string>
+    <string name="default_income_investments">Yatırım / temettü</string>
+    <string name="default_income_interest">Banka faizi</string>
+    <string name="default_income_rental">Kira geliri</string>
+    <string name="default_income_sales">Mal satışı</string>
+    <string name="default_income_refunds">İadeler</string>
+    <string name="default_income_bonuses">Primler / bahşiş</string>
+    <string name="default_income_pension">Emeklilik maaşı</string>
+    <string name="default_income_grants">Hibeler / sübvansiyonlar</string>
+    <string name="default_income_gifts">Alınan hediyeler</string>
+    <string name="category_default_other">Diğer</string>
+    <string name="gemini_empty_response">Yapay zekadan boş yanıt</string>
+    <string name="gemini_parse_error">Yapay zeka yanıtı yorumlanamadı</string>
+    <string name="gemini_error_403">Gemini API: erişim reddedildi (403). API anahtarınızı ve Google Cloud\'da Generative Language API\'nin etkin olduğunu kontrol edin.</string>
+    <string name="gemini_error_401">Gemini API: geçersiz anahtar (401). local.properties dosyasındaki GEMINI_API_KEY değerini kontrol edin.</string>
+    <string name="gemini_error_429">Gemini API: istek limiti (429). Biraz bekleyip tekrar deneyin.</string>
+    <string name="gemini_error_other">Gemini API hatası %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>Ocak</item>
+        <item>Şubat</item>
+        <item>Mart</item>
+        <item>Nisan</item>
+        <item>Mayıs</item>
+        <item>Haziran</item>
+        <item>Temmuz</item>
+        <item>Ağustos</item>
+        <item>Eylül</item>
+        <item>Ekim</item>
+        <item>Kasım</item>
+        <item>Aralık</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>Oca</item>
+        <item>Şub</item>
+        <item>Mar</item>
+        <item>Nis</item>
+        <item>May</item>
+        <item>Haz</item>
+        <item>Tem</item>
+        <item>Ağu</item>
+        <item>Eyl</item>
+        <item>Eki</item>
+        <item>Kas</item>
+        <item>Ara</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>OCA</item>
+        <item>ŞUB</item>
+        <item>MAR</item>
+        <item>NIS</item>
+        <item>MAY</item>
+        <item>HAZ</item>
+        <item>TEM</item>
+        <item>AĞU</item>
+        <item>EYL</item>
+        <item>EKI</item>
+        <item>KAS</item>
+        <item>ARA</item>
+    </string-array>
+</resources>

@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kontrol Pengeluaran dengan AI</string>
+    <string name="update_transaction">Perbarui transaksi</string>
+    <string name="add_transaction">Tambah transaksi</string>
+    <string name="update_budget">Perbarui anggaran</string>
+    <string name="add_budget">Tambah anggaran</string>
+
+    <string name="nav_home">Beranda</string>
+    <string name="nav_history">Riwayat</string>
+    <string name="nav_statistics">Statistik</string>
+    <string name="nav_budgets">Anggaran</string>
+
+    <string name="screen_financial_planner">Perencana keuangan</string>
+    <string name="screen_transactions">Transaksi</string>
+    <string name="screen_statistics">Statistik</string>
+    <string name="screen_budget">Anggaran</string>
+
+    <string name="total_balance">Saldo total</string>
+    <string name="last_entries">Entri terbaru</string>
+    <string name="last_3_days">3 hari terakhir</string>
+    <string name="no_recent_transactions">Tidak ada transaksi terbaru</string>
+    <string name="no_description">Tanpa deskripsi</string>
+    <string name="no_category">Tanpa kategori</string>
+
+    <string name="day_today">Hari ini</string>
+    <string name="day_yesterday">Kemarin</string>
+
+    <string name="statistics_no_data">Belum ada data. Tambahkan transaksi untuk melihat statistik.</string>
+    <string name="period_day">Hari</string>
+    <string name="period_week">Minggu</string>
+    <string name="period_month">Bulan</string>
+    <string name="period_year">Tahun</string>
+    <string name="select_day">Pilih hari</string>
+    <string name="cd_day_previous">Hari sebelumnya</string>
+    <string name="cd_day_next">Hari berikutnya</string>
+    <string name="month_year">Bulan dan tahun</string>
+    <string name="cd_month_next">Bulan berikutnya</string>
+    <string name="cd_month_previous">Bulan sebelumnya</string>
+    <string name="cd_year_next">Tahun berikutnya</string>
+    <string name="cd_year_previous">Tahun sebelumnya</string>
+    <string name="year_label">Tahun</string>
+
+    <string name="chart_subtitle_day">Pemasukan vs pengeluaran hari ini</string>
+    <string name="chart_subtitle_month">Pemasukan dan pengeluaran per hari</string>
+    <string name="chart_subtitle_year">Pemasukan dan pengeluaran per bulan</string>
+    <string name="comparison_currency">Perbandingan (%1$s)</string>
+    <string name="chart_no_data_period">Tidak ada data untuk periode ini</string>
+    <string name="label_income">Pemasukan</string>
+    <string name="label_expense">Pengeluaran</string>
+    <string name="chart_subtitle_categories">Pengeluaran per kategori</string>
+    <string name="chart_subtitle_income_categories">Pemasukan per kategori</string>
+    <string name="chart_categories_breakdown">Rincian per kategori</string>
+    <string name="chart_no_expenses_period">Tidak ada pengeluaran pada periode ini</string>
+    <string name="chart_no_income_period">Tidak ada pemasukan pada periode ini</string>
+    <string name="chart_category_amount_percent">%1$.2f %2$s · %3$.0f%%</string>
+
+    <string name="budget_no_categories_message">Tidak ada kategori pengeluaran. Buat kategori bertipe pengeluaran untuk mengelola anggaran Anda.</string>
+    <string name="add_button">Tambah</string>
+    <string name="budget_attention">PERINGATAN</string>
+    <string name="budget_remaining">Sisa %1$.2f %2$s</string>
+    <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
+    <string name="set_budget">Atur anggaran</string>
+    <string name="increase_budget">Tambah anggaran</string>
+    <string name="budget_list_visibility_title">Kategori di daftar anggaran</string>
+    <string name="budget_list_visibility_hint">Hapus centang kategori untuk menyembunyikannya dari daftar ini. Pilihan Anda disimpan di perangkat ini.</string>
+    <string name="budget_list_visibility_apply">Terapkan</string>
+    <string name="budget_list_visibility_show_all">Tampilkan semua</string>
+    <string name="cd_budget_list_visibility">Pilih kategori yang ditampilkan di daftar anggaran</string>
+    <string name="budget_list_all_hidden_message">Tidak ada kategori yang ditampilkan. Gunakan tombol daftar untuk memilih kategori yang ingin Anda lihat.</string>
+    <string name="budget_history_title">Anggaran sebelumnya</string>
+    <string name="budget_history_empty_message">Tidak ditemukan anggaran sebelum bulan berjalan.</string>
+    <string name="cd_open_budget_history">Buka daftar anggaran sebelumnya</string>
+    <string name="budget_summary_spent">Terpakai</string>
+    <string name="budget_summary_limit">Anggaran</string>
+    <string name="budget_usage_percent">%1$d%% terpakai</string>
+    <string name="budget_status_no_budget">Tanpa anggaran</string>
+    <string name="budget_status_over">Melebihi anggaran</string>
+    <string name="budget_status_warning">Hampir habis</string>
+    <string name="budget_status_ok">Sesuai rencana</string>
+    <string name="budget_categories_section">Per kategori</string>
+    <string name="budget_spent_only">Terpakai: %1$.2f %2$s</string>
+
+    <string name="no_transactions">Tidak ada transaksi.</string>
+    <string name="sort_by_label">Urutkan menurut</string>
+    <string name="sort_by_date">Tanggal</string>
+    <string name="sort_by_amount">Jumlah</string>
+    <string name="sort_by_type">Jenis</string>
+    <string name="sort_by_category">Kategori</string>
+    <string name="all_accounts">Semua akun</string>
+    <string name="tab_all_accounts">Total</string>
+    <string name="filter_by_account">Akun</string>
+    <string name="transaction_filters_title">Filter</string>
+    <string name="account_label">Akun</string>
+    <string name="account_name_label">Nama akun</string>
+    <string name="add_account_title">Tambah akun</string>
+    <string name="edit_account_title">Edit nama akun</string>
+    <string name="cd_edit_account_name">Edit nama akun</string>
+    <string name="account_show_in_app">Tampilkan akun di aplikasi</string>
+    <string name="account_show_in_app_hint">Akun tersembunyi tetap tersimpan tetapi tidak akan muncul di tab atau filter.</string>
+    <string name="account_hidden_label">Tersembunyi</string>
+    <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d tersembunyi</string>
+    <string name="settings_accounts_all_hidden">%1$d akun tersembunyi</string>
+    <string name="add_account_hint">Buat akun baru untuk mengatur transaksi Anda secara terpisah.</string>
+    <string name="tutorial_default_account_message">Ini akun default Anda. Anda dapat mengganti namanya kapan saja di Pengaturan → Akun.</string>
+    <string name="tutorial_currency_message">Ini saldo total Anda. Anda dapat mengubah mata uang di Pengaturan → Mata uang.</string>
+    <string name="tutorial_add_transaction_message">Ketuk di sini untuk menambahkan pemasukan atau pengeluaran pertama Anda.</string>
+    <string name="tutorial_got_it">Mengerti</string>
+    <string name="add_account_examples">Contoh: Tunai, Kartu ING, Kartu debit, Tabungan…</string>
+    <string name="err_account_name_empty">Masukkan nama akun</string>
+    <string name="err_account_required">Pilih akun</string>
+    <string name="cd_account_filter">Filter akun</string>
+    <string name="cd_sort_options">Opsi pengurutan</string>
+    <string name="cd_sort_invert">Balik urutan</string>
+    <string name="delete_transaction_title">Hapus transaksi ini?</string>
+    <string name="delete_transaction_message">Ini akan menghapus transaksi ini dan semua informasi terkait dari aplikasi secara permanen.</string>
+    <string name="accept">Terima</string>
+    <string name="cancel">Batal</string>
+    <string name="ok">OK</string>
+    <string name="cd_delete">Hapus</string>
+
+    <string name="transaction_type">Jenis transaksi</string>
+    <string name="transaction_type_income">Pemasukan</string>
+    <string name="transaction_type_expense">Pengeluaran</string>
+    <string name="select_type_to_continue">Pilih pemasukan atau pengeluaran untuk melanjutkan</string>
+    <string name="manual_entry">Entri manual</string>
+    <string name="ai_or_manual_hint">Gunakan AI untuk mengisi formulir atau masukkan secara manual</string>
+    <string name="input_options_header">Atau gunakan salah satu opsi di atas:</string>
+    <string name="input_option_manual_desc">Isi sendiri jumlah, kategori, tanggal, dan akun.</string>
+    <string name="input_option_audio_desc">Ucapkan apa yang Anda belanjakan atau terima, dan AI mengisi semua kolom untuk Anda.</string>
+    <string name="input_option_audio_example">Mis. \"Pengeluaran 25 euro di supermarket kemarin, akun Tunai.\"</string>
+    <string name="input_option_scan_desc">Ambil foto struk dan AI mendeteksi jumlah, tanggal, dan kategori.</string>
+    <string name="quick_actions">Tindakan cepat</string>
+    <string name="transaction_details">Detail</string>
+    <string name="take_photo">Ambil foto</string>
+    <string name="record_audio">Rekam audio</string>
+    <string name="recording_in_progress">Merekam… ketuk untuk berhenti</string>
+    <string name="cd_record_audio">Rekam audio untuk mengisi formulir</string>
+    <string name="error_audio_record">Tidak dapat merekam audio</string>
+    <string name="ai_access_dialog_title">Fitur AI</string>
+    <string name="ai_access_dialog_message">Tonton iklan singkat berhadiah untuk membuka fitur AI pada sesi ini.</string>
+    <string name="ai_access_feature_scan">Pindai struk</string>
+    <string name="ai_access_feature_voice">Input suara</string>
+    <string name="ai_access_session_hint">Terbuka untuk sesi ini</string>
+    <string name="ai_access_watch_ad">Tonton iklan</string>
+    <string name="ai_access_loading_ad">Memuat iklan…</string>
+    <string name="ai_access_retry_ad">Coba lagi</string>
+    <string name="ai_access_not_now">Nanti saja</string>
+    <string name="ai_access_ad_failed">Iklan tidak dapat dimuat. Silakan coba lagi sebentar lagi.</string>
+    <string name="ai_access_ad_not_completed">Anda harus menonton iklan sampai selesai untuk membuka fitur AI.</string>
+    <string name="audio_analyzed">Audio dianalisis</string>
+    <string name="analyzing">Menganalisis…</string>
+    <string name="amount_label">Jumlah</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">Deskripsi</string>
+    <string name="hint_description">mis. Belanja bahan makanan</string>
+    <string name="category_label">Kategori</string>
+    <string name="hint_category">Ketik yang baru atau pilih di atas</string>
+    <string name="existing_categories">Kategori yang ada</string>
+    <string name="date_label">Tanggal</string>
+    <string name="tap_pick_date">Ketuk untuk memilih tanggal</string>
+    <string name="cd_hide_calendar">Sembunyikan kalender</string>
+    <string name="cd_change_date">Ubah tanggal</string>
+    <string name="receipt_analyzed">Struk dianalisis</string>
+    <string name="receipt_analyzed_multiple">Struk dianalisis: %1$d transaksi terdeteksi</string>
+    <string name="detected_transactions">Transaksi terdeteksi (%1$d)</string>
+    <string name="tap_detected_to_edit">Ketuk transaksi untuk mengedit sebelum menyimpan</string>
+    <string name="save_all_detected">Simpan semua (%1$d)</string>
+    <string name="prepare_transaction">Siapkan transaksi</string>
+    <string name="finish_editing_prepared">Selesai mengedit</string>
+    <string name="remove_prepared_transaction">Hapus</string>
+    <string name="prepared_transaction_removed">Transaksi dihapus dari daftar yang disiapkan</string>
+    <string name="prepare_all_detected">Siapkan semua (%1$d)</string>
+    <string name="transaction_prepared_continue">Transaksi disiapkan. Anda dapat menambahkan yang lain.</string>
+    <string name="all_detected_prepared">%1$d transaksi disiapkan</string>
+    <string name="prepared_transactions_session">Transaksi yang disiapkan (%1$d)</string>
+    <string name="finish_and_save">Tambah transaksi</string>
+    <string name="session_saved">%1$d transaksi berhasil disimpan</string>
+    <string name="all_detected_saved">%1$d transaksi disimpan</string>
+    <string name="err_type_required">Pilih jenis transaksi.</string>
+    <string name="err_amount_gt_zero">Jumlah harus lebih dari 0.</string>
+    <string name="err_description_empty">Deskripsi tidak boleh kosong.</string>
+    <string name="err_category_empty">Kategori tidak boleh kosong.</string>
+    <string name="err_date_required">Anda harus memilih tanggal.</string>
+    <string name="error_prefix">Kesalahan: %1$s</string>
+    <string name="success_operation">Operasi berhasil diselesaikan</string>
+    <string name="transaction_added_continue">Transaksi ditambahkan. Anda dapat menambahkan yang lain.</string>
+    <string name="finish_adding">Selesai</string>
+    <string name="exit_without_saving_title">Keluar tanpa menambahkan?</string>
+    <string name="exit_without_saving_message">Anda memiliki %1$d transaksi yang disiapkan. Ingin menambahkannya sebelum keluar?</string>
+    <string name="exit_without_saving_form_only_message">Anda memiliki perubahan yang belum ditambahkan. Ingin menambahkannya sebelum keluar?</string>
+    <string name="exit_unsaved_form_hint">Anda juga memiliki transaksi yang belum disiapkan di formulir.</string>
+    <string name="save_and_exit">Tambah</string>
+    <string name="discard_without_saving">Jangan tambahkan</string>
+    <string name="added_transactions_session">Transaksi ditambahkan (%1$d)</string>
+    <string name="error_unknown">Kesalahan tidak diketahui</string>
+
+    <string name="tap_pick_month_year">Ketuk untuk memilih bulan dan tahun</string>
+    <string name="cd_hide_picker">Sembunyikan pemilih</string>
+    <string name="cd_change_month_year">Ubah bulan dan tahun</string>
+    <string name="monthly_limit">Batas bulanan</string>
+    <string name="err_select_category">Pilih kategori untuk melanjutkan.</string>
+    <string name="err_select_month_year">Pilih bulan dan tahun untuk melanjutkan.</string>
+    <string name="err_monthly_limit_empty">Batas bulanan tidak boleh kosong.</string>
+    <string name="err_duplicate_budget">Anda tidak dapat menambahkan dua anggaran yang sama.</string>
+    <string name="apply_month_year">Terapkan bulan dan tahun</string>
+    <string name="select_category">Pilih kategori</string>
+    <string name="cd_pick_category">Pilih kategori</string>
+    <string name="cd_year_decrease">Tahun sebelumnya</string>
+    <string name="cd_year_increase">Tahun berikutnya</string>
+
+    <string name="cd_back">Kembali</string>
+    <string name="cd_navigate_back">Navigasi kembali</string>
+    <string name="cd_add_entry">Tambah entri</string>
+    <string name="cd_add_transactions">Tambah transaksi</string>
+
+    <string name="icon_picker_title">Pilih ikon</string>
+    <string name="cd_change_icon">Ubah ikon</string>
+    <string name="tap_icon_to_change">Ketuk ikon untuk mengubahnya</string>
+
+    <string name="screen_settings">Pengaturan</string>
+    <string name="cd_open_settings">Buka pengaturan</string>
+    <string name="settings_section_general">Umum</string>
+    <string name="settings_section_about">Tentang</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_language_subtitle">Pilih bahasa aplikasi</string>
+    <string name="settings_currency">Mata uang</string>
+    <string name="settings_currency_subtitle">%1$s (%2$s) · %3$s</string>
+    <string name="settings_currency_search_hint">Cari mata uang atau negara</string>
+    <string name="settings_accounts">Akun</string>
+    <string name="settings_accounts_subtitle_empty">Belum ada akun</string>
+    <string name="settings_share">Bagikan aplikasi</string>
+    <string name="settings_share_subtitle">Rekomendasikan aplikasi ini kepada teman</string>
+    <string name="settings_rate_app">Beri nilai aplikasi</string>
+    <string name="settings_rate_app_subtitle">Tinggalkan ulasan di Google Play</string>
+    <string name="language_system">Default sistem</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_pt">Português</string>
+    <string name="language_fr">Français</string>
+    <string name="language_id">Bahasa Indonesia</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="share_subject">Kontrol Pengeluaran dengan AI</string>
+    <string name="share_text">Kendalikan keuangan Anda dengan Kontrol Pengeluaran dengan AI. Unduh di sini: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
+    <string name="error_receipt_analysis">Tidak dapat menganalisis struk</string>
+    <string name="default_category_grocery">Belanja bahan makanan</string>
+    <string name="default_category_restaurant">Restoran</string>
+    <string name="default_category_coffee">Kafe &amp; bar</string>
+    <string name="default_category_food_delivery">Pesan antar makanan</string>
+    <string name="default_category_rent">Sewa / KPR</string>
+    <string name="default_category_hoa">Perumahan / pengelola gedung</string>
+    <string name="default_category_electricity">Listrik</string>
+    <string name="default_category_water">Air</string>
+    <string name="default_category_gas">Gas</string>
+    <string name="default_category_internet_phone">Internet &amp; telepon rumah</string>
+    <string name="default_category_home_maintenance">Perawatan rumah</string>
+    <string name="default_category_furniture">Furnitur &amp; dekorasi</string>
+    <string name="default_category_fuel">Bahan bakar</string>
+    <string name="default_category_public_transport">Transportasi umum</string>
+    <string name="default_category_parking">Parkir &amp; tol</string>
+    <string name="default_category_car_maintenance">Perawatan mobil</string>
+    <string name="default_category_car_insurance">Asuransi mobil</string>
+    <string name="default_category_taxi">Taksi / ojek online</string>
+    <string name="default_category_pharmacy">Apotek</string>
+    <string name="default_category_medical">Dokter / kunjungan medis</string>
+    <string name="default_category_dental">Dokter gigi</string>
+    <string name="default_category_health_insurance">Asuransi kesehatan</string>
+    <string name="default_category_entertainment">Film / streaming</string>
+    <string name="default_category_music">Musik / konser</string>
+    <string name="default_category_fitness">Olahraga / gym</string>
+    <string name="default_category_travel">Perjalanan / liburan</string>
+    <string name="default_category_hobbies">Hobi</string>
+    <string name="default_category_clothing">Pakaian &amp; alas kaki</string>
+    <string name="default_category_technology">Teknologi</string>
+    <string name="default_category_gifts">Hadiah</string>
+    <string name="default_category_beauty">Kecantikan / perawatan pribadi</string>
+    <string name="default_category_education">Sekolah / universitas</string>
+    <string name="default_category_courses">Kursus / pelatihan</string>
+    <string name="default_category_books">Buku / perlengkapan sekolah</string>
+    <string name="default_category_subscriptions">Langganan</string>
+    <string name="default_category_insurance">Asuransi</string>
+    <string name="default_category_bank_fees">Biaya bank</string>
+    <string name="default_category_taxes">Pajak</string>
+    <string name="default_category_childcare">Penitipan anak</string>
+    <string name="default_category_pets">Hewan peliharaan</string>
+    <string name="default_category_donations">Donasi / amal</string>
+    <string name="default_category_fines">Denda</string>
+    <string name="default_income_salary">Gaji</string>
+    <string name="default_income_freelance">Freelance / wiraswasta</string>
+    <string name="default_income_investments">Investasi / dividen</string>
+    <string name="default_income_interest">Bunga bank</string>
+    <string name="default_income_rental">Pendapatan sewa</string>
+    <string name="default_income_sales">Penjualan barang</string>
+    <string name="default_income_refunds">Pengembalian dana</string>
+    <string name="default_income_bonuses">Bonus / tip</string>
+    <string name="default_income_pension">Pensiun</string>
+    <string name="default_income_grants">Hibah / subsidi</string>
+    <string name="default_income_gifts">Hadiah diterima</string>
+    <string name="category_default_other">Lainnya</string>
+    <string name="gemini_empty_response">Respons kosong dari AI</string>
+    <string name="gemini_parse_error">Tidak dapat menginterpretasikan respons AI</string>
+    <string name="gemini_error_403">API Gemini: akses ditolak (403). Periksa kunci API Anda dan pastikan Generative Language API diaktifkan di Google Cloud.</string>
+    <string name="gemini_error_401">API Gemini: kunci tidak valid (401). Periksa GEMINI_API_KEY di local.properties.</string>
+    <string name="gemini_error_429">API Gemini: batas laju (429). Tunggu sebentar dan coba lagi.</string>
+    <string name="gemini_error_other">Kesalahan API Gemini %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>Januari</item>
+        <item>Februari</item>
+        <item>Maret</item>
+        <item>April</item>
+        <item>Mei</item>
+        <item>Juni</item>
+        <item>Juli</item>
+        <item>Agustus</item>
+        <item>September</item>
+        <item>Oktober</item>
+        <item>November</item>
+        <item>Desember</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>Mei</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Agu</item>
+        <item>Sep</item>
+        <item>Okt</item>
+        <item>Nov</item>
+        <item>Des</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>JAN</item>
+        <item>FEB</item>
+        <item>MAR</item>
+        <item>APR</item>
+        <item>MEI</item>
+        <item>JUN</item>
+        <item>JUL</item>
+        <item>AGU</item>
+        <item>SEP</item>
+        <item>OKT</item>
+        <item>NOV</item>
+        <item>DES</item>
+    </string-array>
+</resources>

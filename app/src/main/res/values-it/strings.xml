@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Controllo spese con IA</string>
+    <string name="update_transaction">Aggiorna transazione</string>
+    <string name="add_transaction">Aggiungi transazione</string>
+    <string name="update_budget">Aggiorna budget</string>
+    <string name="add_budget">Aggiungi budget</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_history">Cronologia</string>
+    <string name="nav_statistics">Statistiche</string>
+    <string name="nav_budgets">Budget</string>
+
+    <string name="screen_financial_planner">Pianificatore finanziario</string>
+    <string name="screen_transactions">Transazioni</string>
+    <string name="screen_statistics">Statistiche</string>
+    <string name="screen_budget">Budget</string>
+
+    <string name="total_balance">Saldo totale</string>
+    <string name="last_entries">Ultimi movimenti</string>
+    <string name="last_3_days">Ultimi 3 giorni</string>
+    <string name="no_recent_transactions">Nessuna transazione recente</string>
+    <string name="no_description">Nessuna descrizione</string>
+    <string name="no_category">Nessuna categoria</string>
+
+    <string name="day_today">Oggi</string>
+    <string name="day_yesterday">Ieri</string>
+
+    <string name="statistics_no_data">Ancora nessun dato. Aggiungi transazioni per vedere le statistiche.</string>
+    <string name="period_day">Giorno</string>
+    <string name="period_week">Settimana</string>
+    <string name="period_month">Mese</string>
+    <string name="period_year">Anno</string>
+    <string name="select_day">Seleziona il giorno</string>
+    <string name="cd_day_previous">Giorno precedente</string>
+    <string name="cd_day_next">Giorno successivo</string>
+    <string name="month_year">Mese e anno</string>
+    <string name="cd_month_next">Mese successivo</string>
+    <string name="cd_month_previous">Mese precedente</string>
+    <string name="cd_year_next">Anno successivo</string>
+    <string name="cd_year_previous">Anno precedente</string>
+    <string name="year_label">Anno</string>
+
+    <string name="chart_subtitle_day">Entrate vs uscite del giorno</string>
+    <string name="chart_subtitle_month">Entrate e uscite per giorno</string>
+    <string name="chart_subtitle_year">Entrate e uscite per mese</string>
+    <string name="comparison_currency">Confronto (%1$s)</string>
+    <string name="chart_no_data_period">Nessun dato per questo periodo</string>
+    <string name="label_income">Entrate</string>
+    <string name="label_expense">Uscite</string>
+    <string name="chart_subtitle_categories">Uscite per categoria</string>
+    <string name="chart_subtitle_income_categories">Entrate per categoria</string>
+    <string name="chart_categories_breakdown">Ripartizione per categoria</string>
+    <string name="chart_no_expenses_period">Nessuna uscita in questo periodo</string>
+    <string name="chart_no_income_period">Nessuna entrata in questo periodo</string>
+    <string name="chart_category_amount_percent">%1$.2f %2$s · %3$.0f%%</string>
+
+    <string name="budget_no_categories_message">Nessuna categoria di uscita disponibile. Crea categorie di tipo uscita per gestire il budget.</string>
+    <string name="add_button">Aggiungi</string>
+    <string name="budget_attention">ATTENZIONE</string>
+    <string name="budget_remaining">Restano %1$.2f %2$s</string>
+    <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
+    <string name="set_budget">Imposta budget</string>
+    <string name="increase_budget">Aumenta budget</string>
+    <string name="budget_list_visibility_title">Categorie nell\'elenco budget</string>
+    <string name="budget_list_visibility_hint">Deseleziona una categoria per nasconderla da questo elenco. La scelta viene salvata su questo dispositivo.</string>
+    <string name="budget_list_visibility_apply">Applica</string>
+    <string name="budget_list_visibility_show_all">Mostra tutte</string>
+    <string name="cd_budget_list_visibility">Scegli quali categorie mostrare nell\'elenco budget</string>
+    <string name="budget_list_all_hidden_message">Nessuna categoria visibile. Usa il pulsante elenco per scegliere quali categorie vedere.</string>
+    <string name="budget_history_title">Budget precedenti</string>
+    <string name="budget_history_empty_message">Nessun budget trovato prima del mese corrente.</string>
+    <string name="cd_open_budget_history">Apri elenco budget precedenti</string>
+    <string name="budget_summary_spent">Speso</string>
+    <string name="budget_summary_limit">Budget</string>
+    <string name="budget_usage_percent">%1$d%% usato</string>
+    <string name="budget_status_no_budget">Nessun budget</string>
+    <string name="budget_status_over">Budget superato</string>
+    <string name="budget_status_warning">Quasi al limite</string>
+    <string name="budget_status_ok">In linea</string>
+    <string name="budget_categories_section">Per categoria</string>
+    <string name="budget_spent_only">Speso: %1$.2f %2$s</string>
+
+    <string name="no_transactions">Nessuna transazione disponibile.</string>
+    <string name="sort_by_label">Ordina per</string>
+    <string name="sort_by_date">Data</string>
+    <string name="sort_by_amount">Importo</string>
+    <string name="sort_by_type">Tipo</string>
+    <string name="sort_by_category">Categoria</string>
+    <string name="all_accounts">Tutti i conti</string>
+    <string name="tab_all_accounts">Totale</string>
+    <string name="filter_by_account">Conto</string>
+    <string name="transaction_filters_title">Filtri</string>
+    <string name="account_label">Conto</string>
+    <string name="account_name_label">Nome del conto</string>
+    <string name="add_account_title">Aggiungi conto</string>
+    <string name="edit_account_title">Modifica nome conto</string>
+    <string name="cd_edit_account_name">Modifica nome conto</string>
+    <string name="account_show_in_app">Mostra conto nell\'app</string>
+    <string name="account_show_in_app_hint">I conti nascosti restano salvati ma non compariranno in schede o filtri.</string>
+    <string name="account_hidden_label">Nascosto</string>
+    <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d nascosti</string>
+    <string name="settings_accounts_all_hidden">%1$d conti nascosti</string>
+    <string name="add_account_hint">Crea un nuovo conto per organizzare le transazioni separatamente.</string>
+    <string name="tutorial_default_account_message">Questo è il conto predefinito. Puoi rinominarlo in Impostazioni → Conti.</string>
+    <string name="tutorial_currency_message">Questo è il saldo totale. Puoi cambiare la valuta in Impostazioni → Valuta.</string>
+    <string name="tutorial_add_transaction_message">Tocca qui per aggiungere la prima entrata o uscita.</string>
+    <string name="tutorial_got_it">Ho capito</string>
+    <string name="add_account_examples">Esempi: Contanti, Carta ING, Carta di debito, Risparmi…</string>
+    <string name="err_account_name_empty">Inserisci un nome per il conto</string>
+    <string name="err_account_required">Seleziona un conto</string>
+    <string name="cd_account_filter">Filtro conto</string>
+    <string name="cd_sort_options">Opzioni di ordinamento</string>
+    <string name="cd_sort_invert">Inverti ordine</string>
+    <string name="delete_transaction_title">Eliminare questa transazione?</string>
+    <string name="delete_transaction_message">Questa operazione eliminerà definitivamente la transazione e tutte le informazioni correlate dall\'app.</string>
+    <string name="accept">Accetta</string>
+    <string name="cancel">Annulla</string>
+    <string name="ok">OK</string>
+    <string name="cd_delete">Elimina</string>
+
+    <string name="transaction_type">Tipo di transazione</string>
+    <string name="transaction_type_income">Entrata</string>
+    <string name="transaction_type_expense">Uscita</string>
+    <string name="select_type_to_continue">Seleziona entrata o uscita per continuare</string>
+    <string name="manual_entry">Inserimento manuale</string>
+    <string name="ai_or_manual_hint">Usa l\'IA per compilare il modulo o inserisci i dati manualmente</string>
+    <string name="input_options_header">Oppure usa una delle opzioni sopra:</string>
+    <string name="input_option_manual_desc">Inserisci tu importo, categoria, data e conto.</string>
+    <string name="input_option_audio_desc">Di cosa hai speso o guadagnato e l\'IA compilerà tutti i campi per te.</string>
+    <string name="input_option_audio_example">Es.: \"Uscita di 25 euro al supermercato ieri, conto Contanti.\"</string>
+    <string name="input_option_scan_desc">Scatta una foto dello scontrino e l\'IA rileva importo, data e categoria.</string>
+    <string name="quick_actions">Azioni rapide</string>
+    <string name="transaction_details">Dettagli</string>
+    <string name="take_photo">Scatta foto</string>
+    <string name="record_audio">Registra audio</string>
+    <string name="recording_in_progress">Registrazione in corso… tocca per fermare</string>
+    <string name="cd_record_audio">Registra audio per compilare il modulo</string>
+    <string name="error_audio_record">Impossibile registrare l\'audio</string>
+    <string name="ai_access_dialog_title">Funzioni IA</string>
+    <string name="ai_access_dialog_message">Guarda un breve annuncio con ricompensa per sbloccare le funzioni IA per questa sessione.</string>
+    <string name="ai_access_feature_scan">Scansione scontrini</string>
+    <string name="ai_access_feature_voice">Input vocale</string>
+    <string name="ai_access_session_hint">Sbloccato per questa sessione</string>
+    <string name="ai_access_watch_ad">Guarda annuncio</string>
+    <string name="ai_access_loading_ad">Caricamento annuncio…</string>
+    <string name="ai_access_retry_ad">Riprova</string>
+    <string name="ai_access_not_now">Non ora</string>
+    <string name="ai_access_ad_failed">Impossibile caricare l\'annuncio. Riprova tra un momento.</string>
+    <string name="ai_access_ad_not_completed">Devi guardare l\'annuncio completo per sbloccare le funzioni IA.</string>
+    <string name="audio_analyzed">Audio analizzato</string>
+    <string name="analyzing">Analisi in corso…</string>
+    <string name="amount_label">Importo</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">Descrizione</string>
+    <string name="hint_description">Es.: Spesa al supermercato</string>
+    <string name="category_label">Categoria</string>
+    <string name="hint_category">Digita una nuova o scegli sopra</string>
+    <string name="existing_categories">Categorie esistenti</string>
+    <string name="date_label">Data</string>
+    <string name="tap_pick_date">Tocca per scegliere la data</string>
+    <string name="cd_hide_calendar">Nascondi calendario</string>
+    <string name="cd_change_date">Cambia data</string>
+    <string name="receipt_analyzed">Scontrino analizzato</string>
+    <string name="receipt_analyzed_multiple">Scontrino analizzato: %1$d transazioni rilevate</string>
+    <string name="detected_transactions">Transazioni rilevate (%1$d)</string>
+    <string name="tap_detected_to_edit">Tocca una transazione per modificarla prima di salvare</string>
+    <string name="save_all_detected">Salva tutte (%1$d)</string>
+    <string name="prepare_transaction">Prepara transazione</string>
+    <string name="finish_editing_prepared">Termina modifica</string>
+    <string name="remove_prepared_transaction">Rimuovi</string>
+    <string name="prepared_transaction_removed">Transazione rimossa dall\'elenco preparato</string>
+    <string name="prepare_all_detected">Prepara tutte (%1$d)</string>
+    <string name="transaction_prepared_continue">Transazione preparata. Puoi aggiungerne un\'altra.</string>
+    <string name="all_detected_prepared">%1$d transazioni preparate</string>
+    <string name="prepared_transactions_session">Transazioni preparate (%1$d)</string>
+    <string name="finish_and_save">Aggiungi transazioni</string>
+    <string name="session_saved">%1$d transazioni salvate con successo</string>
+    <string name="all_detected_saved">%1$d transazioni salvate</string>
+    <string name="err_type_required">Seleziona un tipo di transazione.</string>
+    <string name="err_amount_gt_zero">L\'importo deve essere maggiore di 0.</string>
+    <string name="err_description_empty">La descrizione non può essere vuota.</string>
+    <string name="err_category_empty">La categoria non può essere vuota.</string>
+    <string name="err_date_required">Devi selezionare una data.</string>
+    <string name="error_prefix">Errore: %1$s</string>
+    <string name="success_operation">Operazione completata con successo</string>
+    <string name="transaction_added_continue">Transazione aggiunta. Puoi aggiungerne un\'altra.</string>
+    <string name="finish_adding">Termina</string>
+    <string name="exit_without_saving_title">Uscire senza aggiungere?</string>
+    <string name="exit_without_saving_message">Hai %1$d transazioni preparate. Vuoi aggiungerle prima di uscire?</string>
+    <string name="exit_without_saving_form_only_message">Hai modifiche non ancora aggiunte. Vuoi aggiungerle prima di uscire?</string>
+    <string name="exit_unsaved_form_hint">Hai anche una transazione non preparata nel modulo.</string>
+    <string name="save_and_exit">Aggiungi</string>
+    <string name="discard_without_saving">Non aggiungere</string>
+    <string name="added_transactions_session">Transazioni aggiunte (%1$d)</string>
+    <string name="error_unknown">Errore sconosciuto</string>
+
+    <string name="tap_pick_month_year">Tocca per scegliere mese e anno</string>
+    <string name="cd_hide_picker">Nascondi selettore</string>
+    <string name="cd_change_month_year">Cambia mese e anno</string>
+    <string name="monthly_limit">Limite mensile</string>
+    <string name="err_select_category">Seleziona una categoria per continuare.</string>
+    <string name="err_select_month_year">Seleziona mese e anno per continuare.</string>
+    <string name="err_monthly_limit_empty">Il limite mensile non può essere vuoto.</string>
+    <string name="err_duplicate_budget">Non puoi aggiungere due budget identici.</string>
+    <string name="apply_month_year">Applica mese e anno</string>
+    <string name="select_category">Seleziona una categoria</string>
+    <string name="cd_pick_category">Scegli categoria</string>
+    <string name="cd_year_decrease">Anno precedente</string>
+    <string name="cd_year_increase">Anno successivo</string>
+
+    <string name="cd_back">Indietro</string>
+    <string name="cd_navigate_back">Torna indietro</string>
+    <string name="cd_add_entry">Aggiungi voce</string>
+    <string name="cd_add_transactions">Aggiungi transazioni</string>
+
+    <string name="icon_picker_title">Scegli un\'icona</string>
+    <string name="cd_change_icon">Cambia icona</string>
+    <string name="tap_icon_to_change">Tocca l\'icona per cambiarla</string>
+
+    <string name="screen_settings">Impostazioni</string>
+    <string name="cd_open_settings">Apri impostazioni</string>
+    <string name="settings_section_general">Generale</string>
+    <string name="settings_section_about">Informazioni</string>
+    <string name="settings_language">Lingua</string>
+    <string name="settings_language_subtitle">Scegli la lingua dell\'app</string>
+    <string name="settings_currency">Valuta</string>
+    <string name="settings_currency_subtitle">%1$s (%2$s) · %3$s</string>
+    <string name="settings_currency_search_hint">Cerca valuta o paese</string>
+    <string name="settings_accounts">Conti</string>
+    <string name="settings_accounts_subtitle_empty">Ancora nessun conto</string>
+    <string name="settings_share">Condividi app</string>
+    <string name="settings_share_subtitle">Consiglia questa app ai tuoi amici</string>
+    <string name="settings_rate_app">Valuta l\'app</string>
+    <string name="settings_rate_app_subtitle">Lascia una recensione su Google Play</string>
+    <string name="language_system">Predefinito di sistema</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_pt">Português</string>
+    <string name="language_fr">Français</string>
+    <string name="language_id">Bahasa Indonesia</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="share_subject">Controllo spese con IA</string>
+    <string name="share_text">Prendi il controllo delle tue finanze con Controllo spese con IA. Scaricala qui: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
+    <string name="error_receipt_analysis">Impossibile analizzare lo scontrino</string>
+    <string name="default_category_grocery">Spesa alimentare</string>
+    <string name="default_category_restaurant">Ristoranti</string>
+    <string name="default_category_coffee">Bar e caffè</string>
+    <string name="default_category_food_delivery">Consegna a domicilio</string>
+    <string name="default_category_rent">Affitto / mutuo</string>
+    <string name="default_category_hoa">Condominio</string>
+    <string name="default_category_electricity">Elettricità</string>
+    <string name="default_category_water">Acqua</string>
+    <string name="default_category_gas">Gas</string>
+    <string name="default_category_internet_phone">Internet e telefono fisso</string>
+    <string name="default_category_home_maintenance">Manutenzione casa</string>
+    <string name="default_category_furniture">Mobili e arredamento</string>
+    <string name="default_category_fuel">Carburante</string>
+    <string name="default_category_public_transport">Trasporto pubblico</string>
+    <string name="default_category_parking">Parcheggio e pedaggi</string>
+    <string name="default_category_car_maintenance">Manutenzione auto</string>
+    <string name="default_category_car_insurance">Assicurazione auto</string>
+    <string name="default_category_taxi">Taxi / ride-hailing</string>
+    <string name="default_category_pharmacy">Farmacia</string>
+    <string name="default_category_medical">Medico / visite</string>
+    <string name="default_category_dental">Dentista</string>
+    <string name="default_category_health_insurance">Assicurazione sanitaria</string>
+    <string name="default_category_entertainment">Cinema / streaming</string>
+    <string name="default_category_music">Musica / concerti</string>
+    <string name="default_category_fitness">Sport / palestra</string>
+    <string name="default_category_travel">Viaggi / vacanze</string>
+    <string name="default_category_hobbies">Hobby</string>
+    <string name="default_category_clothing">Abbigliamento e calzature</string>
+    <string name="default_category_technology">Tecnologia</string>
+    <string name="default_category_gifts">Regali</string>
+    <string name="default_category_beauty">Bellezza / cura personale</string>
+    <string name="default_category_education">Scuola / università</string>
+    <string name="default_category_courses">Corsi / formazione</string>
+    <string name="default_category_books">Libri / materiale scolastico</string>
+    <string name="default_category_subscriptions">Abbonamenti</string>
+    <string name="default_category_insurance">Assicurazioni</string>
+    <string name="default_category_bank_fees">Commissioni bancarie</string>
+    <string name="default_category_taxes">Tasse</string>
+    <string name="default_category_childcare">Asilo / assistenza bambini</string>
+    <string name="default_category_pets">Animali domestici</string>
+    <string name="default_category_donations">Donazioni / beneficenza</string>
+    <string name="default_category_fines">Multe</string>
+    <string name="default_income_salary">Stipendio / salario</string>
+    <string name="default_income_freelance">Freelance / lavoro autonomo</string>
+    <string name="default_income_investments">Investimenti / dividendi</string>
+    <string name="default_income_interest">Interessi bancari</string>
+    <string name="default_income_rental">Affitto percepito</string>
+    <string name="default_income_sales">Vendita beni</string>
+    <string name="default_income_refunds">Rimborsi</string>
+    <string name="default_income_bonuses">Bonus / mance</string>
+    <string name="default_income_pension">Pensione</string>
+    <string name="default_income_grants">Contributi / sovvenzioni</string>
+    <string name="default_income_gifts">Regali ricevuti</string>
+    <string name="category_default_other">Altro</string>
+    <string name="gemini_empty_response">Risposta vuota dall\'IA</string>
+    <string name="gemini_parse_error">Impossibile interpretare la risposta dell\'IA</string>
+    <string name="gemini_error_403">API Gemini: accesso negato (403). Controlla la chiave API e che l\'API Generative Language sia attiva in Google Cloud.</string>
+    <string name="gemini_error_401">API Gemini: chiave non valida (401). Controlla GEMINI_API_KEY in local.properties.</string>
+    <string name="gemini_error_429">API Gemini: limite di utilizzo (429). Attendi un momento e riprova.</string>
+    <string name="gemini_error_other">Errore API Gemini %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>Gennaio</item>
+        <item>Febbraio</item>
+        <item>Marzo</item>
+        <item>Aprile</item>
+        <item>Maggio</item>
+        <item>Giugno</item>
+        <item>Luglio</item>
+        <item>Agosto</item>
+        <item>Settembre</item>
+        <item>Ottobre</item>
+        <item>Novembre</item>
+        <item>Dicembre</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>Gen</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>Mag</item>
+        <item>Giu</item>
+        <item>Lug</item>
+        <item>Ago</item>
+        <item>Set</item>
+        <item>Ott</item>
+        <item>Nov</item>
+        <item>Dic</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>GEN</item>
+        <item>FEB</item>
+        <item>MAR</item>
+        <item>APR</item>
+        <item>MAG</item>
+        <item>GIU</item>
+        <item>LUG</item>
+        <item>AGO</item>
+        <item>SET</item>
+        <item>OTT</item>
+        <item>NOV</item>
+        <item>DIC</item>
+    </string-array>
+</resources>

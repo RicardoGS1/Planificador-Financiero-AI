@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">التحكم في المصروفات بالذكاء الاصطناعي</string>
+    <string name="update_transaction">تحديث المعاملة</string>
+    <string name="add_transaction">إضافة معاملة</string>
+    <string name="update_budget">تحديث الميزانية</string>
+    <string name="add_budget">إضافة ميزانية</string>
+
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_history">السجل</string>
+    <string name="nav_statistics">الإحصائيات</string>
+    <string name="nav_budgets">الميزانيات</string>
+
+    <string name="screen_financial_planner">المخطط المالي</string>
+    <string name="screen_transactions">المعاملات</string>
+    <string name="screen_statistics">الإحصائيات</string>
+    <string name="screen_budget">الميزانية</string>
+
+    <string name="total_balance">الرصيد الإجمالي</string>
+    <string name="last_entries">آخر الإدخالات</string>
+    <string name="last_3_days">آخر 3 أيام</string>
+    <string name="no_recent_transactions">لا توجد معاملات حديثة</string>
+    <string name="no_description">بدون وصف</string>
+    <string name="no_category">بدون فئة</string>
+
+    <string name="day_today">اليوم</string>
+    <string name="day_yesterday">أمس</string>
+
+    <string name="statistics_no_data">لا توجد بيانات بعد. أضف معاملات لعرض الإحصائيات.</string>
+    <string name="period_day">يوم</string>
+    <string name="period_week">أسبوع</string>
+    <string name="period_month">شهر</string>
+    <string name="period_year">سنة</string>
+    <string name="select_day">اختر اليوم</string>
+    <string name="cd_day_previous">اليوم السابق</string>
+    <string name="cd_day_next">اليوم التالي</string>
+    <string name="month_year">الشهر والسنة</string>
+    <string name="cd_month_next">الشهر التالي</string>
+    <string name="cd_month_previous">الشهر السابق</string>
+    <string name="cd_year_next">السنة التالية</string>
+    <string name="cd_year_previous">السنة السابقة</string>
+    <string name="year_label">السنة</string>
+
+    <string name="chart_subtitle_day">الدخل مقابل المصروفات لليوم</string>
+    <string name="chart_subtitle_month">الدخل والمصروفات حسب اليوم</string>
+    <string name="chart_subtitle_year">الدخل والمصروفات حسب الشهر</string>
+    <string name="comparison_currency">المقارنة (%1$s)</string>
+    <string name="chart_no_data_period">لا توجد بيانات لهذه الفترة</string>
+    <string name="label_income">الدخل</string>
+    <string name="label_expense">المصروفات</string>
+    <string name="chart_subtitle_categories">المصروفات حسب الفئة</string>
+    <string name="chart_subtitle_income_categories">الدخل حسب الفئة</string>
+    <string name="chart_categories_breakdown">التفصيل حسب الفئة</string>
+    <string name="chart_no_expenses_period">لا توجد مصروفات في هذه الفترة</string>
+    <string name="chart_no_income_period">لا يوجد دخل في هذه الفترة</string>
+    <string name="chart_category_amount_percent">%1$.2f %2$s · %3$.0f%%</string>
+
+    <string name="budget_no_categories_message">لا توجد فئات مصروفات متاحة. أنشئ فئات من نوع مصروف لإدارة ميزانيتك.</string>
+    <string name="add_button">إضافة</string>
+    <string name="budget_attention">تحذير</string>
+    <string name="budget_remaining">متبقي %1$.2f %2$s</string>
+    <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
+    <string name="set_budget">تعيين الميزانية</string>
+    <string name="increase_budget">زيادة الميزانية</string>
+    <string name="budget_list_visibility_title">الفئات في قائمة الميزانية</string>
+    <string name="budget_list_visibility_hint">ألغِ تحديد فئة لإخفائها من هذه القائمة. يتم حفظ اختيارك على هذا الجهاز.</string>
+    <string name="budget_list_visibility_apply">تطبيق</string>
+    <string name="budget_list_visibility_show_all">إظهار الكل</string>
+    <string name="cd_budget_list_visibility">اختر الفئات التي تظهر في قائمة الميزانية</string>
+    <string name="budget_list_all_hidden_message">لا تظهر أي فئات. استخدم زر القائمة لاختيار الفئات التي تريد رؤيتها.</string>
+    <string name="budget_history_title">الميزانيات السابقة</string>
+    <string name="budget_history_empty_message">لم يُعثر على ميزانيات قبل الشهر الحالي.</string>
+    <string name="cd_open_budget_history">فتح قائمة الميزانيات السابقة</string>
+    <string name="budget_summary_spent">المُنفَق</string>
+    <string name="budget_summary_limit">الميزانية</string>
+    <string name="budget_usage_percent">%1$d%% مُستخدم</string>
+    <string name="budget_status_no_budget">بدون ميزانية</string>
+    <string name="budget_status_over">تجاوز الميزانية</string>
+    <string name="budget_status_warning">اقتربت من الحد</string>
+    <string name="budget_status_ok">ضمن المسار</string>
+    <string name="budget_categories_section">حسب الفئة</string>
+    <string name="budget_spent_only">المُنفَق: %1$.2f %2$s</string>
+
+    <string name="no_transactions">لا توجد معاملات متاحة.</string>
+    <string name="sort_by_label">ترتيب حسب</string>
+    <string name="sort_by_date">التاريخ</string>
+    <string name="sort_by_amount">المبلغ</string>
+    <string name="sort_by_type">النوع</string>
+    <string name="sort_by_category">الفئة</string>
+    <string name="all_accounts">جميع الحسابات</string>
+    <string name="tab_all_accounts">الإجمالي</string>
+    <string name="filter_by_account">الحساب</string>
+    <string name="transaction_filters_title">عوامل التصفية</string>
+    <string name="account_label">الحساب</string>
+    <string name="account_name_label">اسم الحساب</string>
+    <string name="add_account_title">إضافة حساب</string>
+    <string name="edit_account_title">تعديل اسم الحساب</string>
+    <string name="cd_edit_account_name">تعديل اسم الحساب</string>
+    <string name="account_show_in_app">إظهار الحساب في التطبيق</string>
+    <string name="account_show_in_app_hint">تبقى الحسابات المخفية محفوظة لكنها لن تظهر في التبويبات أو عوامل التصفية.</string>
+    <string name="account_hidden_label">مخفي</string>
+    <string name="settings_accounts_subtitle_with_hidden">%1$s · %2$d مخفية</string>
+    <string name="settings_accounts_all_hidden">%1$d حسابات مخفية</string>
+    <string name="add_account_hint">أنشئ حساباً جديداً لتنظيم معاملاتك بشكل منفصل.</string>
+    <string name="tutorial_default_account_message">هذا حسابك الافتراضي. يمكنك إعادة تسميته في أي وقت من الإعدادات ← الحسابات.</string>
+    <string name="tutorial_currency_message">هذا رصيدك الإجمالي. يمكنك تغيير العملة من الإعدادات ← العملة.</string>
+    <string name="tutorial_add_transaction_message">اضغط هنا لإضافة أول دخل أو مصروف.</string>
+    <string name="tutorial_got_it">فهمت</string>
+    <string name="add_account_examples">أمثلة: نقدي، بطاقة ING، بطاقة خصم، ادخار…</string>
+    <string name="err_account_name_empty">أدخل اسم الحساب</string>
+    <string name="err_account_required">اختر حساباً</string>
+    <string name="cd_account_filter">تصفية الحساب</string>
+    <string name="cd_sort_options">خيارات الترتيب</string>
+    <string name="cd_sort_invert">عكس الترتيب</string>
+    <string name="delete_transaction_title">حذف هذه المعاملة؟</string>
+    <string name="delete_transaction_message">سيؤدي هذا إلى حذف هذه المعاملة وجميع المعلومات المرتبطة بها من التطبيق نهائياً.</string>
+    <string name="accept">قبول</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="cd_delete">حذف</string>
+
+    <string name="transaction_type">نوع المعاملة</string>
+    <string name="transaction_type_income">دخل</string>
+    <string name="transaction_type_expense">مصروف</string>
+    <string name="select_type_to_continue">اختر دخلاً أو مصروفاً للمتابعة</string>
+    <string name="manual_entry">إدخال يدوي</string>
+    <string name="ai_or_manual_hint">استخدم الذكاء الاصطناعي لملء النموذج أو أدخل البيانات يدوياً</string>
+    <string name="input_options_header">أو استخدم أحد الخيارات أعلاه:</string>
+    <string name="input_option_manual_desc">أدخل المبلغ والفئة والتاريخ والحساب بنفسك.</string>
+    <string name="input_option_audio_desc">قل ما أنفقته أو ربحته وسيملأ الذكاء الاصطناعي جميع الحقول نيابةً عنك.</string>
+    <string name="input_option_audio_example">مثال: \"مصروف 25 يورو في السوبرماركت أمس، حساب نقدي.\"</string>
+    <string name="input_option_scan_desc">التقط صورة لإيصال وسيكتشف الذكاء الاصطناعي المبلغ والتاريخ والفئة.</string>
+    <string name="quick_actions">إجراءات سريعة</string>
+    <string name="transaction_details">التفاصيل</string>
+    <string name="take_photo">التقاط صورة</string>
+    <string name="record_audio">تسجيل صوت</string>
+    <string name="recording_in_progress">جارٍ التسجيل… اضغط للإيقاف</string>
+    <string name="cd_record_audio">تسجيل صوت لملء النموذج</string>
+    <string name="error_audio_record">تعذّر تسجيل الصوت</string>
+    <string name="ai_access_dialog_title">ميزات الذكاء الاصطناعي</string>
+    <string name="ai_access_dialog_message">شاهد إعلاناً مكافئاً قصيراً لفتح ميزات الذكاء الاصطناعي في هذه الجلسة.</string>
+    <string name="ai_access_feature_scan">مسح الإيصال</string>
+    <string name="ai_access_feature_voice">إدخال صوتي</string>
+    <string name="ai_access_session_hint">مفتوح لهذه الجلسة</string>
+    <string name="ai_access_watch_ad">مشاهدة الإعلان</string>
+    <string name="ai_access_loading_ad">جارٍ تحميل الإعلان…</string>
+    <string name="ai_access_retry_ad">إعادة المحاولة</string>
+    <string name="ai_access_not_now">ليس الآن</string>
+    <string name="ai_access_ad_failed">تعذّر تحميل الإعلان. يُرجى المحاولة مرة أخرى بعد قليل.</string>
+    <string name="ai_access_ad_not_completed">يجب مشاهدة الإعلان كاملاً لفتح ميزات الذكاء الاصطناعي.</string>
+    <string name="audio_analyzed">تم تحليل الصوت</string>
+    <string name="analyzing">جارٍ التحليل…</string>
+    <string name="amount_label">المبلغ</string>
+    <string name="hint_amount">0.00</string>
+    <string name="description_label">الوصف</string>
+    <string name="hint_description">مثال: تسوق بقالة</string>
+    <string name="category_label">الفئة</string>
+    <string name="hint_category">اكتب فئة جديدة أو اختر من الأعلى</string>
+    <string name="existing_categories">الفئات الموجودة</string>
+    <string name="date_label">التاريخ</string>
+    <string name="tap_pick_date">اضغط لاختيار التاريخ</string>
+    <string name="cd_hide_calendar">إخفاء التقويم</string>
+    <string name="cd_change_date">تغيير التاريخ</string>
+    <string name="receipt_analyzed">تم تحليل الإيصال</string>
+    <string name="receipt_analyzed_multiple">تم تحليل الإيصال: %1$d معاملات مكتشفة</string>
+    <string name="detected_transactions">المعاملات المكتشفة (%1$d)</string>
+    <string name="tap_detected_to_edit">اضغط على معاملة لتعديلها قبل الحفظ</string>
+    <string name="save_all_detected">حفظ الكل (%1$d)</string>
+    <string name="prepare_transaction">تحضير المعاملة</string>
+    <string name="finish_editing_prepared">إنهاء التعديل</string>
+    <string name="remove_prepared_transaction">إزالة</string>
+    <string name="prepared_transaction_removed">تمت إزالة المعاملة من القائمة المُحضَّرة</string>
+    <string name="prepare_all_detected">تحضير الكل (%1$d)</string>
+    <string name="transaction_prepared_continue">تم تحضير المعاملة. يمكنك إضافة أخرى.</string>
+    <string name="all_detected_prepared">%1$d معاملات مُحضَّرة</string>
+    <string name="prepared_transactions_session">المعاملات المُحضَّرة (%1$d)</string>
+    <string name="finish_and_save">إضافة المعاملات</string>
+    <string name="session_saved">تم حفظ %1$d معاملات بنجاح</string>
+    <string name="all_detected_saved">تم حفظ %1$d معاملات</string>
+    <string name="err_type_required">يُرجى اختيار نوع المعاملة.</string>
+    <string name="err_amount_gt_zero">يجب أن يكون المبلغ أكبر من 0.</string>
+    <string name="err_description_empty">لا يمكن أن يكون الوصف فارغاً.</string>
+    <string name="err_category_empty">لا يمكن أن تكون الفئة فارغة.</string>
+    <string name="err_date_required">يجب اختيار تاريخ.</string>
+    <string name="error_prefix">خطأ: %1$s</string>
+    <string name="success_operation">تمت العملية بنجاح</string>
+    <string name="transaction_added_continue">تمت إضافة المعاملة. يمكنك إضافة أخرى.</string>
+    <string name="finish_adding">إنهاء</string>
+    <string name="exit_without_saving_title">المغادرة دون إضافة؟</string>
+    <string name="exit_without_saving_message">لديك %1$d معاملات مُحضَّرة. هل تريد إضافتها قبل المغادرة؟</string>
+    <string name="exit_without_saving_form_only_message">لديك تغييرات لم تُضف بعد. هل تريد إضافتها قبل المغادرة؟</string>
+    <string name="exit_unsaved_form_hint">لديك أيضاً معاملة غير مُحضَّرة في النموذج.</string>
+    <string name="save_and_exit">إضافة</string>
+    <string name="discard_without_saving">عدم الإضافة</string>
+    <string name="added_transactions_session">المعاملات المُضافة (%1$d)</string>
+    <string name="error_unknown">خطأ غير معروف</string>
+
+    <string name="tap_pick_month_year">اضغط لاختيار الشهر والسنة</string>
+    <string name="cd_hide_picker">إخفاء المُحدِّد</string>
+    <string name="cd_change_month_year">تغيير الشهر والسنة</string>
+    <string name="monthly_limit">الحد الشهري</string>
+    <string name="err_select_category">يُرجى اختيار فئة للمتابعة.</string>
+    <string name="err_select_month_year">يُرجى اختيار شهر وسنة للمتابعة.</string>
+    <string name="err_monthly_limit_empty">لا يمكن أن يكون الحد الشهري فارغاً.</string>
+    <string name="err_duplicate_budget">لا يمكنك إضافة ميزانيتين متطابقتين.</string>
+    <string name="apply_month_year">تطبيق الشهر والسنة</string>
+    <string name="select_category">اختر فئة</string>
+    <string name="cd_pick_category">اختيار الفئة</string>
+    <string name="cd_year_decrease">السنة السابقة</string>
+    <string name="cd_year_increase">السنة التالية</string>
+
+    <string name="cd_back">رجوع</string>
+    <string name="cd_navigate_back">الانتقال للخلف</string>
+    <string name="cd_add_entry">إضافة إدخال</string>
+    <string name="cd_add_transactions">إضافة معاملات</string>
+
+    <string name="icon_picker_title">اختر أيقونة</string>
+    <string name="cd_change_icon">تغيير الأيقونة</string>
+    <string name="tap_icon_to_change">اضغط على الأيقونة لتغييرها</string>
+
+    <string name="screen_settings">الإعدادات</string>
+    <string name="cd_open_settings">فتح الإعدادات</string>
+    <string name="settings_section_general">عام</string>
+    <string name="settings_section_about">حول التطبيق</string>
+    <string name="settings_language">اللغة</string>
+    <string name="settings_language_subtitle">اختر لغة التطبيق</string>
+    <string name="settings_currency">العملة</string>
+    <string name="settings_currency_subtitle">%1$s (%2$s) · %3$s</string>
+    <string name="settings_currency_search_hint">ابحث عن عملة أو بلد</string>
+    <string name="settings_accounts">الحسابات</string>
+    <string name="settings_accounts_subtitle_empty">لا توجد حسابات بعد</string>
+    <string name="settings_share">مشاركة التطبيق</string>
+    <string name="settings_share_subtitle">انصح أصدقاءك بهذا التطبيق</string>
+    <string name="settings_rate_app">تقييم التطبيق</string>
+    <string name="settings_rate_app_subtitle">اترك مراجعة على Google Play</string>
+    <string name="language_system">افتراضي النظام</string>
+    <string name="language_en">English</string>
+    <string name="language_es">Español</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_pt">Português</string>
+    <string name="language_fr">Français</string>
+    <string name="language_id">Bahasa Indonesia</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="share_subject">التحكم في المصروفات بالذكاء الاصطناعي</string>
+    <string name="share_text">تحكّم في أموالك مع التحكم في المصروفات بالذكاء الاصطناعي. حمّله من هنا: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
+
+    <string name="error_receipt_analysis">تعذّر تحليل الإيصال</string>
+    <string name="default_category_grocery">بقالة</string>
+    <string name="default_category_restaurant">مطاعم</string>
+    <string name="default_category_coffee">مقاهٍ وحانات</string>
+    <string name="default_category_food_delivery">توصيل طعام</string>
+    <string name="default_category_rent">إيجار / رهن عقاري</string>
+    <string name="default_category_hoa">جمعية الملاك</string>
+    <string name="default_category_electricity">كهرباء</string>
+    <string name="default_category_water">ماء</string>
+    <string name="default_category_gas">غاز</string>
+    <string name="default_category_internet_phone">إنترنت وهاتف أرضي</string>
+    <string name="default_category_home_maintenance">صيانة المنزل</string>
+    <string name="default_category_furniture">أثاث وديكور</string>
+    <string name="default_category_fuel">وقود</string>
+    <string name="default_category_public_transport">مواصلات عامة</string>
+    <string name="default_category_parking">مواقف ورسوم طرق</string>
+    <string name="default_category_car_maintenance">صيانة السيارة</string>
+    <string name="default_category_car_insurance">تأمين السيارة</string>
+    <string name="default_category_taxi">تاكسي / تطبيق نقل</string>
+    <string name="default_category_pharmacy">صيدلية</string>
+    <string name="default_category_medical">طبيب / زيارات طبية</string>
+    <string name="default_category_dental">طبيب أسنان</string>
+    <string name="default_category_health_insurance">تأمين صحي</string>
+    <string name="default_category_entertainment">أفلام / بث</string>
+    <string name="default_category_music">موسيقى / حفلات</string>
+    <string name="default_category_fitness">رياضة / نادي</string>
+    <string name="default_category_travel">سفر / عطلات</string>
+    <string name="default_category_hobbies">هوايات</string>
+    <string name="default_category_clothing">ملابس وأحذية</string>
+    <string name="default_category_technology">تقنية</string>
+    <string name="default_category_gifts">هدايا</string>
+    <string name="default_category_beauty">جمال / عناية شخصية</string>
+    <string name="default_category_education">مدرسة / جامعة</string>
+    <string name="default_category_courses">دورات / تدريب</string>
+    <string name="default_category_books">كتب / لوازم مدرسية</string>
+    <string name="default_category_subscriptions">اشتراكات</string>
+    <string name="default_category_insurance">تأمين</string>
+    <string name="default_category_bank_fees">رسوم بنكية</string>
+    <string name="default_category_taxes">ضرائب</string>
+    <string name="default_category_childcare">رعاية أطفال</string>
+    <string name="default_category_pets">حيوانات أليفة</string>
+    <string name="default_category_donations">تبرعات / خيرية</string>
+    <string name="default_category_fines">غرامات</string>
+    <string name="default_income_salary">راتب / أجور</string>
+    <string name="default_income_freelance">عمل حر / مستقل</string>
+    <string name="default_income_investments">استثمارات / أرباح</string>
+    <string name="default_income_interest">فوائد بنكية</string>
+    <string name="default_income_rental">دخل إيجار</string>
+    <string name="default_income_sales">بيع سلع</string>
+    <string name="default_income_refunds">مبالغ مستردة</string>
+    <string name="default_income_bonuses">مكافآت / إكراميات</string>
+    <string name="default_income_pension">معاش</string>
+    <string name="default_income_grants">منح / إعانات</string>
+    <string name="default_income_gifts">هدايا مستلمة</string>
+    <string name="category_default_other">أخرى</string>
+    <string name="gemini_empty_response">استجابة فارغة من الذكاء الاصطناعي</string>
+    <string name="gemini_parse_error">تعذّر تفسير استجابة الذكاء الاصطناعي</string>
+    <string name="gemini_error_403">واجهة Gemini: تم رفض الوصول (403). تحقق من مفتاح API وأن واجهة Generative Language مفعّلة في Google Cloud.</string>
+    <string name="gemini_error_401">واجهة Gemini: مفتاح غير صالح (401). تحقق من GEMINI_API_KEY في local.properties.</string>
+    <string name="gemini_error_429">واجهة Gemini: حد الاستخدام (429). انتظر قليلاً وحاول مرة أخرى.</string>
+    <string name="gemini_error_other">خطأ واجهة Gemini %1$d: %2$s</string>
+
+    <string-array name="month_names_full">
+        <item>يناير</item>
+        <item>فبراير</item>
+        <item>مارس</item>
+        <item>أبريل</item>
+        <item>مايو</item>
+        <item>يونيو</item>
+        <item>يوليو</item>
+        <item>أغسطس</item>
+        <item>سبتمبر</item>
+        <item>أكتوبر</item>
+        <item>نوفمبر</item>
+        <item>ديسمبر</item>
+    </string-array>
+    <string-array name="month_names_short">
+        <item>ينا</item>
+        <item>فبر</item>
+        <item>مار</item>
+        <item>أبر</item>
+        <item>مايو</item>
+        <item>يون</item>
+        <item>يول</item>
+        <item>أغس</item>
+        <item>سبت</item>
+        <item>أكت</item>
+        <item>نوف</item>
+        <item>ديس</item>
+    </string-array>
+    <string-array name="month_names_upper">
+        <item>ينا</item>
+        <item>فبر</item>
+        <item>مار</item>
+        <item>أبر</item>
+        <item>مايو</item>
+        <item>يون</item>
+        <item>يول</item>
+        <item>أغس</item>
+        <item>سبت</item>
+        <item>أكت</item>
+        <item>نوف</item>
+        <item>ديس</item>
+    </string-array>
+</resources>
