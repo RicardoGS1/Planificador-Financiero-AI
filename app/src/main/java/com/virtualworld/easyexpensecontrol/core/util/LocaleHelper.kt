@@ -20,7 +20,9 @@ object LocaleHelper {
     private const val KEY_LANGUAGE_TAG = "selected_language_tag"
 
     /** Etiquetas BCP-47 de los idiomas que ofrece la app (la cadena vacía representa "sistema"). */
-    val SUPPORTED_LANGUAGE_TAGS: List<String> = listOf("", "en", "es", "de", "hi", "ru")
+    val SUPPORTED_LANGUAGE_TAGS: List<String> = listOf(
+        "", "en", "es", "de", "hi", "ru", "pt-BR", "fr", "id", "it", "ar", "tr"
+    )
 
     fun getSavedLanguageTag(context: Context): String {
         return prefs(context).getString(KEY_LANGUAGE_TAG, "") ?: ""

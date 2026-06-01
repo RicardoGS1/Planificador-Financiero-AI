@@ -227,6 +227,12 @@
     <string name="language_de">Deutsch</string>
     <string name="language_hi">हिन्दी</string>
     <string name="language_ru">Русский</string>
+    <string name="language_pt">Português</string>
+    <string name="language_fr">Français</string>
+    <string name="language_id">Bahasa Indonesia</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_tr">Türkçe</string>
     <string name="share_subject">KI-gestützte Ausgabenkontrolle</string>
     <string name="share_text">Behalte deine Finanzen mit KI-gestützter Ausgabenkontrolle im Griff. Hier herunterladen: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 

@@ -25,7 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AccountBalance
@@ -365,7 +366,11 @@ private fun LanguagePickerDialog(
             }
         },
         text = {
-            Column {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 400.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
                 LocaleHelper.SUPPORTED_LANGUAGE_TAGS.forEach { tag ->
                     val isSelected = tag == currentTag
                     Row(
@@ -673,6 +678,12 @@ private fun languageDisplayName(tag: String): String = when (tag) {
     "de" -> stringResource(R.string.language_de)
     "hi" -> stringResource(R.string.language_hi)
     "ru" -> stringResource(R.string.language_ru)
+    "pt-BR" -> stringResource(R.string.language_pt)
+    "fr" -> stringResource(R.string.language_fr)
+    "id" -> stringResource(R.string.language_id)
+    "it" -> stringResource(R.string.language_it)
+    "ar" -> stringResource(R.string.language_ar)
+    "tr" -> stringResource(R.string.language_tr)
     else -> tag
 }
 
@@ -701,5 +712,11 @@ private fun languageFlag(tag: String): String = when (tag) {
     "de" -> "\uD83C\uDDE9\uD83C\uDDEA"
     "hi" -> "\uD83C\uDDEE\uD83C\uDDF3"
     "ru" -> "\uD83C\uDDF7\uD83C\uDDFA"
+    "pt-BR" -> "\uD83C\uDDE7\uD83C\uDDF7"
+    "fr" -> "\uD83C\uDDEB\uD83C\uDDF7"
+    "id" -> "\uD83C\uDDEE\uD83C\uDDE9"
+    "it" -> "\uD83C\uDDEE\uD83C\uDDF9"
+    "ar" -> "\uD83C\uDDF8\uD83C\uDDE6"
+    "tr" -> "\uD83C\uDDF9\uD83C\uDDF7"
     else -> ""
 }
