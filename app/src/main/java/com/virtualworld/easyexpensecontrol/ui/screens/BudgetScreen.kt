@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -71,7 +70,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
@@ -84,6 +86,7 @@ import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -119,26 +122,105 @@ fun BudgetScreen(
     }
 
     val currentCalendar = Calendar.getInstance()
-    val currentMonth = (currentCalendar.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+    val currentMonthNum = currentCalendar.get(Calendar.MONTH) + 1
+    val currentMonth = currentMonthNum.toString().padStart(2, '0')
     val currentYear = currentCalendar.get(Calendar.YEAR)
     val monthNames = stringArrayResource(R.array.month_names_full)
     val currentMonthLabel = monthNames.getOrElse(currentCalendar.get(Calendar.MONTH)) { currentMonth }
 
-    val expenseCategories = categoryViewModel
+    val expenseCategories by categoryViewModel
         .getCategoriesByType(TransactionType.Gasto)
         .collectAsState(initial = emptyList())
-        .value
-    val budgets = budgetViewModel.getAllBudgets.collectAsState(initial = emptyList()).value
-    val currentMonthBudgets = budgets.filter { it.month.padStart(2, '0') == currentMonth && it.year == currentYear }
+
+    val budgets by budgetViewModel.getAllBudgets.collectAsState(initial = emptyList())
+    val currentMonthBudgets = remember(budgets, currentMonth, currentYear) {
+        budgets.filter { it.month.padStart(2, '0') == currentMonth && it.year == currentYear }
+    }
 
     val visibilityRepository: BudgetListVisibilityRepository = koinInject()
     val hiddenCategoryIds by visibilityRepository.hiddenCategoryIds.collectAsState(initial = emptySet())
+
+    val allTransactions by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
+
+    val categorySpentMap = remember(allTransactions, expenseCategories, currentYear, currentMonthNum) {
+        expenseCategories.associate { category ->
+            category.id to allTransactions
+                .filter { transaction ->
+                    transaction.type == TransactionType.Gasto &&
+                            transaction.category == category.id &&
+                            isTransactionInMonth(transaction.date, currentYear, currentMonthNum)
+                }
+                .sumOf { it.amount }
+        }
+    }
+
+    val visibleCategoryIds = remember(expenseCategories, hiddenCategoryIds) {
+        expenseCategories.filter { it.id !in hiddenCategoryIds }.map { it.id }.toSet()
+    }
+
+    val totalLimit = remember(currentMonthBudgets, visibleCategoryIds) {
+        currentMonthBudgets
+            .filter { it.category in visibleCategoryIds }
+            .sumOf { it.monthlyLimit }
+    }
+
+    val totalSpent = remember(categorySpentMap, visibleCategoryIds) {
+        categorySpentMap.filter { it.key in visibleCategoryIds }.values.sum()
+    }
+
+    val scope = rememberCoroutineScope()
+
+    BudgetScreenContent(
+        navController = navController,
+        expenseCategories = expenseCategories,
+        currentMonthBudgets = currentMonthBudgets,
+        hiddenCategoryIds = hiddenCategoryIds,
+        totalSpent = totalSpent,
+        totalLimit = totalLimit,
+        categorySpentMap = categorySpentMap,
+        monthLabel = currentMonthLabel,
+        year = currentYear,
+        onBudgetClick = { category, budget ->
+            if (budget != null) {
+                navController.navigate(Screen.AddEditBudgetScreen.route + "/${budget.id}")
+            } else {
+                budgetViewModel.onBudgetCategoryChanged(category.id)
+                budgetViewModel.onBudgetMonthChanged(currentMonth)
+                budgetViewModel.onBudgetYearChanged(currentYear)
+                navController.navigate(Screen.AddEditBudgetScreen.route + "/0L")
+            }
+        },
+        onHistoryClick = { navController.navigate(Screen.BudgetHistoryScreen.route) },
+        onApplyVisibility = { ids ->
+            scope.launch {
+                visibilityRepository.setHiddenCategoryIds(ids)
+            }
+        }
+    )
+}
+
+@Composable
+fun BudgetScreenContent(
+    navController: NavController,
+    expenseCategories: List<Category>,
+    currentMonthBudgets: List<Budget>,
+    hiddenCategoryIds: Set<Long>,
+    totalSpent: Double,
+    totalLimit: Double,
+    categorySpentMap: Map<Long, Double>,
+    monthLabel: String,
+    year: Int,
+    onBudgetClick: (Category, Budget?) -> Unit,
+    onHistoryClick: () -> Unit,
+    onApplyVisibility: (Set<Long>) -> Unit,
+    isAnimationEnabled: Boolean = true
+) {
     var showVisibilityDialog by remember { mutableStateOf(false) }
     var draftHiddenIds by remember { mutableStateOf(emptySet<Long>()) }
-    val scope = rememberCoroutineScope()
+
     var animationTarget by remember {
         mutableFloatStateOf(
-            if (BudgetScreenAnimationSession.hasPlayedEntryAnimation) 1f else 0f
+            if (BudgetScreenAnimationSession.hasPlayedEntryAnimation || !isAnimationEnabled) 1f else 0f
         )
     }
     val entryAnimationProgress by animateFloatAsState(
@@ -156,25 +238,6 @@ fun BudgetScreen(
 
     val visibleExpenseCategories = remember(expenseCategories, hiddenCategoryIds) {
         expenseCategories.filter { it.id !in hiddenCategoryIds }
-    }
-
-    val visibleCategoryIds = remember(visibleExpenseCategories) {
-        visibleExpenseCategories.map { it.id }.toSet()
-    }
-    val allTransactions by transactionViewModel.getAllTransactions.collectAsState(initial = emptyList())
-    val totalLimit = remember(currentMonthBudgets, visibleCategoryIds) {
-        currentMonthBudgets
-            .filter { it.category in visibleCategoryIds }
-            .sumOf { it.monthlyLimit }
-    }
-    val totalSpent = remember(allTransactions, visibleCategoryIds, currentYear, currentMonth) {
-        allTransactions
-            .filter { transaction ->
-                transaction.type == TransactionType.Gasto &&
-                    transaction.category in visibleCategoryIds &&
-                    isTransactionInMonth(transaction.date, currentYear, currentMonth.toInt())
-            }
-            .sumOf { it.amount }
     }
 
     Scaffold(
@@ -201,7 +264,7 @@ fun BudgetScreen(
                         showBackArrow = false,
                         trailingContent = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { navController.navigate(Screen.BudgetHistoryScreen.route) }) {
+                                IconButton(onClick = onHistoryClick) {
                                     Icon(
                                         imageVector = Icons.Default.DateRange,
                                         contentDescription = stringResource(R.string.cd_open_budget_history),
@@ -228,8 +291,8 @@ fun BudgetScreen(
                 if (visibleExpenseCategories.isNotEmpty() && totalLimit > 0) {
                     item {
                         BudgetSummaryCard(
-                            monthLabel = currentMonthLabel,
-                            year = currentYear,
+                            monthLabel = monthLabel,
+                            year = year,
                             totalSpent = totalSpent,
                             totalLimit = totalLimit,
                             animationProgress = entryAnimationProgress,
@@ -263,26 +326,13 @@ fun BudgetScreen(
                 } else {
                     items(visibleExpenseCategories, key = { category -> category.id }) { category ->
                         val categoryBudget = currentMonthBudgets.find { it.category == category.id }
-                        val spent = transactionViewModel
-                            .getTransactionsByCategoryAndDate(category.id, currentYear, currentMonth)
-                            .collectAsState(initial = emptyList())
-                            .value
-                            .sumOf { it.amount }
+                        val spent = categorySpentMap[category.id] ?: 0.0
                         ExpenseBudgetItem(
                             category = category,
                             budget = categoryBudget,
                             spent = spent,
                             animationProgress = entryAnimationProgress,
-                            onActionClick = {
-                                if (categoryBudget != null) {
-                                    navController.navigate(Screen.AddEditBudgetScreen.route + "/${categoryBudget.id}")
-                                } else {
-                                    budgetViewModel.onBudgetCategoryChanged(category.id)
-                                    budgetViewModel.onBudgetMonthChanged(currentMonth)
-                                    budgetViewModel.onBudgetYearChanged(currentYear)
-                                    navController.navigate(Screen.AddEditBudgetScreen.route + "/0L")
-                                }
-                            }
+                            onActionClick = { onBudgetClick(category, categoryBudget) }
                         )
                     }
                 }
@@ -336,10 +386,8 @@ fun BudgetScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            scope.launch {
-                                visibilityRepository.setHiddenCategoryIds(draftHiddenIds)
-                                showVisibilityDialog = false
-                            }
+                            onApplyVisibility(draftHiddenIds)
+                            showVisibilityDialog = false
                         }
                     ) {
                         Text(stringResource(R.string.budget_list_visibility_apply))
@@ -767,6 +815,75 @@ private fun BudgetProgressBar(
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .background(barColor)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BudgetScreenPreview() {
+    val sampleCategories = listOf(
+        Category(1, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2, "Transporte", TransactionType.Gasto, "directions_bus"),
+        Category(3, "Ocio", TransactionType.Gasto, "movie"),
+        Category(4, "Vivienda", TransactionType.Gasto, "home")
+    )
+    val sampleBudgets = listOf(
+        Budget(1, 1, 500.0, 0.0, "10", 2023),
+        Budget(2, 2, 200.0, 0.0, "10", 2023)
+    )
+    val categorySpentMap = mapOf(
+        1L to 350.0,
+        2L to 250.0,
+        3L to 50.0,
+        4L to 800.0
+    )
+
+    EasyExpenseControlTheme {
+        BudgetScreenContent(
+            navController = rememberNavController(),
+            expenseCategories = sampleCategories,
+            currentMonthBudgets = sampleBudgets,
+            hiddenCategoryIds = emptySet(),
+            totalSpent = 1450.0,
+            totalLimit = 700.0,
+            categorySpentMap = categorySpentMap,
+            monthLabel = "Octubre",
+            year = 2023,
+            onBudgetClick = { _, _ -> },
+            onHistoryClick = {},
+            onApplyVisibility = {},
+            isAnimationEnabled = false
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BudgetSummaryCardPreview() {
+    EasyExpenseControlTheme {
+        BudgetSummaryCard(
+            monthLabel = "Octubre",
+            year = 2023,
+            totalSpent = 350.0,
+            totalLimit = 500.0,
+            animationProgress = 1f,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ExpenseBudgetItemPreview() {
+    val sampleCategory = Category(1, "Alimentos", TransactionType.Gasto, "restaurant")
+    val sampleBudget = Budget(1, 1, 500.0, 0.0, "10", 2023)
+    EasyExpenseControlTheme {
+        ExpenseBudgetItem(
+            category = sampleCategory,
+            budget = sampleBudget,
+            spent = 350.0,
+            onActionClick = {}
         )
     }
 }

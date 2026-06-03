@@ -111,6 +111,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
@@ -118,6 +119,7 @@ import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
 import com.virtualworld.easyexpensecontrol.core.util.ImportedFileType
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
+import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
@@ -155,9 +157,9 @@ fun AddEditDetailTransactionView(
     accountViewModel: AccountViewModel,
     navController: NavController
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     val accounts by accountViewModel.visibleAccounts.collectAsState(initial = emptyList())
+    val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
+    val detectedTransactions by transactionViewModel.detectedTransactions.collectAsState()
 
     LaunchedEffect(accounts, transactionViewModel.transactionAccountState) {
         if (accounts.isEmpty()) return@LaunchedEffect
@@ -166,11 +168,149 @@ fun AddEditDetailTransactionView(
         }
     }
 
-    var categoryName by remember { mutableStateOf("") }
+    if (id != 0L) {
+        val transaction = transactionViewModel.getTransactionById(id).collectAsState(
+            initial = Transaction(0L, TransactionType.Ingreso, 0.0, 0L, 0L, "")
+        )
+        transaction.value.let {
+            transactionViewModel.transactionTypeState = it.type
+            transactionViewModel.transactionAmountState = it.amount
+            transactionViewModel.transactionDescriptionState = it.description
+            transactionViewModel.transactionCategoryState = it.category
+            transactionViewModel.transactionDateState = it.date
+            transactionViewModel.transactionAccountState = it.accountId
+        }
+
+        val category = categoryViewModel.getCategoryById(transactionViewModel.transactionCategoryState)
+            .collectAsState(initial = null)
+        LaunchedEffect(category.value) {
+            category.value?.let {
+                categoryViewModel.categoryNameState = it.name
+                categoryViewModel.categoryTypeState = it.type
+            }
+        }
+    } else {
+        LaunchedEffect(id) {
+            transactionViewModel.clearDetectedTransactions()
+            transactionViewModel.transactionTypeState = null
+            transactionViewModel.transactionAmountState = 0.0
+            transactionViewModel.transactionDescriptionState = ""
+            transactionViewModel.transactionCategoryState = 0L
+            transactionViewModel.transactionAccountState = accounts.firstOrNull()?.id ?: 1L
+            val todayStart = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            transactionViewModel.transactionDateState = todayStart
+        }
+    }
+
+    AddEditDetailTransactionContent(
+        id = id,
+        transactionTypeState = transactionViewModel.transactionTypeState,
+        transactionAmountState = transactionViewModel.transactionAmountState,
+        transactionDescriptionState = transactionViewModel.transactionDescriptionState,
+        transactionCategoryState = transactionViewModel.transactionCategoryState,
+        transactionDateState = transactionViewModel.transactionDateState,
+        transactionAccountState = transactionViewModel.transactionAccountState,
+        receiptState = receiptState,
+        detectedTransactions = detectedTransactions,
+        categoryNameState = categoryViewModel.categoryNameState,
+        accounts = accounts,
+        onTransactionTypeChanged = { transactionViewModel.transactionTypeState = it },
+        onTransactionAmountChanged = { transactionViewModel.transactionAmountState = it },
+        onTransactionDescriptionChanged = { transactionViewModel.transactionDescriptionState = it },
+        onTransactionAccountChanged = { transactionViewModel.transactionAccountState = it },
+        onTransactionDateChanged = transactionViewModel::onTransactionDateChanged,
+        onCategoryNameChanged = { categoryViewModel.categoryNameState = it },
+        processReceiptImage = transactionViewModel::processReceiptImage,
+        processAudio = transactionViewModel::processAudio,
+        processImportedFile = transactionViewModel::processImportedFile,
+        clearReceiptProcessingState = transactionViewModel::clearReceiptProcessingState,
+        addOrUpdateDetectedTransaction = transactionViewModel::addOrUpdateDetectedTransaction,
+        commitDetectedTransactions = { onError, onSuccess ->
+            transactionViewModel.commitDetectedTransactions(onError, onSuccess)
+        },
+        clearDetectedTransactions = transactionViewModel::clearDetectedTransactions,
+        loadDetectedTransaction = transactionViewModel::loadDetectedTransaction,
+        removeDetectedTransactionAt = transactionViewModel::removeDetectedTransactionAt,
+        resetFormForNewTransaction = transactionViewModel::resetFormForNewTransaction,
+        saveTransaction = { tid, catName, cat, icon, onError, onSuccess ->
+            transactionViewModel.saveTransaction(tid, catName, cat, icon, onError, onSuccess)
+        },
+        getCategoryById = categoryViewModel::getCategoryById,
+        getCategoriesByType = categoryViewModel::getCategoriesByType,
+        navController = navController
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun AddEditDetailTransactionContent(
+    id: Long,
+    transactionTypeState: TransactionType?,
+    transactionAmountState: Double,
+    transactionDescriptionState: String,
+    transactionCategoryState: Long,
+    transactionDateState: Long,
+    transactionAccountState: Long,
+    receiptState: ReceiptProcessingState,
+    detectedTransactions: List<DetectedTransactionItem>,
+    categoryNameState: String,
+    accounts: List<Account>,
+    onTransactionTypeChanged: (TransactionType) -> Unit,
+    onTransactionAmountChanged: (Double) -> Unit,
+    onTransactionDescriptionChanged: (String) -> Unit,
+    onTransactionAccountChanged: (Long) -> Unit,
+    onTransactionDateChanged: (Long) -> Unit,
+    onCategoryNameChanged: (String) -> Unit,
+    processReceiptImage: (ByteArray) -> Unit,
+    processAudio: (ByteArray, TransactionType?) -> Unit,
+    processImportedFile: (ByteArray, ImportedFileType, Long, Long) -> Unit,
+    clearReceiptProcessingState: () -> Unit,
+    addOrUpdateDetectedTransaction: (categoryName: String, categoryId: Long, updateIndex: Int?, onDone: () -> Unit) -> Unit,
+    commitDetectedTransactions: (onError: suspend (String) -> Unit, onSuccess: suspend (Int) -> Unit) -> Unit,
+    clearDetectedTransactions: () -> Unit,
+    loadDetectedTransaction: (DetectedTransactionItem) -> Unit,
+    removeDetectedTransactionAt: (Int) -> Boolean,
+    resetFormForNewTransaction: () -> Unit,
+    saveTransaction: (id: Long, categoryName: String, category: Category?, iconName: String?, onError: suspend (String) -> Unit, onSuccess: suspend () -> Unit) -> Unit,
+    getCategoryById: (Long) -> kotlinx.coroutines.flow.Flow<Category?>,
+    getCategoriesByType: (TransactionType) -> kotlinx.coroutines.flow.Flow<List<Category>>,
+    navController: NavController
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    var categoryName by remember { mutableStateOf(categoryNameState) }
+    LaunchedEffect(categoryNameState) { categoryName = categoryNameState }
+
     var selectedIconKey by remember { mutableStateOf<String?>(null) }
+    val categoryFlowValue = getCategoryById(transactionCategoryState).collectAsState(initial = null)
+    LaunchedEffect(categoryFlowValue.value) {
+        categoryFlowValue.value?.let {
+            selectedIconKey = it.iconName
+        }
+    }
+
     var showIconPicker by remember { mutableStateOf(false) }
     var isCategoryFocused by remember { mutableStateOf(false) }
     var amountText by remember { mutableStateOf("") }
+
+    LaunchedEffect(transactionAmountState) {
+        val modelAmount = transactionAmountState
+        val textAmount = amountText.toDoubleOrNull() ?: 0.0
+        if (modelAmount != textAmount) {
+            amountText = if (modelAmount > 0) {
+                if (modelAmount == modelAmount.toLong().toDouble())
+                    modelAmount.toLong().toString()
+                else modelAmount.toString()
+            } else ""
+        }
+    }
+
     var isLoading by remember { mutableStateOf(false) }
     var isFinishing by remember { mutableStateOf(false) }
     var datePickerExpanded by remember { mutableStateOf(false) }
@@ -184,7 +324,7 @@ fun AddEditDetailTransactionView(
     ) { success ->
         if (success && tempPhotoUri != null) {
             context.contentResolver.openInputStream(tempPhotoUri!!)?.use { it.readBytes() }?.let { bytes ->
-                transactionViewModel.processReceiptImage(bytes)
+                processReceiptImage(bytes)
             }
         }
     }
@@ -218,7 +358,7 @@ fun AddEditDetailTransactionView(
         val bytes = audioRecorder.stopAndRead()
         isRecordingAudio = false
         if (bytes != null && bytes.isNotEmpty()) {
-            transactionViewModel.processAudio(bytes, transactionViewModel.transactionTypeState)
+            processAudio(bytes, transactionTypeState)
         } else {
             scope.launch {
                 snackbarHostState.showSnackbar(context.getString(R.string.error_audio_record))
@@ -232,8 +372,6 @@ fun AddEditDetailTransactionView(
         if (granted) startRecordingAudio()
     }
 
-    val receiptState by transactionViewModel.receiptProcessingState.collectAsState()
-    val detectedTransactions by transactionViewModel.detectedTransactions.collectAsState()
     val isAddMode = id == 0L
     var selectedDetectedIndex by remember { mutableStateOf<Int?>(null) }
     var showManualForm by remember { mutableStateOf(true) }
@@ -303,7 +441,7 @@ fun AddEditDetailTransactionView(
         showExcelDateRangeDialog = true
     }
 
-    LaunchedEffect(transactionViewModel.transactionTypeState) {
+    LaunchedEffect(transactionTypeState) {
         AiRewardedAdHelper.preload(context)
     }
 
@@ -312,11 +450,11 @@ fun AddEditDetailTransactionView(
             is ReceiptProcessingState.Success -> {
                 val success = receiptState as ReceiptProcessingState.Success
                 val count = success.transactionCount
-                val newStartIndex = (transactionViewModel.detectedTransactions.value.size - count).coerceAtLeast(0)
-                val firstDetected = transactionViewModel.detectedTransactions.value.getOrNull(newStartIndex)
+                val newStartIndex = (detectedTransactions.size - count).coerceAtLeast(0)
+                val firstDetected = detectedTransactions.getOrNull(newStartIndex)
                 if (firstDetected != null) {
                     categoryName = firstDetected.categoryName
-                    categoryViewModel.categoryNameState = categoryName
+                    onCategoryNameChanged(categoryName)
                     selectedDetectedIndex = newStartIndex
                     showManualForm = true
                 }
@@ -334,93 +472,35 @@ fun AddEditDetailTransactionView(
                     }
                 }
                 snackbarHostState.showSnackbar(message)
-                transactionViewModel.clearReceiptProcessingState()
+                clearReceiptProcessingState()
             }
             is ReceiptProcessingState.Error -> {
                 snackbarHostState.showSnackbar((receiptState as ReceiptProcessingState.Error).message)
-                transactionViewModel.clearReceiptProcessingState()
+                clearReceiptProcessingState()
             }
             else -> { }
         }
     }
 
-    if (id != 0L) {
-        val transaction = transactionViewModel.getTransactionById(id).collectAsState(
-            initial = Transaction(0L, TransactionType.Ingreso, 0.0, 0L, 0L, "")
-        )
-        transaction.value.let {
-            transactionViewModel.transactionTypeState = it.type
-            transactionViewModel.transactionAmountState = it.amount
-            transactionViewModel.transactionDescriptionState = it.description
-            transactionViewModel.transactionCategoryState = it.category
-            transactionViewModel.transactionDateState = it.date
-            transactionViewModel.transactionAccountState = it.accountId
-        }
-
-        val category = categoryViewModel.getCategoryById(transactionViewModel.transactionCategoryState)
-            .collectAsState(initial = null)
-        LaunchedEffect(category.value) {
-            category.value?.let {
-                categoryName = it.name
-                selectedIconKey = it.iconName
-                categoryViewModel.categoryNameState = it.name
-                categoryViewModel.categoryTypeState = it.type
-            }
-        }
-    } else {
-        LaunchedEffect(id) {
-            transactionViewModel.clearDetectedTransactions()
-            selectedDetectedIndex = null
-            showManualForm = true
-            transactionViewModel.transactionTypeState = null
-            transactionViewModel.transactionAmountState = 0.0
-            transactionViewModel.transactionDescriptionState = ""
-            transactionViewModel.transactionCategoryState = 0L
-            transactionViewModel.transactionAccountState = accounts.firstOrNull()?.id ?: 1L
-            categoryName = ""
-            selectedIconKey = null
-            amountText = ""
-            val todayStart = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-            transactionViewModel.transactionDateState = todayStart
-        }
-    }
-
-    LaunchedEffect(transactionViewModel.transactionAmountState) {
-        val modelAmount = transactionViewModel.transactionAmountState
-        val textAmount = amountText.toDoubleOrNull() ?: 0.0
-        if (modelAmount != textAmount) {
-            amountText = if (modelAmount > 0) {
-                if (modelAmount == modelAmount.toLong().toDouble())
-                    modelAmount.toLong().toString()
-                else modelAmount.toString()
-            } else ""
-        }
-    }
-
-    val initialDateMillis = transactionViewModel.transactionDateState.takeIf { it != 0L }
+    val initialDateMillis = transactionDateState.takeIf { it != 0L }
         ?: System.currentTimeMillis()
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = initialDateMillis,
         initialDisplayedMonthMillis = initialDateMillis
     )
     LaunchedEffect(datePickerState.selectedDateMillis) {
-        datePickerState.selectedDateMillis?.let { transactionViewModel.onTransactionDateChanged(it) }
+        datePickerState.selectedDateMillis?.let { onTransactionDateChanged(it) }
     }
-    LaunchedEffect(transactionViewModel.transactionDateState) {
-        val modelDate = transactionViewModel.transactionDateState
+    LaunchedEffect(transactionDateState) {
+        val modelDate = transactionDateState
         if (modelDate != 0L && datePickerState.selectedDateMillis != modelDate) {
             datePickerState.selectedDateMillis = modelDate
         }
     }
 
-    val currentType = transactionViewModel.transactionTypeState
+    val currentType = transactionTypeState
     val categoriesByType by (
-        if (currentType != null) categoryViewModel.getCategoriesByType(currentType)
+        if (currentType != null) getCategoriesByType(currentType)
         else kotlinx.coroutines.flow.flowOf(emptyList())
     ).collectAsState(initial = emptyList())
     val filteredCategories = remember(categoriesByType, categoryName) {
@@ -432,24 +512,25 @@ fun AddEditDetailTransactionView(
 
     fun resetLocalCategoryFields() {
         categoryName = ""
+        onCategoryNameChanged("")
         selectedIconKey = null
     }
 
     fun validateTransactionForm(): Boolean {
         when {
-            transactionViewModel.transactionTypeState == null -> {
+            transactionTypeState == null -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.err_type_required))
                 }
                 return false
             }
-            transactionViewModel.transactionAmountState <= 0 -> {
+            transactionAmountState <= 0 -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.err_amount_gt_zero))
                 }
                 return false
             }
-            transactionViewModel.transactionDescriptionState.isBlank() -> {
+            transactionDescriptionState.isBlank() -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.err_description_empty))
                 }
@@ -467,7 +548,7 @@ fun AddEditDetailTransactionView(
                 }
                 return false
             }
-            accounts.isNotEmpty() && accounts.none { it.id == transactionViewModel.transactionAccountState } -> {
+            accounts.isNotEmpty() && accounts.none { it.id == transactionAccountState } -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.err_account_required))
                 }
@@ -478,11 +559,11 @@ fun AddEditDetailTransactionView(
     }
 
     fun addCurrentFormToDetected(onDone: () -> Unit) {
-        transactionViewModel.addOrUpdateDetectedTransaction(
-            categoryName = categoryName,
-            categoryId = resolvedCategory?.id ?: transactionViewModel.transactionCategoryState,
-            updateIndex = selectedDetectedIndex,
-            onSuccess = {
+        addOrUpdateDetectedTransaction(
+            categoryName,
+            resolvedCategory?.id ?: transactionCategoryState,
+            selectedDetectedIndex,
+            {
                 selectedDetectedIndex = null
                 resetLocalCategoryFields()
                 onDone()
@@ -492,8 +573,8 @@ fun AddEditDetailTransactionView(
 
     fun commitAllDetected() {
         isFinishing = true
-        transactionViewModel.commitDetectedTransactions(
-            onError = { error ->
+        commitDetectedTransactions(
+            { error ->
                 scope.launch {
                     snackbarHostState.showSnackbar(
                         if (error.isBlank()) context.getString(R.string.error_unknown)
@@ -502,7 +583,7 @@ fun AddEditDetailTransactionView(
                     isFinishing = false
                 }
             },
-            onSuccess = {
+            {
                 isFinishing = false
                 scope.launch {
                     navController.navigateUp()
@@ -512,8 +593,8 @@ fun AddEditDetailTransactionView(
     }
 
     fun hasUnsavedFormData(): Boolean =
-        transactionViewModel.transactionAmountState > 0 ||
-            transactionViewModel.transactionDescriptionState.isNotBlank() ||
+        transactionAmountState > 0 ||
+            transactionDescriptionState.isNotBlank() ||
             categoryName.isNotBlank()
 
     fun hasUnsavedPreparedWork(): Boolean =
@@ -541,7 +622,7 @@ fun AddEditDetailTransactionView(
 
     fun discardPreparedAndExit() {
         showExitConfirmDialog = false
-        transactionViewModel.clearDetectedTransactions()
+        clearDetectedTransactions()
         navController.navigateUp()
     }
 
@@ -555,7 +636,7 @@ fun AddEditDetailTransactionView(
                 filtered.substring(firstDot + 1).replace(".", "")
         }
         amountText = sanitized
-        transactionViewModel.onTransactionAmountChanged(
+        onTransactionAmountChanged(
             sanitized.toDoubleOrNull() ?: 0.0
         )
     }
@@ -609,10 +690,10 @@ fun AddEditDetailTransactionView(
 
     fun deleteSelectedPreparedTransaction() {
         val index = selectedDetectedIndex ?: return
-        if (transactionViewModel.removeDetectedTransactionAt(index)) {
+        if (removeDetectedTransactionAt(index)) {
             selectedDetectedIndex = null
             resetLocalCategoryFields()
-            transactionViewModel.resetFormForNewTransaction()
+            resetFormForNewTransaction()
             amountText = ""
             scope.launch {
                 snackbarHostState.showSnackbar(
@@ -638,12 +719,12 @@ fun AddEditDetailTransactionView(
             }
         } else {
             isLoading = true
-            transactionViewModel.saveTransaction(
-                id = id,
-                categoryName = categoryName,
-                category = resolvedCategory,
-                iconName = selectedIconKey,
-                onError = { error ->
+            saveTransaction(
+                id,
+                categoryName,
+                resolvedCategory,
+                selectedIconKey,
+                { error ->
                     scope.launch {
                         snackbarHostState.showSnackbar(
                             if (error.isBlank()) context.getString(R.string.error_unknown)
@@ -652,7 +733,7 @@ fun AddEditDetailTransactionView(
                         isLoading = false
                     }
                 },
-                onSuccess = {
+                {
                     scope.launch {
                         navController.navigateUp()
                     }
@@ -737,8 +818,8 @@ fun AddEditDetailTransactionView(
                     onSave = { prepareOrUpdateTransaction() },
                     showPrimaryButton = !isAddMode,
                     onFinish = {
-                        val hasFormData = transactionViewModel.transactionAmountState > 0 ||
-                            transactionViewModel.transactionDescriptionState.isNotBlank() ||
+                        val hasFormData = transactionAmountState > 0 ||
+                            transactionDescriptionState.isNotBlank() ||
                             categoryName.isNotBlank()
                         when {
                             hasFormData -> {
@@ -785,9 +866,9 @@ fun AddEditDetailTransactionView(
                             transactions = detectedTransactions,
                             selectedIndex = selectedDetectedIndex,
                             onItemClick = { index, item ->
-                                transactionViewModel.loadDetectedTransaction(item)
+                                loadDetectedTransaction(item)
                                 categoryName = item.categoryName
-                                categoryViewModel.categoryNameState = item.categoryName
+                                onCategoryNameChanged(item.categoryName)
                                 selectedDetectedIndex = index
                             }
                         )
@@ -870,7 +951,7 @@ fun AddEditDetailTransactionView(
                             SectionTitle(text = stringResource(R.string.transaction_type))
                             TransactionTypeSelector(
                                 selectedType = currentType,
-                                onTypeChanged = transactionViewModel::onTransactionTypeChanged
+                                onTypeChanged = onTransactionTypeChanged
                             )
 
                             if (currentType == null && isAddMode) {
@@ -897,8 +978,8 @@ fun AddEditDetailTransactionView(
                                 )
                                 AccountSelectorChips(
                                     accounts = accounts,
-                                    selectedAccountId = transactionViewModel.transactionAccountState,
-                                    onAccountSelected = transactionViewModel::onTransactionAccountChanged,
+                                    selectedAccountId = transactionAccountState,
+                                    onAccountSelected = onTransactionAccountChanged,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -916,8 +997,8 @@ fun AddEditDetailTransactionView(
                                     )
                                     AppTextField(
                                         label = stringResource(R.string.hint_description),
-                                        value = transactionViewModel.transactionDescriptionState,
-                                        onValueChange = transactionViewModel::onTransactionDescriptionChanged,
+                                        value = transactionDescriptionState,
+                                        onValueChange = onTransactionDescriptionChanged,
                                         labelStyle = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.focusScrollIntoView()
                                     )
@@ -929,7 +1010,7 @@ fun AddEditDetailTransactionView(
                                     categoryName = categoryName,
                                     onCategoryNameChange = { value ->
                                         categoryName = value
-                                        categoryViewModel.categoryNameState = value
+                                        onCategoryNameChanged(value)
                                     },
                                     filteredCategories = filteredCategories,
                                     selectedIconKey = selectedIconKey,
@@ -937,7 +1018,7 @@ fun AddEditDetailTransactionView(
                                     onIconPickerClick = { showIconPicker = true },
                                     onCategorySelected = { cat ->
                                         categoryName = cat.name
-                                        categoryViewModel.categoryNameState = cat.name
+                                        onCategoryNameChanged(cat.name)
                                         selectedIconKey = cat.iconName
                                     },
                                     onFocusChanged = { isCategoryFocused = it }
@@ -1104,7 +1185,7 @@ fun AddEditDetailTransactionView(
                         pendingImportBytes = null
                         pendingImportFileName = ""
                         pendingImportFileType = null
-                        transactionViewModel.processImportedFile(bytes, fileType, startMillis, endMillis)
+                        processImportedFile(bytes, fileType, startMillis, endMillis)
                     }
                 )
             }
@@ -2086,6 +2167,50 @@ fun TransactionTypeDropdown(
     onTypeChanged: (TransactionType) -> Unit
 ) {
     TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddEditDetailTransactionViewPreview() {
+    val sampleAccounts = listOf(
+        Account(1L, "Efectivo"),
+        Account(2L, "Tarjeta de Crédito")
+    )
+    EasyExpenseControlTheme {
+        AddEditDetailTransactionContent(
+            id = 0L,
+            transactionTypeState = TransactionType.Gasto,
+            transactionAmountState = 50.0,
+            transactionDescriptionState = "Compra semanal",
+            transactionAccountState = 1L,
+            transactionDateState = System.currentTimeMillis(),
+            transactionCategoryState = 0L,
+            receiptState = ReceiptProcessingState.Idle,
+            detectedTransactions = emptyList(),
+            categoryNameState = "Supermercado",
+            accounts = sampleAccounts,
+            onTransactionTypeChanged = {},
+            onTransactionAmountChanged = {},
+            onTransactionDescriptionChanged = {},
+            onTransactionAccountChanged = {},
+            onTransactionDateChanged = {},
+            onCategoryNameChanged = {},
+            processReceiptImage = {},
+            processAudio = { _, _ -> },
+            processImportedFile = { _, _, _, _ -> },
+            clearReceiptProcessingState = {},
+            addOrUpdateDetectedTransaction = { _, _, _, _ -> },
+            commitDetectedTransactions = { _, _ -> },
+            clearDetectedTransactions = {},
+            loadDetectedTransaction = {},
+            removeDetectedTransactionAt = { false },
+            resetFormForNewTransaction = {},
+            saveTransaction = { _, _, _, _, _, _ -> },
+            getCategoryById = { kotlinx.coroutines.flow.flowOf(null) },
+            getCategoriesByType = { kotlinx.coroutines.flow.flowOf(emptyList()) },
+            navController = rememberNavController()
+        )
+    }
 }
 
 @Preview(showBackground = true)

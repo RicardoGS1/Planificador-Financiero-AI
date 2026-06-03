@@ -64,8 +64,11 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import java.util.Locale
+import kotlin.math.abs
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
@@ -588,17 +591,21 @@ fun TotalBalanceSection(
     label: String? = null,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val animatedBalance = remember { Animatable(0f) }
     val balanceLabel = label ?: stringResource(R.string.total_balance)
-    val gradient = Brush.linearGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-            AccentBlue.copy(alpha = 0.5f),
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-        )
+    val displayBalance = animatedBalance.value.toDouble()
+    val accentColor = when {
+        balance > 0 -> MaterialTheme.colorScheme.primary
+        balance < 0 -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val currencySymbol = CurrencyFormatter.symbol(LocalContext.current)
+    val amountText = "%.2f".format(Locale.getDefault(), abs(displayBalance))
+    val amountTextStyle = TextStyle(
+        fontSize = 42.sp,
+        fontWeight = FontWeight.Bold,
+        color = accentColor
     )
-
     LaunchedEffect(balance) {
         if (!hasAnimatedBalanceInSession) {
             val startValue = if (balance == 0.0) 1000f else 0f
@@ -617,30 +624,41 @@ fun TotalBalanceSection(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = DashboardCardShape,
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = accentColor.copy(alpha = 0.1f)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(gradient)
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = balanceLabel,
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White.copy(alpha = 0.85f),
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = CurrencyFormatter.format(context, animatedBalance.value.toDouble()),
-                style = MaterialTheme.typography.displaySmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = amountText,
+                    style = amountTextStyle
+                )
+                Text(
+                    text = currencySymbol,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
         }
     }
 }

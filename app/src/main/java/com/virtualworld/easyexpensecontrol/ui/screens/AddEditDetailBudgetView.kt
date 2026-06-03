@@ -58,14 +58,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Budget
+import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.AppTextField
 import com.virtualworld.easyexpensecontrol.ui.components.ScreenHeader
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
+import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
@@ -88,7 +91,6 @@ fun AddEditDetailBudgetView(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
 
     if (id != 0L) {
         val transaction = budgetViewModel.getBudgetById(id).collectAsState(initial = Budget(0L, 0L, 0.0, 0.0, "0", 0))
@@ -162,6 +164,87 @@ fun AddEditDetailBudgetView(
         if (m in 1..12 && y > 0) "${monthNamesFull[m - 1]} $y" else ""
     }
 
+    val categories = categoryViewModel.getCategoriesByType(TransactionType.Gasto).collectAsState(initial = emptyList()).value
+
+    AddEditDetailBudgetContent(
+        id = id,
+        isLoading = isLoading,
+        displayDate = displayDate,
+        budgetCategoryState = budgetViewModel.budgetCategoryState,
+        budgetMonthlyLimitState = budgetViewModel.budgetMonthlyLimitState,
+        budgetMonthState = budgetViewModel.budgetMonthState,
+        budgetYearState = budgetViewModel.budgetYearState,
+        categories = categories,
+        onBackClick = { navController.navigateUp() },
+        onCategoryChanged = budgetViewModel::onBudgetCategoryChanged,
+        onMonthYearSelected = { month, year ->
+            budgetViewModel.onBudgetMonthChanged(month.toString())
+            budgetViewModel.onBudgetYearChanged(year)
+        },
+        onMonthlyLimitChanged = { budgetViewModel.onBudgetMonthlyLimitChanged(it) },
+        onSaveClick = {
+            when {
+                budgetViewModel.budgetCategoryState == 0L -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.err_select_category))
+                    }
+                }
+                id == 0L && displayDate.isBlank() -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.err_select_month_year))
+                    }
+                }
+                budgetViewModel.budgetMonthlyLimitState == 0.0 -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.err_monthly_limit_empty))
+                    }
+                }
+                id == 0L -> {
+                    isLoading = true
+                    scope.launch {
+                        val budgetAlreadyExists = budgetViewModel
+                            .getBudgetForCategoryMonthAndYear(
+                                budgetViewModel.budgetCategoryState,
+                                budgetViewModel.budgetMonthState,
+                                budgetViewModel.budgetYearState
+                            ).first()
+                        if (budgetAlreadyExists != null) {
+                            snackbarHostState.showSnackbar(context.getString(R.string.err_duplicate_budget))
+                            isLoading = false
+                        } else {
+                            handleSaveBudget()
+                        }
+                    }
+                }
+                else -> {
+                    isLoading = true
+                    handleSaveBudget()
+                }
+            }
+        },
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@Composable
+fun AddEditDetailBudgetContent(
+    id: Long,
+    isLoading: Boolean,
+    displayDate: String,
+    budgetCategoryState: Long,
+    budgetMonthlyLimitState: Double,
+    budgetMonthState: String,
+    budgetYearState: Int,
+    categories: List<Category>,
+    onBackClick: () -> Unit,
+    onCategoryChanged: (Long) -> Unit,
+    onMonthYearSelected: (Int, Int) -> Unit,
+    onMonthlyLimitChanged: (Double) -> Unit,
+    onSaveClick: () -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+) {
+    val scrollState = rememberScrollState()
+
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier
@@ -183,7 +266,7 @@ fun AddEditDetailBudgetView(
                     stringResource(id = R.string.add_budget)
                 },
                 showBackArrow = true,
-                onBackClick = { navController.navigateUp() }
+                onBackClick = onBackClick
             )
 
             Column(
@@ -193,9 +276,9 @@ fun AddEditDetailBudgetView(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 BudgetCategoryCard(
-                    selectedCategory = budgetViewModel.budgetCategoryState,
-                    categoryViewModel = categoryViewModel,
-                    onCategoryChanged = budgetViewModel::onBudgetCategoryChanged
+                    selectedCategory = budgetCategoryState,
+                    categories = categories,
+                    onCategoryChanged = onCategoryChanged
                 )
 
                 var isPickerVisible by remember { mutableStateOf(false) }
@@ -210,13 +293,12 @@ fun AddEditDetailBudgetView(
                     if (isPickerVisible) {
                         Spacer(modifier = Modifier.height(12.dp))
                         MonthPickerInline(
-                            currentMonth = budgetViewModel.budgetMonthState.toIntOrNull()?.takeIf { it in 1..12 }
+                            currentMonth = budgetMonthState.toIntOrNull()?.takeIf { it in 1..12 }
                                 ?: java.util.Calendar.getInstance().get(java.util.Calendar.MONTH) + 1,
-                            currentYear = budgetViewModel.budgetYearState.takeIf { it > 0 }
+                            currentYear = budgetYearState.takeIf { it > 0 }
                                 ?: java.util.Calendar.getInstance().get(java.util.Calendar.YEAR),
                             onSelected = { month, year ->
-                                budgetViewModel.onBudgetMonthChanged(month.toString())
-                                budgetViewModel.onBudgetYearChanged(year)
+                                onMonthYearSelected(month, year)
                                 isPickerVisible = false
                             }
                         )
@@ -224,8 +306,8 @@ fun AddEditDetailBudgetView(
                 }
 
                 var monthlyLimitText by remember { mutableStateOf("") }
-                LaunchedEffect(budgetViewModel.budgetMonthlyLimitState) {
-                    val modelAmount = budgetViewModel.budgetMonthlyLimitState
+                LaunchedEffect(budgetMonthlyLimitState) {
+                    val modelAmount = budgetMonthlyLimitState
                     val textAmount = monthlyLimitText.toDoubleOrNull() ?: 0.0
                     if (modelAmount != textAmount) {
                         monthlyLimitText = if (modelAmount > 0) {
@@ -253,7 +335,7 @@ fun AddEditDetailBudgetView(
                                     filtered.substring(firstDot + 1).replace(".", "")
                             }
                             monthlyLimitText = sanitized
-                            budgetViewModel.onBudgetMonthlyLimitChanged(
+                            onMonthlyLimitChanged(
                                 sanitized.toDoubleOrNull() ?: 0.0
                             )
                         },
@@ -262,46 +344,7 @@ fun AddEditDetailBudgetView(
                 }
 
                 Button(
-                    onClick = {
-                        when {
-                            budgetViewModel.budgetCategoryState == 0L -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_select_category))
-                                }
-                            }
-                            id == 0L && displayDate.isBlank() -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_select_month_year))
-                                }
-                            }
-                            budgetViewModel.budgetMonthlyLimitState == 0.0 -> {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.err_monthly_limit_empty))
-                                }
-                            }
-                            id == 0L -> {
-                                isLoading = true
-                                scope.launch {
-                                    val budgetAlreadyExists = budgetViewModel
-                                        .getBudgetForCategoryMonthAndYear(
-                                            budgetViewModel.budgetCategoryState,
-                                            budgetViewModel.budgetMonthState,
-                                            budgetViewModel.budgetYearState
-                                        ).first()
-                                    if (budgetAlreadyExists != null) {
-                                        snackbarHostState.showSnackbar(context.getString(R.string.err_duplicate_budget))
-                                        isLoading = false
-                                    } else {
-                                        handleSaveBudget()
-                                    }
-                                }
-                            }
-                            else -> {
-                                isLoading = true
-                                handleSaveBudget()
-                            }
-                        }
-                    },
+                    onClick = onSaveClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -479,11 +522,10 @@ private fun MonthPickerInline(
 @Composable
 private fun BudgetCategoryCard(
     selectedCategory: Long,
-    categoryViewModel: CategoryViewModel,
+    categories: List<Category>,
     onCategoryChanged: (Long) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val categories = categoryViewModel.getCategoriesByType(TransactionType.Gasto).collectAsState(initial = emptyList()).value
     val selectedCategoryName = categories.find { it.id == selectedCategory }?.name
         ?: stringResource(R.string.select_category)
 
@@ -519,9 +561,38 @@ fun BudgetCategoryDropdown(
     categoryViewModel: CategoryViewModel,
     onCategoryChanged: (Long) -> Unit
 ) {
+    val categories = categoryViewModel.getCategoriesByType(TransactionType.Gasto).collectAsState(initial = emptyList()).value
     BudgetCategoryCard(
         selectedCategory = selectedCategory,
-        categoryViewModel = categoryViewModel,
+        categories = categories,
         onCategoryChanged = onCategoryChanged
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddEditDetailBudgetViewPreview() {
+    val sampleCategories = listOf(
+        Category(1L, "Alimentos", TransactionType.Gasto, "restaurant"),
+        Category(2L, "Transporte", TransactionType.Gasto, "directions_bus"),
+        Category(3L, "Ocio", TransactionType.Gasto, "movie")
+    )
+
+    EasyExpenseControlTheme {
+        AddEditDetailBudgetContent(
+            id = 0L,
+            isLoading = false,
+            displayDate = "Marzo 2024",
+            budgetCategoryState = 1L,
+            budgetMonthlyLimitState = 500.0,
+            budgetMonthState = "03",
+            budgetYearState = 2024,
+            categories = sampleCategories,
+            onBackClick = {},
+            onCategoryChanged = {},
+            onMonthYearSelected = { _, _ -> },
+            onMonthlyLimitChanged = {},
+            onSaveClick = {}
+        )
+    }
 }
