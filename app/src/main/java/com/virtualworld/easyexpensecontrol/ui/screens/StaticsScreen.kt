@@ -72,7 +72,6 @@ import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
-import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlActive
 import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBackground
 import com.virtualworld.easyexpensecontrol.ui.theme.EmbeddedControlBorder
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
@@ -454,9 +453,9 @@ private fun StatisticsFiltersCard(
 ) {
     val gradient = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-            AccentBlue.copy(alpha = 0.5f),
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            MaterialTheme.colorScheme.primary,
+            AccentBlue,
+            MaterialTheme.colorScheme.primary
         )
     )
 
@@ -526,13 +525,13 @@ private fun PeriodTypeSelector(
     val primary = MaterialTheme.colorScheme.primary
     val surface = if (embedded) EmbeddedControlBackground else MaterialTheme.colorScheme.surface
     val onSurface = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
-    val onPrimary = if (embedded) primary else Color.White
+    val activeContent = if (embedded) AccentBlue else Color.White
     val outline = if (embedded) {
         EmbeddedControlBorder
     } else {
         MaterialTheme.colorScheme.outlineVariant
     }
-    val activeContainer = if (embedded) EmbeddedControlActive else primary
+    val activeContainer = if (embedded) Color.White else primary
     val cornerRadius = 6.dp
 
     SingleChoiceSegmentedButtonRow(
@@ -549,14 +548,17 @@ private fun PeriodTypeSelector(
             ),
             colors = SegmentedButtonDefaults.colors(
                 activeContainerColor = activeContainer,
-                activeContentColor = onPrimary,
+                activeContentColor = activeContent,
                 inactiveContainerColor = surface,
                 inactiveContentColor = onSurface,
                 activeBorderColor = if (embedded) Color.White else primary,
                 inactiveBorderColor = outline
             )
         ) {
-            Text(stringResource(R.string.period_day))
+            Text(
+                text = stringResource(R.string.period_day),
+                fontWeight = if (selected == PeriodType.Day) FontWeight.Bold else FontWeight.Medium
+            )
         }
         SegmentedButton(
             selected = selected == PeriodType.Month,
@@ -564,14 +566,17 @@ private fun PeriodTypeSelector(
             shape = RoundedCornerShape(0.dp),
             colors = SegmentedButtonDefaults.colors(
                 activeContainerColor = activeContainer,
-                activeContentColor = onPrimary,
+                activeContentColor = activeContent,
                 inactiveContainerColor = surface,
                 inactiveContentColor = onSurface,
                 activeBorderColor = if (embedded) Color.White else primary,
                 inactiveBorderColor = outline
             )
         ) {
-            Text(stringResource(R.string.period_month))
+            Text(
+                text = stringResource(R.string.period_month),
+                fontWeight = if (selected == PeriodType.Month) FontWeight.Bold else FontWeight.Medium
+            )
         }
         SegmentedButton(
             selected = selected == PeriodType.Year,
@@ -584,14 +589,17 @@ private fun PeriodTypeSelector(
             ),
             colors = SegmentedButtonDefaults.colors(
                 activeContainerColor = activeContainer,
-                activeContentColor = onPrimary,
+                activeContentColor = activeContent,
                 inactiveContainerColor = surface,
                 inactiveContentColor = onSurface,
                 activeBorderColor = if (embedded) Color.White else primary,
                 inactiveBorderColor = outline
             )
         ) {
-            Text(stringResource(R.string.period_year))
+            Text(
+                text = stringResource(R.string.period_year),
+                fontWeight = if (selected == PeriodType.Year) FontWeight.Bold else FontWeight.Medium
+            )
         }
     }
 }
@@ -603,6 +611,7 @@ private fun DateSelectorLabel(text: String, color: Color) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
         color = color,
         modifier = Modifier.padding(bottom = 4.dp)
     )
@@ -637,18 +646,18 @@ private fun DaySelector(
     embedded: Boolean = false
 ) {
     val labelColor = if (embedded) {
-        Color.White.copy(alpha = 0.85f)
+        Color.White
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val contentColor = if (embedded) AccentBlue else MaterialTheme.colorScheme.onSurface
     val panelBackground = if (embedded) {
-        EmbeddedControlBackground
+        Color.White
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
     val panelBorder = if (embedded) {
-        EmbeddedControlBorder
+        Color.White
     } else {
         MaterialTheme.colorScheme.outlineVariant
     }
@@ -665,7 +674,7 @@ private fun DaySelector(
                 .clip(DateSelectorPanelShape)
                 .background(panelBackground)
                 .border(1.dp, panelBorder, DateSelectorPanelShape)
-                .padding(horizontal = 4.dp, vertical = 2.dp),
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -677,8 +686,8 @@ private fun DaySelector(
             )
             Text(
                 text = days.getOrNull(selectedIndex)?.first ?: "",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = contentColor,
                 modifier = Modifier.width(80.dp),
                 textAlign = TextAlign.Center
@@ -704,17 +713,17 @@ private fun MonthYearSelector(
 ) {
     val monthNames = stringArrayResource(R.array.month_names_short).toList()
     val labelColor = if (embedded) {
-        Color.White.copy(alpha = 0.85f)
+        Color.White
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val contentColor = if (embedded) AccentBlue else MaterialTheme.colorScheme.onSurface
     val panelBackground = if (embedded) {
-        EmbeddedControlBackground
+        Color.White
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
-    val panelBorder = if (embedded) EmbeddedControlBorder else null
+    val panelBorder = if (embedded) Color.White else null
     val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
 
     Column(modifier = modifier.then(contentPadding)) {
@@ -734,7 +743,7 @@ private fun MonthYearSelector(
                         Modifier
                     }
                 )
-                .padding(horizontal = 4.dp, vertical = 2.dp),
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -754,8 +763,8 @@ private fun MonthYearSelector(
                 )
                 Text(
                     text = monthNames.getOrNull(month - 1) ?: "",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     color = contentColor,
                     modifier = Modifier.width(48.dp),
                     textAlign = TextAlign.Center
@@ -784,8 +793,8 @@ private fun MonthYearSelector(
                 )
                 Text(
                     text = year.toString(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     color = contentColor,
                     modifier = Modifier.width(56.dp),
                     textAlign = TextAlign.Center
@@ -810,17 +819,17 @@ private fun YearSelector(
     embedded: Boolean = false
 ) {
     val labelColor = if (embedded) {
-        Color.White.copy(alpha = 0.85f)
+        Color.White
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val contentColor = if (embedded) Color.White else MaterialTheme.colorScheme.onSurface
+    val contentColor = if (embedded) AccentBlue else MaterialTheme.colorScheme.onSurface
     val panelBackground = if (embedded) {
-        EmbeddedControlBackground
+        Color.White
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
-    val panelBorder = if (embedded) EmbeddedControlBorder else null
+    val panelBorder = if (embedded) Color.White else null
     val contentPadding = if (embedded) Modifier else Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
 
     Column(modifier = modifier.then(contentPadding)) {
@@ -840,7 +849,7 @@ private fun YearSelector(
                         Modifier
                     }
                 )
-                .padding(horizontal = 4.dp, vertical = 2.dp),
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -852,7 +861,7 @@ private fun YearSelector(
             )
             Text(
                 text = year.toString(),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = contentColor,
                 modifier = Modifier.padding(horizontal = 16.dp)

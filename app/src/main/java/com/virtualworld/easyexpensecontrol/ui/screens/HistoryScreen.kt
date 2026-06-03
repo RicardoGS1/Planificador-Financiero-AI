@@ -442,9 +442,9 @@ private fun TransactionFiltersCard(
 ) {
     val gradient = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-            AccentBlue.copy(alpha = 0.5f),
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            MaterialTheme.colorScheme.primary,
+            AccentBlue,
+            MaterialTheme.colorScheme.primary
         )
     )
 
