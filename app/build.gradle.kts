@@ -67,11 +67,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                // Incluye símbolos nativos en el AAB para depurar crashes/ANR en Play Console
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
             if (releaseSigningReady) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
