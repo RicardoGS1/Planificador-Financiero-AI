@@ -92,26 +92,22 @@ fun AddEditDetailBudgetView(
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
 
-    if (id != 0L) {
-        val transaction = budgetViewModel.getBudgetById(id).collectAsState(initial = Budget(0L, 0L, 0.0, 0.0, "0", 0))
-        transaction.value.let {
-            budgetViewModel.budgetCategoryState = it.category
-            budgetViewModel.budgetCurrentExpenditureState = it.currentExpenditure
-            budgetViewModel.budgetMonthlyLimitState = it.monthlyLimit
-            budgetViewModel.budgetMonthState = it.month
-            budgetViewModel.budgetYearState = it.year
-        }
-
-        val category = categoryViewModel.getCategoryById(budgetViewModel.budgetCategoryState).collectAsState(initial = null)
-        LaunchedEffect(category.value) {
-            category.value?.let {
-                categoryViewModel.categoryNameState = it.name
-                categoryViewModel.categoryTypeState = it.type
+    LaunchedEffect(id) {
+        if (id != 0L) {
+            val budget = budgetViewModel.getBudgetById(id).first()
+            budgetViewModel.budgetCategoryState = budget.category
+            budgetViewModel.budgetCurrentExpenditureState = budget.currentExpenditure
+            budgetViewModel.budgetMonthlyLimitState = budget.monthlyLimit
+            budgetViewModel.budgetMonthState = budget.month
+            budgetViewModel.budgetYearState = budget.year
+            categoryViewModel.getCategoryById(budget.category).first()?.let { category ->
+                categoryViewModel.categoryNameState = category.name
+                categoryViewModel.categoryTypeState = category.type
             }
+        } else {
+            budgetViewModel.budgetCurrentExpenditureState = 0.0
+            budgetViewModel.budgetMonthlyLimitState = 0.0
         }
-    } else {
-        budgetViewModel.budgetCurrentExpenditureState = 0.0
-        budgetViewModel.budgetMonthlyLimitState = 0.0
     }
 
     fun handleSaveBudget() {
@@ -145,14 +141,14 @@ fun AddEditDetailBudgetView(
                     }
                 }
 
+                isLoading = false
                 snackbarHostState.showSnackbar(context.getString(R.string.success_operation))
                 navController.navigateUp()
             } catch (e: Exception) {
+                isLoading = false
                 snackbarHostState.showSnackbar(
                     context.getString(R.string.error_prefix, e.message ?: context.getString(R.string.error_unknown))
                 )
-            } finally {
-                isLoading = false
             }
         }
     }
@@ -209,8 +205,8 @@ fun AddEditDetailBudgetView(
                                 budgetViewModel.budgetYearState
                             ).first()
                         if (budgetAlreadyExists != null) {
-                            snackbarHostState.showSnackbar(context.getString(R.string.err_duplicate_budget))
                             isLoading = false
+                            snackbarHostState.showSnackbar(context.getString(R.string.err_duplicate_budget))
                         } else {
                             handleSaveBudget()
                         }

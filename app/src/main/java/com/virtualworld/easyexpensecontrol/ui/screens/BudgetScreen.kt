@@ -158,14 +158,24 @@ fun BudgetScreen(
         expenseCategories.filter { it.id !in hiddenCategoryIds }.map { it.id }.toSet()
     }
 
+    val budgetedCategoryIds = remember(currentMonthBudgets, visibleCategoryIds) {
+        currentMonthBudgets
+            .filter { it.category in visibleCategoryIds }
+            .map { it.category }
+            .toSet()
+    }
+
     val totalLimit = remember(currentMonthBudgets, visibleCategoryIds) {
         currentMonthBudgets
             .filter { it.category in visibleCategoryIds }
             .sumOf { it.monthlyLimit }
     }
 
-    val totalSpent = remember(categorySpentMap, visibleCategoryIds) {
-        categorySpentMap.filter { it.key in visibleCategoryIds }.values.sum()
+    val totalSpent = remember(categorySpentMap, budgetedCategoryIds) {
+        categorySpentMap
+            .filter { (categoryId, _) -> categoryId in budgetedCategoryIds }
+            .values
+            .sum()
     }
 
     val scope = rememberCoroutineScope()
