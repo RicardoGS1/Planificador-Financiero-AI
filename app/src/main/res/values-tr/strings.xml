@@ -130,9 +130,11 @@
     <string name="input_option_audio_desc">Ne harcadığınızı veya kazandığınızı söyleyin, yapay zeka tüm alanları doldurur.</string>
     <string name="input_option_audio_example">Örn.: \"Dün süpermarkette 25 euro harcama, Nakit hesabı.\"</string>
     <string name="input_option_scan_desc">Fişin fotoğrafını çekin, yapay zeka tutar, tarih ve kategoriyi algılar.</string>
+    <string name="input_option_excel_desc">Bir hesap özeti veya bütçe dosyası (.xlsx veya .pdf) içe aktarın, bir tarih aralığı seçin ve yapay zeka giderleri ve gelirleri çıkarsın.</string>
     <string name="quick_actions">Hızlı işlemler</string>
     <string name="transaction_details">Ayrıntılar</string>
     <string name="take_photo">Fotoğraf çek</string>
+    <string name="import_excel">Excel/PDF içe aktar</string>
     <string name="record_audio">Ses kaydet</string>
     <string name="recording_in_progress">Kaydediliyor… durdurmak için dokunun</string>
     <string name="cd_record_audio">Formu doldurmak için ses kaydet</string>
@@ -141,12 +143,14 @@
     <string name="ai_access_dialog_message">Bu oturum için yapay zeka özelliklerinin kilidini açmak üzere kısa bir ödüllü reklam izleyin.</string>
     <string name="ai_access_feature_scan">Fiş tarama</string>
     <string name="ai_access_feature_voice">Sesli giriş</string>
+    <string name="ai_access_feature_excel">Excel/PDF içe aktar</string>
     <string name="ai_access_session_hint">Bu oturum için açıldı</string>
     <string name="ai_access_watch_ad">Reklamı izle</string>
     <string name="ai_access_loading_ad">Reklam yükleniyor…</string>
+    <string name="ai_access_loading_ad_seconds">Reklam yükleniyor… %1$d sn kaldı</string>
     <string name="ai_access_retry_ad">Tekrar dene</string>
     <string name="ai_access_not_now">Şimdi değil</string>
-    <string name="ai_access_ad_failed">Reklam yüklenemedi. Lütfen biraz sonra tekrar deneyin.</string>
+    <string name="ai_access_ad_failed">Reklam yüklenemedi. Bu pencereden «Tekrar dene»ye dokunarak yeniden deneyin.</string>
     <string name="ai_access_ad_not_completed">Yapay zeka özelliklerinin kilidini açmak için reklamın tamamını izlemelisiniz.</string>
     <string name="audio_analyzed">Ses analiz edildi</string>
     <string name="analyzing">Analiz ediliyor…</string>
@@ -163,6 +167,15 @@
     <string name="cd_change_date">Tarihi değiştir</string>
     <string name="receipt_analyzed">Fiş analiz edildi</string>
     <string name="receipt_analyzed_multiple">Fiş analiz edildi: %1$d işlem algılandı</string>
+    <string name="spreadsheet_analyzed">Tablo analiz edildi</string>
+    <string name="spreadsheet_analyzed_multiple">Tablo analiz edildi: %1$d işlem tespit edildi</string>
+    <string name="excel_import_dialog_title">Excel içe aktar</string>
+    <string name="excel_import_dialog_message">Excel veya PDF dosyasından gider ve gelirleri çıkarmak için tarih aralığını seçin.</string>
+    <string name="excel_date_range_start">Başlangıç</string>
+    <string name="excel_date_range_end">Bitiş</string>
+    <string name="excel_analyze">Yapay zeka ile analiz et</string>
+    <string name="excel_selected_file">Dosya: %1$s</string>
+    <string name="err_excel_date_range">Bitiş tarihi, başlangıç tarihi ile aynı veya sonrasında olmalıdır.</string>
     <string name="detected_transactions">Algılanan işlemler (%1$d)</string>
     <string name="tap_detected_to_edit">Kaydetmeden önce düzenlemek için bir işleme dokunun</string>
     <string name="save_all_detected">Tümünü kaydet (%1$d)</string>
@@ -249,6 +262,10 @@
     <string name="share_text">Yapay Zeka Destekli Harcama Kontrolü ile finanslarınızı yönetin. Buradan indirin: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Fiş analiz edilemedi</string>
+    <string name="error_spreadsheet_analysis">Tablo analiz edilemedi</string>
+    <string name="error_spreadsheet_empty">Excel dosyası boş veya okunabilir veri içermiyor.</string>
+    <string name="error_spreadsheet_invalid_format">Desteklenmeyen dosya. .xlsx veya .pdf kullanın.</string>
+    <string name="error_import_file_too_large">Dosya çok büyük (maks. 15 MB).</string>
     <string name="default_category_grocery">Market</string>
     <string name="default_category_restaurant">Restoranlar</string>
     <string name="default_category_coffee">Kafe &amp; barlar</string>

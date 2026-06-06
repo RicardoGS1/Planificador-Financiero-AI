@@ -25,7 +25,8 @@ import com.virtualworld.easyexpensecontrol.R
  */
 object CameraRewardedAdHelper {
 
-    private const val TAG = "CameraRewardedAd"
+    private const val TAG = "mylog_ads"
+    private const val AD_TYPE = "rewarded_camera"
     private const val MIN_INTERVAL_BETWEEN_ADS_MS = 5_000L
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -38,19 +39,20 @@ object CameraRewardedAdHelper {
         if (!RemoteConfigManager.isRewardedAdEnabled()) return
         if (preloadedAd != null || isLoading) return
         isLoading = true
+        Log.d(TAG, "Iniciando carga de anuncio: tipo=$AD_TYPE")
         RewardedAd.load(
             context.applicationContext,
             adUnitId(context),
             AdRequest.Builder().build(),
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
-                    Log.d(TAG, "Rewarded ad preloaded")
+                    Log.d(TAG, "Anuncio cargado: tipo=$AD_TYPE")
                     isLoading = false
                     preloadedAd = ad
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.e(TAG, "Rewarded preload failed: code=${error.code}, message=${error.message}, domain=${error.domain}")
+                    Log.e(TAG, "Error al cargar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}, domain=${error.domain}")
                     isLoading = false
                     preloadedAd = null
                 }
@@ -71,7 +73,7 @@ object CameraRewardedAdHelper {
         val ad = preloadedAd
 
         if (tooSoon || ad == null) {
-            Log.d(TAG, "Skipping rewarded (tooSoon=$tooSoon, preloaded=${ad != null})")
+            Log.d(TAG, "Anuncio omitido: tipo=$AD_TYPE, tooSoon=$tooSoon, preloaded=${ad != null}")
             if (!tooSoon) preload(activity)
             continueOnUiAfterAd(activity, onContinue)
             return
@@ -79,7 +81,7 @@ object CameraRewardedAdHelper {
 
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Rewarded ad dismissed")
+                Log.d(TAG, "Anuncio cerrado: tipo=$AD_TYPE")
                 ad.fullScreenContentCallback = null
                 preloadedAd = null
                 lastShownAtMs = System.currentTimeMillis()
@@ -88,15 +90,16 @@ object CameraRewardedAdHelper {
             }
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.e(TAG, "Rewarded ad failed to show: code=${error.code}, message=${error.message}")
+                Log.e(TAG, "Error al mostrar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}")
                 ad.fullScreenContentCallback = null
                 preloadedAd = null
                 preload(activity)
                 continueOnUiAfterAd(activity, onContinue)
             }
         }
+        Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
         ad.show(activity) { rewardItem ->
-            Log.d(TAG, "User earned reward: ${rewardItem.amount} ${rewardItem.type}")
+            Log.d(TAG, "Recompensa obtenida: tipo=$AD_TYPE, amount=${rewardItem.amount}, rewardType=${rewardItem.type}")
         }
     }
 

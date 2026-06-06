@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,14 +68,22 @@ import com.virtualworld.easyexpensecontrol.ui.theme.AccentBlue
 fun AiAccessRewardedDialog(
     context: Context,
     onDismiss: () -> Unit,
-    onShowAd: (Activity) -> Unit,
-    onLoadFailed: () -> Unit
+    onShowAd: (Activity) -> Unit
 ) {
     var isLoadingAd by remember { mutableStateOf(false) }
     var loadFailed by remember { mutableStateOf(false) }
+    var remainingSeconds by remember { mutableStateOf(AiRewardedAdHelper.LOAD_TIMEOUT_SECONDS) }
 
     LaunchedEffect(Unit) {
         AiRewardedAdHelper.preload(context)
+    }
+
+    LaunchedEffect(isLoadingAd) {
+        if (!isLoadingAd) return@LaunchedEffect
+        for (sec in AiRewardedAdHelper.LOAD_TIMEOUT_SECONDS downTo 0) {
+            remainingSeconds = sec
+            if (sec > 0) delay(1000)
+        }
     }
 
     fun dismiss() {
@@ -87,7 +96,6 @@ fun AiAccessRewardedDialog(
         val activity = context as? Activity ?: run {
             loadFailed = true
             isLoadingAd = false
-            onLoadFailed()
             return
         }
         if (AiRewardedAdHelper.isAdReady()) {
@@ -108,7 +116,6 @@ fun AiAccessRewardedDialog(
             onFailed = {
                 isLoadingAd = false
                 loadFailed = true
-                onLoadFailed()
             }
         )
     }
@@ -159,9 +166,7 @@ fun AiAccessRewardedDialog(
                     )
 
                     Text(
-                        text = if (isLoadingAd) {
-                            stringResource(R.string.ai_access_loading_ad)
-                        } else if (loadFailed) {
+                        text = if (loadFailed) {
                             stringResource(R.string.ai_access_ad_failed)
                         } else {
                             stringResource(R.string.ai_access_dialog_message)
@@ -185,6 +190,16 @@ fun AiAccessRewardedDialog(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(28.dp),
                                 strokeWidth = 3.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = stringResource(
+                                    R.string.ai_access_loading_ad_seconds,
+                                    remainingSeconds.coerceAtLeast(0)
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -247,34 +262,20 @@ fun AiAccessRewardedDialog(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        if (isLoadingAd) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.ai_access_loading_ad),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Filled.PlayCircle,
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(
-                                    if (loadFailed) R.string.ai_access_retry_ad
-                                    else R.string.ai_access_watch_ad
-                                ),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Filled.PlayCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(
+                                if (loadFailed) R.string.ai_access_retry_ad
+                                else R.string.ai_access_watch_ad
+                            ),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
                     OutlinedButton(

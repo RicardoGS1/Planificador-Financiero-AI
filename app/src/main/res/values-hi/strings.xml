@@ -68,6 +68,18 @@
     <string name="budget_list_visibility_show_all">सभी दिखाएँ</string>
     <string name="cd_budget_list_visibility">चुनें कि बजट सूची में कौन सी श्रेणियाँ दिखें</string>
     <string name="budget_list_all_hidden_message">कोई श्रेणी नहीं दिख रही। सूची बटन दबाकर चुनें कि कौन सी श्रेणियाँ देखनी हैं।</string>
+    <string name="budget_history_title">पिछले बजट</string>
+    <string name="budget_history_empty_message">वर्तमान महीने से पहले कोई बजट नहीं मिला।</string>
+    <string name="cd_open_budget_history">पिछले बजट की सूची खोलें</string>
+    <string name="budget_summary_spent">खर्च</string>
+    <string name="budget_summary_limit">बजट</string>
+    <string name="budget_usage_percent">%1$d%% उपयोग</string>
+    <string name="budget_status_no_budget">बजट नहीं</string>
+    <string name="budget_status_over">बजट से अधिक</string>
+    <string name="budget_status_warning">लगभग पूरा</string>
+    <string name="budget_status_ok">सही रास्ते पर</string>
+    <string name="budget_categories_section">श्रेणी के अनुसार</string>
+    <string name="budget_spent_only">खर्च: %1$.2f %2$s</string>
 
     <string name="no_transactions">कोई लेनदेन उपलब्ध नहीं।</string>
     <string name="sort_by_label">इसके अनुसार क्रमित करें</string>
@@ -118,9 +130,11 @@
     <string name="input_option_audio_desc">जो खर्च या आय हुई, उसे बोलें और AI सभी फ़ील्ड भर देगा।</string>
     <string name="input_option_audio_example">उदा.: \"कल सुपरमार्केट में 25 यूरो का खर्च, नकद खाता।\"</string>
     <string name="input_option_scan_desc">रसीद की फोटो लें और AI राशि, तिथि और श्रेणी पहचान लेगा।</string>
+    <string name="input_option_excel_desc">बैंक स्टेटमेंट या बजट फ़ाइल (.xlsx या .pdf) आयात करें, तिथि सीमा चुनें, और AI खर्च और आय निकालेगा।</string>
     <string name="quick_actions">त्वरित क्रियाएँ</string>
     <string name="transaction_details">विवरण</string>
     <string name="take_photo">फोटो लें</string>
+    <string name="import_excel">Excel/PDF आयात करें</string>
     <string name="record_audio">ऑडियो रिकॉर्ड करें</string>
     <string name="recording_in_progress">रिकॉर्डिंग हो रही है… रोकने के लिए टैप करें</string>
     <string name="cd_record_audio">फॉर्म भरने के लिए ऑडियो रिकॉर्ड करें</string>
@@ -129,12 +143,14 @@
     <string name="ai_access_dialog_message">इस सत्र के लिए AI सुविधाएँ अनलॉक करने के लिए एक छोटा rewarded विज्ञापन देखें।</string>
     <string name="ai_access_feature_scan">रसीद स्कैन</string>
     <string name="ai_access_feature_voice">वॉइस इनपुट</string>
+    <string name="ai_access_feature_excel">Excel/PDF आयात करें</string>
     <string name="ai_access_session_hint">इस सत्र के लिए अनलॉक</string>
     <string name="ai_access_watch_ad">विज्ञापन देखें</string>
     <string name="ai_access_loading_ad">विज्ञापन लोड हो रहा है…</string>
+    <string name="ai_access_loading_ad_seconds">विज्ञापन लोड हो रहा है… %1$d सेकंड शेष</string>
     <string name="ai_access_retry_ad">फिर कोशिश करें</string>
     <string name="ai_access_not_now">अभी नहीं</string>
-    <string name="ai_access_ad_failed">विज्ञापन लोड नहीं हो सका। कृपया थोड़ी देर बाद फिर कोशिश करें।</string>
+    <string name="ai_access_ad_failed">विज्ञापन लोड नहीं हो सका। इस विंडो में «फिर कोशिश करें» दबाकर पुनः प्रयास करें।</string>
     <string name="ai_access_ad_not_completed">AI सुविधाएँ अनलॉक करने के लिए पूरा विज्ञापन देखना ज़रूरी है।</string>
     <string name="audio_analyzed">ऑडियो का विश्लेषण हो गया</string>
     <string name="analyzing">विश्लेषण हो रहा है…</string>
@@ -151,6 +167,15 @@
     <string name="cd_change_date">तारीख बदलें</string>
     <string name="receipt_analyzed">रसीद का विश्लेषण हो गया</string>
     <string name="receipt_analyzed_multiple">रसीद का विश्लेषण: %1$d लेनदेन पाए गए</string>
+    <string name="spreadsheet_analyzed">स्प्रेडशीट का विश्लेषण हो गया</string>
+    <string name="spreadsheet_analyzed_multiple">स्प्रेडशीट का विश्लेषण: %1$d लेनदेन पाए गए</string>
+    <string name="excel_import_dialog_title">Excel आयात करें</string>
+    <string name="excel_import_dialog_message">Excel या PDF फ़ाइल से खर्च और आय निकालने के लिए तिथि सीमा चुनें।</string>
+    <string name="excel_date_range_start">से</string>
+    <string name="excel_date_range_end">तक</string>
+    <string name="excel_analyze">AI से विश्लेषण करें</string>
+    <string name="excel_selected_file">फ़ाइल: %1$s</string>
+    <string name="err_excel_date_range">अंतिम तिथि प्रारंभ तिथि के बराबर या उसके बाद होनी चाहिए।</string>
     <string name="detected_transactions">पाए गए लेनदेन (%1$d)</string>
     <string name="tap_detected_to_edit">सहेजने से पहले संपादित करने के लिए किसी लेनदेन पर टैप करें</string>
     <string name="save_all_detected">सभी सहेजें (%1$d)</string>
@@ -165,6 +190,7 @@
     <string name="finish_and_save">लेनदेन जोड़ें</string>
     <string name="session_saved">%1$d लेनदेन सफलतापूर्वक सहेजे गए</string>
     <string name="all_detected_saved">%1$d लेनदेन सहेजे गए</string>
+    <string name="err_type_required">कृपया लेनदेन प्रकार चुनें।</string>
     <string name="err_amount_gt_zero">राशि 0 से अधिक होनी चाहिए।</string>
     <string name="err_description_empty">विवरण खाली नहीं हो सकता।</string>
     <string name="err_category_empty">श्रेणी खाली नहीं हो सकती।</string>
@@ -236,6 +262,10 @@
     <string name="share_text">AI-संचालित खर्च नियंत्रण के साथ अपनी वित्तीय स्थिति पर काबू पाएँ। यहाँ डाउनलोड करें: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">रसीद का विश्लेषण नहीं हो सका</string>
+    <string name="error_spreadsheet_analysis">स्प्रेडशीट का विश्लेषण नहीं हो सका</string>
+    <string name="error_spreadsheet_empty">Excel फ़ाइल खाली है या इसमें पढ़ने योग्य डेटा नहीं है।</string>
+    <string name="error_spreadsheet_invalid_format">असमर्थित फ़ाइल। .xlsx या .pdf का उपयोग करें।</string>
+    <string name="error_import_file_too_large">फ़ाइल बहुत बड़ी है (अधिकतम 15 MB)।</string>
     <string name="default_category_grocery">किराना / सुपरमार्केट</string>
     <string name="default_category_restaurant">रेस्तरां</string>
     <string name="default_category_coffee">कैफ़े और बार</string>

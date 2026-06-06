@@ -68,6 +68,18 @@
     <string name="budget_list_visibility_show_all">Alle anzeigen</string>
     <string name="cd_budget_list_visibility">Auswählen, welche Kategorien in der Budgetliste erscheinen</string>
     <string name="budget_list_all_hidden_message">Es werden keine Kategorien angezeigt. Tippe auf das Listen-Symbol, um auszuwählen, welche du sehen möchtest.</string>
+    <string name="budget_history_title">Frühere Budgets</string>
+    <string name="budget_history_empty_message">Keine Budgets vor dem aktuellen Monat gefunden.</string>
+    <string name="cd_open_budget_history">Liste früherer Budgets öffnen</string>
+    <string name="budget_summary_spent">Ausgegeben</string>
+    <string name="budget_summary_limit">Budget</string>
+    <string name="budget_usage_percent">%1$d%% genutzt</string>
+    <string name="budget_status_no_budget">Kein Budget</string>
+    <string name="budget_status_over">Budget überschritten</string>
+    <string name="budget_status_warning">Fast erreicht</string>
+    <string name="budget_status_ok">Im Rahmen</string>
+    <string name="budget_categories_section">Nach Kategorie</string>
+    <string name="budget_spent_only">Ausgegeben: %1$.2f %2$s</string>
 
     <string name="no_transactions">Keine Transaktionen vorhanden.</string>
     <string name="sort_by_label">Sortieren nach</string>
@@ -118,9 +130,11 @@
     <string name="input_option_audio_desc">Sage laut, was du ausgegeben oder eingenommen hast, und die KI füllt alle Felder aus.</string>
     <string name="input_option_audio_example">Z. B. \"Ausgabe von 25 Euro im Supermarkt gestern, Konto Bargeld.\"</string>
     <string name="input_option_scan_desc">Fotografiere einen Beleg und die KI erkennt Betrag, Datum und Kategorie.</string>
+    <string name="input_option_excel_desc">Importieren Sie einen Kontoauszug oder eine Budgetdatei (.xlsx oder .pdf), wählen Sie einen Datumsbereich und die KI extrahiert Ausgaben und Einnahmen.</string>
     <string name="quick_actions">Schnellaktionen</string>
     <string name="transaction_details">Details</string>
     <string name="take_photo">Foto aufnehmen</string>
+    <string name="import_excel">Excel/PDF importieren</string>
     <string name="record_audio">Audio aufnehmen</string>
     <string name="recording_in_progress">Aufnahme läuft… zum Stoppen tippen</string>
     <string name="cd_record_audio">Audio aufnehmen, um das Formular auszufüllen</string>
@@ -129,12 +143,14 @@
     <string name="ai_access_dialog_message">Sieh dir eine kurze belohnte Anzeige an, um KI-Funktionen für diese Sitzung freizuschalten.</string>
     <string name="ai_access_feature_scan">Belegscan</string>
     <string name="ai_access_feature_voice">Spracheingabe</string>
+    <string name="ai_access_feature_excel">Excel/PDF importieren</string>
     <string name="ai_access_session_hint">Für diese Sitzung freigeschaltet</string>
     <string name="ai_access_watch_ad">Anzeige ansehen</string>
     <string name="ai_access_loading_ad">Anzeige wird geladen…</string>
+    <string name="ai_access_loading_ad_seconds">Anzeige wird geladen… noch %1$d s</string>
     <string name="ai_access_retry_ad">Erneut versuchen</string>
     <string name="ai_access_not_now">Nicht jetzt</string>
-    <string name="ai_access_ad_failed">Die Anzeige konnte nicht geladen werden. Bitte versuche es in Kürze erneut.</string>
+    <string name="ai_access_ad_failed">Die Anzeige konnte nicht geladen werden. Tippe in diesem Fenster auf «Erneut versuchen», um es noch einmal zu versuchen.</string>
     <string name="ai_access_ad_not_completed">Du musst die Anzeige vollständig ansehen, um KI-Funktionen freizuschalten.</string>
     <string name="audio_analyzed">Audio analysiert</string>
     <string name="analyzing">Wird analysiert…</string>
@@ -151,6 +167,15 @@
     <string name="cd_change_date">Datum ändern</string>
     <string name="receipt_analyzed">Beleg analysiert</string>
     <string name="receipt_analyzed_multiple">Beleg analysiert: %1$d Transaktionen erkannt</string>
+    <string name="spreadsheet_analyzed">Tabelle analysiert</string>
+    <string name="spreadsheet_analyzed_multiple">Tabelle analysiert: %1$d Transaktionen erkannt</string>
+    <string name="excel_import_dialog_title">Excel importieren</string>
+    <string name="excel_import_dialog_message">Wählen Sie den Datumsbereich, um Ausgaben und Einnahmen aus der Excel- oder PDF-Datei zu extrahieren.</string>
+    <string name="excel_date_range_start">Von</string>
+    <string name="excel_date_range_end">Bis</string>
+    <string name="excel_analyze">Mit KI analysieren</string>
+    <string name="excel_selected_file">Datei: %1$s</string>
+    <string name="err_excel_date_range">Das Enddatum muss am oder nach dem Startdatum liegen.</string>
     <string name="detected_transactions">Erkannte Transaktionen (%1$d)</string>
     <string name="tap_detected_to_edit">Tippen Sie auf eine Transaktion, um sie vor dem Speichern zu bearbeiten</string>
     <string name="save_all_detected">Alle speichern (%1$d)</string>
@@ -237,6 +262,10 @@
     <string name="share_text">Behalte deine Finanzen mit KI-gestützter Ausgabenkontrolle im Griff. Hier herunterladen: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Beleg konnte nicht analysiert werden</string>
+    <string name="error_spreadsheet_analysis">Tabelle konnte nicht analysiert werden</string>
+    <string name="error_spreadsheet_empty">Die Excel-Datei ist leer oder enthält keine lesbaren Daten.</string>
+    <string name="error_spreadsheet_invalid_format">Nicht unterstützte Datei. Verwenden Sie .xlsx oder .pdf.</string>
+    <string name="error_import_file_too_large">Datei ist zu groß (max. 15 MB).</string>
     <string name="default_category_grocery">Lebensmittel</string>
     <string name="default_category_restaurant">Restaurants</string>
     <string name="default_category_coffee">Cafés &amp; Bars</string>

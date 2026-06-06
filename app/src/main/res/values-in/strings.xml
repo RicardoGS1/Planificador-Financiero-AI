@@ -130,9 +130,11 @@
     <string name="input_option_audio_desc">Ucapkan apa yang Anda belanjakan atau terima, dan AI mengisi semua kolom untuk Anda.</string>
     <string name="input_option_audio_example">Mis. \"Pengeluaran 25 euro di supermarket kemarin, akun Tunai.\"</string>
     <string name="input_option_scan_desc">Ambil foto struk dan AI mendeteksi jumlah, tanggal, dan kategori.</string>
+    <string name="input_option_excel_desc">Impor rekening koran atau file anggaran (.xlsx atau .pdf), pilih rentang tanggal, dan AI akan mengekstrak pengeluaran dan pemasukan.</string>
     <string name="quick_actions">Tindakan cepat</string>
     <string name="transaction_details">Detail</string>
     <string name="take_photo">Ambil foto</string>
+    <string name="import_excel">Impor Excel/PDF</string>
     <string name="record_audio">Rekam audio</string>
     <string name="recording_in_progress">Merekam… ketuk untuk berhenti</string>
     <string name="cd_record_audio">Rekam audio untuk mengisi formulir</string>
@@ -141,12 +143,14 @@
     <string name="ai_access_dialog_message">Tonton iklan singkat berhadiah untuk membuka fitur AI pada sesi ini.</string>
     <string name="ai_access_feature_scan">Pindai struk</string>
     <string name="ai_access_feature_voice">Input suara</string>
+    <string name="ai_access_feature_excel">Impor Excel/PDF</string>
     <string name="ai_access_session_hint">Terbuka untuk sesi ini</string>
     <string name="ai_access_watch_ad">Tonton iklan</string>
     <string name="ai_access_loading_ad">Memuat iklan…</string>
+    <string name="ai_access_loading_ad_seconds">Memuat iklan… %1$d dtk tersisa</string>
     <string name="ai_access_retry_ad">Coba lagi</string>
     <string name="ai_access_not_now">Nanti saja</string>
-    <string name="ai_access_ad_failed">Iklan tidak dapat dimuat. Silakan coba lagi sebentar lagi.</string>
+    <string name="ai_access_ad_failed">Iklan tidak dapat dimuat. Ketuk «Coba lagi» di jendela ini untuk mencoba ulang.</string>
     <string name="ai_access_ad_not_completed">Anda harus menonton iklan sampai selesai untuk membuka fitur AI.</string>
     <string name="audio_analyzed">Audio dianalisis</string>
     <string name="analyzing">Menganalisis…</string>
@@ -163,6 +167,15 @@
     <string name="cd_change_date">Ubah tanggal</string>
     <string name="receipt_analyzed">Struk dianalisis</string>
     <string name="receipt_analyzed_multiple">Struk dianalisis: %1$d transaksi terdeteksi</string>
+    <string name="spreadsheet_analyzed">Spreadsheet dianalisis</string>
+    <string name="spreadsheet_analyzed_multiple">Spreadsheet dianalisis: %1$d transaksi terdeteksi</string>
+    <string name="excel_import_dialog_title">Impor Excel</string>
+    <string name="excel_import_dialog_message">Pilih rentang tanggal untuk mengekstrak pengeluaran dan pemasukan dari file Excel atau PDF.</string>
+    <string name="excel_date_range_start">Dari</string>
+    <string name="excel_date_range_end">Sampai</string>
+    <string name="excel_analyze">Analisis dengan AI</string>
+    <string name="excel_selected_file">File: %1$s</string>
+    <string name="err_excel_date_range">Tanggal akhir harus sama dengan atau setelah tanggal awal.</string>
     <string name="detected_transactions">Transaksi terdeteksi (%1$d)</string>
     <string name="tap_detected_to_edit">Ketuk transaksi untuk mengedit sebelum menyimpan</string>
     <string name="save_all_detected">Simpan semua (%1$d)</string>
@@ -249,6 +262,10 @@
     <string name="share_text">Kendalikan keuangan Anda dengan Kontrol Pengeluaran dengan AI. Unduh di sini: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Tidak dapat menganalisis struk</string>
+    <string name="error_spreadsheet_analysis">Tidak dapat menganalisis spreadsheet</string>
+    <string name="error_spreadsheet_empty">File Excel kosong atau tidak memiliki data yang dapat dibaca.</string>
+    <string name="error_spreadsheet_invalid_format">File tidak didukung. Gunakan .xlsx atau .pdf.</string>
+    <string name="error_import_file_too_large">File terlalu besar (maks. 15 MB).</string>
     <string name="default_category_grocery">Belanja bahan makanan</string>
     <string name="default_category_restaurant">Restoran</string>
     <string name="default_category_coffee">Kafe &amp; bar</string>

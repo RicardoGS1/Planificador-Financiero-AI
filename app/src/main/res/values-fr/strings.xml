@@ -130,9 +130,11 @@
     <string name="input_option_audio_desc">Dites ce que vous avez dépensé ou gagné et l\'IA remplira tous les champs pour vous.</string>
     <string name="input_option_audio_example">Ex. : « Dépense de 25 euros au supermarché hier, compte Espèces. »</string>
     <string name="input_option_scan_desc">Prenez une photo d\'un reçu et l\'IA détectera le montant, la date et la catégorie.</string>
+    <string name="input_option_excel_desc">Importez un relevé bancaire ou un fichier budget (.xlsx ou .pdf), choisissez une plage de dates et l\'IA extraira les dépenses et revenus.</string>
     <string name="quick_actions">Actions rapides</string>
     <string name="transaction_details">Détails</string>
     <string name="take_photo">Prendre une photo</string>
+    <string name="import_excel">Importer Excel/PDF</string>
     <string name="record_audio">Enregistrer l\'audio</string>
     <string name="recording_in_progress">Enregistrement… appuyez pour arrêter</string>
     <string name="cd_record_audio">Enregistrer l\'audio pour remplir le formulaire</string>
@@ -141,12 +143,14 @@
     <string name="ai_access_dialog_message">Regardez une courte publicité récompensée pour débloquer les fonctions IA pour cette session.</string>
     <string name="ai_access_feature_scan">Scan de reçu</string>
     <string name="ai_access_feature_voice">Saisie vocale</string>
+    <string name="ai_access_feature_excel">Importer Excel/PDF</string>
     <string name="ai_access_session_hint">Débloqué pour cette session</string>
     <string name="ai_access_watch_ad">Regarder la publicité</string>
     <string name="ai_access_loading_ad">Chargement de la publicité…</string>
+    <string name="ai_access_loading_ad_seconds">Chargement de la publicité… %1$d s restantes</string>
     <string name="ai_access_retry_ad">Réessayer</string>
     <string name="ai_access_not_now">Pas maintenant</string>
-    <string name="ai_access_ad_failed">La publicité n\'a pas pu être chargée. Veuillez réessayer dans un instant.</string>
+    <string name="ai_access_ad_failed">La publicité n\'a pas pu être chargée. Appuyez sur « Réessayer » dans cette fenêtre pour réessayer.</string>
     <string name="ai_access_ad_not_completed">Vous devez regarder la publicité en entier pour débloquer les fonctions IA.</string>
     <string name="audio_analyzed">Audio analysé</string>
     <string name="analyzing">Analyse en cours…</string>
@@ -163,6 +167,15 @@
     <string name="cd_change_date">Changer la date</string>
     <string name="receipt_analyzed">Reçu analysé</string>
     <string name="receipt_analyzed_multiple">Reçu analysé : %1$d transactions détectées</string>
+    <string name="spreadsheet_analyzed">Tableur analysé</string>
+    <string name="spreadsheet_analyzed_multiple">Tableur analysé : %1$d transactions détectées</string>
+    <string name="excel_import_dialog_title">Importer Excel</string>
+    <string name="excel_import_dialog_message">Choisissez la plage de dates pour extraire les dépenses et revenus du fichier Excel ou PDF.</string>
+    <string name="excel_date_range_start">Du</string>
+    <string name="excel_date_range_end">Au</string>
+    <string name="excel_analyze">Analyser avec l\'IA</string>
+    <string name="excel_selected_file">Fichier : %1$s</string>
+    <string name="err_excel_date_range">La date de fin doit être égale ou postérieure à la date de début.</string>
     <string name="detected_transactions">Transactions détectées (%1$d)</string>
     <string name="tap_detected_to_edit">Appuyez sur une transaction pour la modifier avant d\'enregistrer</string>
     <string name="save_all_detected">Tout enregistrer (%1$d)</string>
@@ -249,6 +262,10 @@
     <string name="share_text">Prenez le contrôle de vos finances avec Contrôle des dépenses avec IA. Téléchargez-la ici : https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Impossible d\'analyser le reçu</string>
+    <string name="error_spreadsheet_analysis">Impossible d\'analyser le tableur</string>
+    <string name="error_spreadsheet_empty">Le fichier Excel est vide ou ne contient pas de données lisibles.</string>
+    <string name="error_spreadsheet_invalid_format">Fichier non pris en charge. Utilisez .xlsx ou .pdf.</string>
+    <string name="error_import_file_too_large">Fichier trop volumineux (15 Mo max.).</string>
     <string name="default_category_grocery">Courses</string>
     <string name="default_category_restaurant">Restaurants</string>
     <string name="default_category_coffee">Cafés &amp; bars</string>

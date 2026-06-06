@@ -18,7 +18,7 @@ import com.google.android.ump.UserMessagingPlatform
  */
 object ConsentManager {
 
-    private const val TAG = "ConsentManager"
+    private const val TAG = "mylog_ads"
 
     /** True si UMP indica que ya se pueden solicitar anuncios. */
     fun canRequestAds(context: Context): Boolean =

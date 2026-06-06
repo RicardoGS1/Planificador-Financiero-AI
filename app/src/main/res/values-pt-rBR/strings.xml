@@ -130,9 +130,11 @@
     <string name="input_option_audio_desc">Diga o que gastou ou recebeu e a IA preenche todos os campos para você.</string>
     <string name="input_option_audio_example">Ex.: \"Despesa de 25 reais no supermercado ontem, conta Dinheiro.\"</string>
     <string name="input_option_scan_desc">Tire uma foto do recibo e a IA detecta valor, data e categoria.</string>
+    <string name="input_option_excel_desc">Importe um extrato bancário ou arquivo de orçamento (.xlsx ou .pdf), escolha um intervalo de datas e a IA extrairá despesas e receitas.</string>
     <string name="quick_actions">Ações rápidas</string>
     <string name="transaction_details">Detalhes</string>
     <string name="take_photo">Tirar foto</string>
+    <string name="import_excel">Importar Excel/PDF</string>
     <string name="record_audio">Gravar áudio</string>
     <string name="recording_in_progress">Gravando… toque para parar</string>
     <string name="cd_record_audio">Gravar áudio para preencher o formulário</string>
@@ -141,12 +143,14 @@
     <string name="ai_access_dialog_message">Assista a um anúncio recompensado curto para desbloquear os recursos de IA nesta sessão.</string>
     <string name="ai_access_feature_scan">Leitura de recibo</string>
     <string name="ai_access_feature_voice">Entrada por voz</string>
+    <string name="ai_access_feature_excel">Importar Excel/PDF</string>
     <string name="ai_access_session_hint">Desbloqueado nesta sessão</string>
     <string name="ai_access_watch_ad">Assistir anúncio</string>
     <string name="ai_access_loading_ad">Carregando anúncio…</string>
+    <string name="ai_access_loading_ad_seconds">Carregando anúncio… %1$d s restantes</string>
     <string name="ai_access_retry_ad">Tentar novamente</string>
     <string name="ai_access_not_now">Agora não</string>
-    <string name="ai_access_ad_failed">Não foi possível carregar o anúncio. Tente novamente em instantes.</string>
+    <string name="ai_access_ad_failed">Não foi possível carregar o anúncio. Toque em «Tentar novamente» nesta janela para tentar de novo.</string>
     <string name="ai_access_ad_not_completed">É preciso assistir ao anúncio completo para desbloquear os recursos de IA.</string>
     <string name="audio_analyzed">Áudio analisado</string>
     <string name="analyzing">Analisando…</string>
@@ -163,6 +167,15 @@
     <string name="cd_change_date">Alterar data</string>
     <string name="receipt_analyzed">Recibo analisado</string>
     <string name="receipt_analyzed_multiple">Recibo analisado: %1$d transações detectadas</string>
+    <string name="spreadsheet_analyzed">Planilha analisada</string>
+    <string name="spreadsheet_analyzed_multiple">Planilha analisada: %1$d transações detectadas</string>
+    <string name="excel_import_dialog_title">Importar Excel</string>
+    <string name="excel_import_dialog_message">Escolha o intervalo de datas para extrair despesas e receitas do arquivo Excel ou PDF.</string>
+    <string name="excel_date_range_start">De</string>
+    <string name="excel_date_range_end">Até</string>
+    <string name="excel_analyze">Analisar com IA</string>
+    <string name="excel_selected_file">Arquivo: %1$s</string>
+    <string name="err_excel_date_range">A data final deve ser igual ou posterior à data inicial.</string>
     <string name="detected_transactions">Transações detectadas (%1$d)</string>
     <string name="tap_detected_to_edit">Toque em uma transação para editá-la antes de salvar</string>
     <string name="save_all_detected">Salvar todas (%1$d)</string>
@@ -249,6 +262,10 @@
     <string name="share_text">Assuma o controle das suas finanças com Controle de gastos com IA. Baixe aqui: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Não foi possível analisar o recibo</string>
+    <string name="error_spreadsheet_analysis">Não foi possível analisar a planilha</string>
+    <string name="error_spreadsheet_empty">O arquivo Excel está vazio ou não tem dados legíveis.</string>
+    <string name="error_spreadsheet_invalid_format">Arquivo não suportado. Use .xlsx ou .pdf.</string>
+    <string name="error_import_file_too_large">Arquivo muito grande (máx. 15 MB).</string>
     <string name="default_category_grocery">Supermercado</string>
     <string name="default_category_restaurant">Restaurantes</string>
     <string name="default_category_coffee">Cafés &amp; bares</string>

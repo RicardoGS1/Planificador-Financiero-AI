@@ -130,9 +130,11 @@
     <string name="input_option_audio_desc">Di cosa hai speso o guadagnato e l\'IA compilerà tutti i campi per te.</string>
     <string name="input_option_audio_example">Es.: \"Uscita di 25 euro al supermercato ieri, conto Contanti.\"</string>
     <string name="input_option_scan_desc">Scatta una foto dello scontrino e l\'IA rileva importo, data e categoria.</string>
+    <string name="input_option_excel_desc">Importa un estratto conto o un file budget (.xlsx o .pdf), scegli un intervallo di date e l\'IA estrarrà spese e entrate.</string>
     <string name="quick_actions">Azioni rapide</string>
     <string name="transaction_details">Dettagli</string>
     <string name="take_photo">Scatta foto</string>
+    <string name="import_excel">Importa Excel/PDF</string>
     <string name="record_audio">Registra audio</string>
     <string name="recording_in_progress">Registrazione in corso… tocca per fermare</string>
     <string name="cd_record_audio">Registra audio per compilare il modulo</string>
@@ -141,12 +143,14 @@
     <string name="ai_access_dialog_message">Guarda un breve annuncio con ricompensa per sbloccare le funzioni IA per questa sessione.</string>
     <string name="ai_access_feature_scan">Scansione scontrini</string>
     <string name="ai_access_feature_voice">Input vocale</string>
+    <string name="ai_access_feature_excel">Importa Excel/PDF</string>
     <string name="ai_access_session_hint">Sbloccato per questa sessione</string>
     <string name="ai_access_watch_ad">Guarda annuncio</string>
     <string name="ai_access_loading_ad">Caricamento annuncio…</string>
+    <string name="ai_access_loading_ad_seconds">Caricamento annuncio… %1$d s rimanenti</string>
     <string name="ai_access_retry_ad">Riprova</string>
     <string name="ai_access_not_now">Non ora</string>
-    <string name="ai_access_ad_failed">Impossibile caricare l\'annuncio. Riprova tra un momento.</string>
+    <string name="ai_access_ad_failed">Impossibile caricare l\'annuncio. Tocca «Riprova» in questa finestra per riprovare.</string>
     <string name="ai_access_ad_not_completed">Devi guardare l\'annuncio completo per sbloccare le funzioni IA.</string>
     <string name="audio_analyzed">Audio analizzato</string>
     <string name="analyzing">Analisi in corso…</string>
@@ -163,6 +167,15 @@
     <string name="cd_change_date">Cambia data</string>
     <string name="receipt_analyzed">Scontrino analizzato</string>
     <string name="receipt_analyzed_multiple">Scontrino analizzato: %1$d transazioni rilevate</string>
+    <string name="spreadsheet_analyzed">Foglio analizzato</string>
+    <string name="spreadsheet_analyzed_multiple">Foglio analizzato: %1$d transazioni rilevate</string>
+    <string name="excel_import_dialog_title">Importa Excel</string>
+    <string name="excel_import_dialog_message">Scegli l\'intervallo di date per estrarre spese e entrate dal file Excel o PDF.</string>
+    <string name="excel_date_range_start">Da</string>
+    <string name="excel_date_range_end">A</string>
+    <string name="excel_analyze">Analizza con IA</string>
+    <string name="excel_selected_file">File: %1$s</string>
+    <string name="err_excel_date_range">La data di fine deve essere uguale o successiva alla data di inizio.</string>
     <string name="detected_transactions">Transazioni rilevate (%1$d)</string>
     <string name="tap_detected_to_edit">Tocca una transazione per modificarla prima di salvare</string>
     <string name="save_all_detected">Salva tutte (%1$d)</string>
@@ -249,6 +262,10 @@
     <string name="share_text">Prendi il controllo delle tue finanze con Controllo spese con IA. Scaricala qui: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Impossibile analizzare lo scontrino</string>
+    <string name="error_spreadsheet_analysis">Impossibile analizzare il foglio di calcolo</string>
+    <string name="error_spreadsheet_empty">Il file Excel è vuoto o non contiene dati leggibili.</string>
+    <string name="error_spreadsheet_invalid_format">File non supportato. Usa .xlsx o .pdf.</string>
+    <string name="error_import_file_too_large">File troppo grande (max 15 MB).</string>
     <string name="default_category_grocery">Spesa alimentare</string>
     <string name="default_category_restaurant">Ristoranti</string>
     <string name="default_category_coffee">Bar e caffè</string>

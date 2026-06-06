@@ -27,7 +27,8 @@ import com.virtualworld.easyexpensecontrol.R
  */
 object InterstitialAdHelper {
 
-    private const val TAG = "InterstitialAd"
+    private const val TAG = "mylog_ads"
+    private const val AD_TYPE = "interstitial"
     private const val PREFS_NAME = "interstitial_ad_prefs"
     private const val KEY_SHOW_REQUEST_COUNT = "show_request_count"
 
@@ -44,19 +45,20 @@ object InterstitialAdHelper {
         if (!shouldPreloadForNextShow(frequency)) return
         if (loadedAd != null || isLoading) return
         isLoading = true
+        Log.d(TAG, "Iniciando carga de anuncio: tipo=$AD_TYPE")
         InterstitialAd.load(
             context.applicationContext,
             adUnitId(context),
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
-                    Log.d(TAG, "Interstitial preloaded")
+                    Log.d(TAG, "Anuncio cargado: tipo=$AD_TYPE")
                     isLoading = false
                     loadedAd = ad
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.e(TAG, "Interstitial preload failed: code=${error.code}, message=${error.message}, domain=${error.domain}")
+                    Log.e(TAG, "Error al cargar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}, domain=${error.domain}")
                     isLoading = false
                     loadedAd = null
                 }
@@ -76,20 +78,20 @@ object InterstitialAdHelper {
         if (!shouldShowOnThisRequest(activity, frequency)) {
             Log.d(
                 TAG,
-                "Skipping interstitial (frequency cap $frequency, requestCount=$showRequestCount)"
+                "Anuncio omitido: tipo=$AD_TYPE, frequencyCap=$frequency, requestCount=$showRequestCount"
             )
             if (shouldPreloadForNextShow(frequency)) preload(activity)
             runOnUi(activity, onDone)
             return
         }
 
-        Log.d(TAG, "Interstitial eligible (frequency=$frequency, requestCount=$showRequestCount)")
+        Log.d(TAG, "Anuncio elegible: tipo=$AD_TYPE, frequency=$frequency, requestCount=$showRequestCount")
 
         AppOpenAdManager.suppressNextAppOpen()
 
         val ad = loadedAd
         if (ad == null) {
-            Log.d(TAG, "Skipping interstitial (not loaded yet, keeping requestCount=$showRequestCount)")
+            Log.d(TAG, "Anuncio no listo: tipo=$AD_TYPE, requestCount=$showRequestCount")
             preload(activity)
             runOnUi(activity, onDone)
             return
@@ -97,7 +99,7 @@ object InterstitialAdHelper {
 
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Interstitial dismissed")
+                Log.d(TAG, "Anuncio cerrado: tipo=$AD_TYPE")
                 ad.fullScreenContentCallback = null
                 loadedAd = null
                 resetShowRequestCount(activity)
@@ -106,7 +108,7 @@ object InterstitialAdHelper {
             }
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.e(TAG, "Interstitial failed to show: code=${error.code}, message=${error.message}")
+                Log.e(TAG, "Error al mostrar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}")
                 ad.fullScreenContentCallback = null
                 loadedAd = null
                 resetShowRequestCount(activity)
@@ -114,6 +116,7 @@ object InterstitialAdHelper {
                 runOnUi(activity, onDone)
             }
         }
+        Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
         ad.show(activity)
     }
 

@@ -104,6 +104,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
 
 private enum class ChartPeriod { DAY, WEEK, MONTH }
 
@@ -189,6 +190,12 @@ fun DashboardScreen(
     var fabBounds by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        if (!AiRewardedAdHelper.hasSessionAccess()) {
+            AiRewardedAdHelper.preload(context)
+        }
+    }
 
     val defaultAccountVisible = accounts.any { it.id == OnboardingTutorialRepository.DEFAULT_ACCOUNT_ID }
 

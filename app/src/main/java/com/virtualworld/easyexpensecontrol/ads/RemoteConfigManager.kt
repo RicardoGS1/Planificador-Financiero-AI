@@ -26,7 +26,7 @@ import com.virtualworld.easyexpensecontrol.R
  */
 object RemoteConfigManager {
 
-    private const val TAG = "RemoteConfigManager"
+    private const val TAG = "mylog_ads"
 
     const val KEY_APP_OPEN_AD_ENABLED = "app_open_ad_enabled"
     const val KEY_INTERSTITIAL_AD_ENABLED = "interstitial_ad_enabled"

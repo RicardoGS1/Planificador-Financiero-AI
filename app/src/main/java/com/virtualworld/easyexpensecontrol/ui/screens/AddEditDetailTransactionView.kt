@@ -1223,13 +1223,6 @@ fun AddEditDetailTransactionContent(
                                 }
                             }
                         )
-                    },
-                    onLoadFailed = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                context.getString(R.string.ai_access_ad_failed)
-                            )
-                        }
                     }
                 )
             }

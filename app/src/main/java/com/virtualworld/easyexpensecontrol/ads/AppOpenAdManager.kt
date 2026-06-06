@@ -109,10 +109,11 @@ class AppOpenAdManager(
     private fun loadAd() {
         if (isLoadingAd || isAdAvailable()) return
         if (!RemoteConfigManager.isAppOpenAdEnabled()) {
-            Log.d(TAG, "App open ad disabled by Remote Config; skipping load")
+            Log.d(TAG, "Carga omitida (Remote Config): tipo=$AD_TYPE")
             return
         }
         isLoadingAd = true
+        Log.d(TAG, "Iniciando carga de anuncio: tipo=$AD_TYPE")
         appOpenAd = null
         val adUnitId = if (BuildConfig.DEBUG) {
             application.getString(R.string.admob_app_open_test)
@@ -125,7 +126,7 @@ class AppOpenAdManager(
             AdRequest.Builder().build(),
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
-                    Log.d(TAG, "App open ad loaded successfully")
+                    Log.d(TAG, "Anuncio cargado: tipo=$AD_TYPE")
                     isLoadingAd = false
                     appOpenAd = ad
                     loadTime = Date().time
@@ -152,7 +153,7 @@ class AppOpenAdManager(
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    Log.e(TAG, "App open ad failed to load: code=${loadAdError.code}, message=${loadAdError.message}, domain=${loadAdError.domain}")
+                    Log.e(TAG, "Error al cargar: tipo=$AD_TYPE, code=${loadAdError.code}, message=${loadAdError.message}, domain=${loadAdError.domain}")
                     isLoadingAd = false
                     pendingShowWhenLoaded = false
 
@@ -179,7 +180,7 @@ class AppOpenAdManager(
             return
         }
         if (!RemoteConfigManager.isAppOpenAdEnabled()) {
-            Log.d(TAG, "App open ad disabled by Remote Config; skipping show")
+            Log.d(TAG, "Muestra omitida (Remote Config): tipo=$AD_TYPE")
             pendingShowWhenLoaded = false
             appOpenAd = null
             return
@@ -203,7 +204,7 @@ class AppOpenAdManager(
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                Log.e(TAG, "App open ad failed to show: code=${adError.code}, message=${adError.message}")
+                Log.e(TAG, "Error al mostrar: tipo=$AD_TYPE, code=${adError.code}, message=${adError.message}")
                 lastDismissTimeMs = System.currentTimeMillis()
                 pendingShowWhenLoaded = false
                 appOpenAd?.fullScreenContentCallback = null
@@ -212,11 +213,9 @@ class AppOpenAdManager(
                 loadAd()
             }
 
-            override fun onAdShowedFullScreenContent() {
-                Log.d(TAG, "App open ad shown")
-            }
         }
         isShowingAd = true
+        Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
         ad.show(activity)
     }
 
@@ -269,7 +268,7 @@ class AppOpenAdManager(
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                Log.e(TAG, "Startup app open ad failed to show: code=${adError.code}, message=${adError.message}")
+                Log.e(TAG, "Error al mostrar: tipo=$AD_TYPE_STARTUP, code=${adError.code}, message=${adError.message}")
                 lastDismissTimeMs = System.currentTimeMillis()
                 appOpenAd?.fullScreenContentCallback = null
                 appOpenAd = null
@@ -279,12 +278,10 @@ class AppOpenAdManager(
                 completeStartup(onDone)
             }
 
-            override fun onAdShowedFullScreenContent() {
-                Log.d(TAG, "Startup app open ad shown")
-            }
         }
         isShowingAd = true
         isStartupAdShowing = true
+        Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE_STARTUP")
         ad.show(activity)
     }
 
@@ -349,7 +346,9 @@ class AppOpenAdManager(
     }
 
     companion object {
-        private const val TAG = "AppOpenAdManager"
+        private const val TAG = "mylog_ads"
+        private const val AD_TYPE = "app_open"
+        private const val AD_TYPE_STARTUP = "app_open_startup"
         private const val DISMISS_COOLDOWN_MS = 2_000L
         private const val DEFAULT_SUPPRESS_DURATION_MS = 60_000L
 

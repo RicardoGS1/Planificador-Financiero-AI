@@ -130,9 +130,11 @@
     <string name="input_option_audio_desc">قل ما أنفقته أو ربحته وسيملأ الذكاء الاصطناعي جميع الحقول نيابةً عنك.</string>
     <string name="input_option_audio_example">مثال: \"مصروف 25 يورو في السوبرماركت أمس، حساب نقدي.\"</string>
     <string name="input_option_scan_desc">التقط صورة لإيصال وسيكتشف الذكاء الاصطناعي المبلغ والتاريخ والفئة.</string>
+    <string name="input_option_excel_desc">استورد كشف حساب أو ملف ميزانية (.xlsx أو .pdf)، واختر نطاق التاريخ، وسيستخرج الذكاء الاصطناعي المصروفات والدخل.</string>
     <string name="quick_actions">إجراءات سريعة</string>
     <string name="transaction_details">التفاصيل</string>
     <string name="take_photo">التقاط صورة</string>
+    <string name="import_excel">استيراد Excel/PDF</string>
     <string name="record_audio">تسجيل صوت</string>
     <string name="recording_in_progress">جارٍ التسجيل… اضغط للإيقاف</string>
     <string name="cd_record_audio">تسجيل صوت لملء النموذج</string>
@@ -141,12 +143,14 @@
     <string name="ai_access_dialog_message">شاهد إعلاناً مكافئاً قصيراً لفتح ميزات الذكاء الاصطناعي في هذه الجلسة.</string>
     <string name="ai_access_feature_scan">مسح الإيصال</string>
     <string name="ai_access_feature_voice">إدخال صوتي</string>
+    <string name="ai_access_feature_excel">استيراد Excel/PDF</string>
     <string name="ai_access_session_hint">مفتوح لهذه الجلسة</string>
     <string name="ai_access_watch_ad">مشاهدة الإعلان</string>
     <string name="ai_access_loading_ad">جارٍ تحميل الإعلان…</string>
+    <string name="ai_access_loading_ad_seconds">جارٍ تحميل الإعلان… %1$d ث متبقية</string>
     <string name="ai_access_retry_ad">إعادة المحاولة</string>
     <string name="ai_access_not_now">ليس الآن</string>
-    <string name="ai_access_ad_failed">تعذّر تحميل الإعلان. يُرجى المحاولة مرة أخرى بعد قليل.</string>
+    <string name="ai_access_ad_failed">تعذّر تحميل الإعلان. اضغط على «إعادة المحاولة» في هذه النافذة للمحاولة مرة أخرى.</string>
     <string name="ai_access_ad_not_completed">يجب مشاهدة الإعلان كاملاً لفتح ميزات الذكاء الاصطناعي.</string>
     <string name="audio_analyzed">تم تحليل الصوت</string>
     <string name="analyzing">جارٍ التحليل…</string>
@@ -163,6 +167,15 @@
     <string name="cd_change_date">تغيير التاريخ</string>
     <string name="receipt_analyzed">تم تحليل الإيصال</string>
     <string name="receipt_analyzed_multiple">تم تحليل الإيصال: %1$d معاملات مكتشفة</string>
+    <string name="spreadsheet_analyzed">تم تحليل الجدول</string>
+    <string name="spreadsheet_analyzed_multiple">تم تحليل الجدول: %1$d معاملات مكتشفة</string>
+    <string name="excel_import_dialog_title">استيراد Excel</string>
+    <string name="excel_import_dialog_message">اختر نطاق التاريخ لاستخراج المصروفات والدخل من ملف Excel أو PDF.</string>
+    <string name="excel_date_range_start">من</string>
+    <string name="excel_date_range_end">إلى</string>
+    <string name="excel_analyze">تحليل بالذكاء الاصطناعي</string>
+    <string name="excel_selected_file">الملف: %1$s</string>
+    <string name="err_excel_date_range">يجب أن يكون تاريخ الانتهاء في نفس يوم البداية أو بعده.</string>
     <string name="detected_transactions">المعاملات المكتشفة (%1$d)</string>
     <string name="tap_detected_to_edit">اضغط على معاملة لتعديلها قبل الحفظ</string>
     <string name="save_all_detected">حفظ الكل (%1$d)</string>
@@ -249,6 +262,10 @@
     <string name="share_text">تحكّم في أموالك مع التحكم في المصروفات بالذكاء الاصطناعي. حمّله من هنا: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">تعذّر تحليل الإيصال</string>
+    <string name="error_spreadsheet_analysis">تعذّر تحليل الجدول</string>
+    <string name="error_spreadsheet_empty">ملف Excel فارغ أو لا يحتوي على بيانات قابلة للقراءة.</string>
+    <string name="error_spreadsheet_invalid_format">ملف غير مدعوم. استخدم .xlsx أو .pdf.</string>
+    <string name="error_import_file_too_large">الملف كبير جداً (الحد الأقصى 15 ميغابايت).</string>
     <string name="default_category_grocery">بقالة</string>
     <string name="default_category_restaurant">مطاعم</string>
     <string name="default_category_coffee">مقاهٍ وحانات</string>

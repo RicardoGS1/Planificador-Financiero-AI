@@ -68,6 +68,18 @@
     <string name="budget_list_visibility_show_all">Показать все</string>
     <string name="cd_budget_list_visibility">Выберите категории для списка бюджета</string>
     <string name="budget_list_all_hidden_message">Ни одна категория не отображается. Нажмите кнопку списка, чтобы выбрать, какие категории показывать.</string>
+    <string name="budget_history_title">Предыдущие бюджеты</string>
+    <string name="budget_history_empty_message">Бюджеты до текущего месяца не найдены.</string>
+    <string name="cd_open_budget_history">Открыть список предыдущих бюджетов</string>
+    <string name="budget_summary_spent">Потрачено</string>
+    <string name="budget_summary_limit">Бюджет</string>
+    <string name="budget_usage_percent">Использовано %1$d%%</string>
+    <string name="budget_status_no_budget">Без бюджета</string>
+    <string name="budget_status_over">Превышен бюджет</string>
+    <string name="budget_status_warning">Почти исчерпан</string>
+    <string name="budget_status_ok">В пределах нормы</string>
+    <string name="budget_categories_section">По категории</string>
+    <string name="budget_spent_only">Потрачено: %1$.2f %2$s</string>
 
     <string name="no_transactions">Нет доступных операций.</string>
     <string name="sort_by_label">Сортировать по</string>
@@ -118,9 +130,11 @@
     <string name="input_option_audio_desc">Произнесите вслух, что потратили или получили, и ИИ заполнит все поля.</string>
     <string name="input_option_audio_example">Напр.: \"Расход 25 евро в супермаркете вчера, счёт Наличные.\"</string>
     <string name="input_option_scan_desc">Сфотографируйте чек, и ИИ определит сумму, дату и категорию.</string>
+    <string name="input_option_excel_desc">Импортируйте выписку или файл бюджета (.xlsx или .pdf), выберите диапазон дат, и ИИ извлечёт расходы и доходы.</string>
     <string name="quick_actions">Быстрые действия</string>
     <string name="transaction_details">Детали</string>
     <string name="take_photo">Сделать фото</string>
+    <string name="import_excel">Импорт Excel/PDF</string>
     <string name="record_audio">Записать аудио</string>
     <string name="recording_in_progress">Идёт запись… нажмите, чтобы остановить</string>
     <string name="cd_record_audio">Записать аудио, чтобы заполнить форму</string>
@@ -129,12 +143,14 @@
     <string name="ai_access_dialog_message">Посмотрите короткую рекламу с вознаграждением, чтобы открыть функции ИИ на эту сессию.</string>
     <string name="ai_access_feature_scan">Сканирование чеков</string>
     <string name="ai_access_feature_voice">Голосовой ввод</string>
+    <string name="ai_access_feature_excel">Импорт Excel/PDF</string>
     <string name="ai_access_session_hint">Открыто на эту сессию</string>
     <string name="ai_access_watch_ad">Смотреть рекламу</string>
     <string name="ai_access_loading_ad">Загрузка рекламы…</string>
+    <string name="ai_access_loading_ad_seconds">Загрузка рекламы… осталось %1$d с</string>
     <string name="ai_access_retry_ad">Повторить</string>
     <string name="ai_access_not_now">Не сейчас</string>
-    <string name="ai_access_ad_failed">Не удалось загрузить рекламу. Попробуйте снова через некоторое время.</string>
+    <string name="ai_access_ad_failed">Не удалось загрузить рекламу. Нажмите «Повторить» в этом окне, чтобы попробовать снова.</string>
     <string name="ai_access_ad_not_completed">Чтобы открыть функции ИИ, нужно досмотреть рекламу до конца.</string>
     <string name="audio_analyzed">Аудио проанализировано</string>
     <string name="analyzing">Анализ…</string>
@@ -151,6 +167,15 @@
     <string name="cd_change_date">Изменить дату</string>
     <string name="receipt_analyzed">Чек проанализирован</string>
     <string name="receipt_analyzed_multiple">Чек проанализирован: обнаружено операций — %1$d</string>
+    <string name="spreadsheet_analyzed">Таблица проанализирована</string>
+    <string name="spreadsheet_analyzed_multiple">Таблица проанализирована: обнаружено операций — %1$d</string>
+    <string name="excel_import_dialog_title">Импорт Excel</string>
+    <string name="excel_import_dialog_message">Выберите диапазон дат для извлечения расходов и доходов из файла Excel или PDF.</string>
+    <string name="excel_date_range_start">С</string>
+    <string name="excel_date_range_end">По</string>
+    <string name="excel_analyze">Анализ с ИИ</string>
+    <string name="excel_selected_file">Файл: %1$s</string>
+    <string name="err_excel_date_range">Дата окончания должна быть не раньше даты начала.</string>
     <string name="detected_transactions">Обнаруженные операции (%1$d)</string>
     <string name="tap_detected_to_edit">Нажмите на операцию, чтобы отредактировать перед сохранением</string>
     <string name="save_all_detected">Сохранить все (%1$d)</string>
@@ -165,6 +190,7 @@
     <string name="finish_and_save">Добавить операции</string>
     <string name="session_saved">%1$d операций успешно сохранено</string>
     <string name="all_detected_saved">Сохранено операций: %1$d</string>
+    <string name="err_type_required">Выберите тип операции.</string>
     <string name="err_amount_gt_zero">Сумма должна быть больше 0.</string>
     <string name="err_description_empty">Описание не может быть пустым.</string>
     <string name="err_category_empty">Категория не может быть пустой.</string>
@@ -236,6 +262,10 @@
     <string name="share_text">Возьмите финансы под контроль с приложением «Контроль расходов с ИИ». Скачать здесь: https://play.google.com/store/apps/details?id=com.virtualworld.easyexpensecontrol</string>
 
     <string name="error_receipt_analysis">Не удалось проанализировать чек</string>
+    <string name="error_spreadsheet_analysis">Не удалось проанализировать таблицу</string>
+    <string name="error_spreadsheet_empty">Файл Excel пуст или не содержит читаемых данных.</string>
+    <string name="error_spreadsheet_invalid_format">Неподдерживаемый файл. Используйте .xlsx или .pdf.</string>
+    <string name="error_import_file_too_large">Файл слишком большой (макс. 15 МБ).</string>
     <string name="default_category_grocery">Продукты</string>
     <string name="default_category_restaurant">Рестораны</string>
     <string name="default_category_coffee">Кафе и бары</string>
