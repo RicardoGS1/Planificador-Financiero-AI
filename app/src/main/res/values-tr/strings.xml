@@ -182,12 +182,14 @@
     <string name="prepare_transaction">İşlemi hazırla</string>
     <string name="finish_editing_prepared">Düzenlemeyi bitir</string>
     <string name="remove_prepared_transaction">Kaldır</string>
+    <string name="discard_form_changes">Vazgeç</string>
     <string name="prepared_transaction_removed">İşlem hazırlanan listeden kaldırıldı</string>
     <string name="prepare_all_detected">Tümünü hazırla (%1$d)</string>
     <string name="transaction_prepared_continue">İşlem hazırlandı. Başka bir tane ekleyebilirsiniz.</string>
     <string name="all_detected_prepared">%1$d işlem hazırlandı</string>
     <string name="prepared_transactions_session">Hazırlanan işlemler (%1$d)</string>
     <string name="finish_and_save">İşlemleri ekle</string>
+    <string name="finish_or_discard_incomplete_before_add">Tamamlanmamış bir işleminiz var. Hazırlanan işlemleri eklemeden önce onu iptal edin veya hazırlamak için alanları doldurun.</string>
     <string name="session_saved">%1$d işlem başarıyla kaydedildi</string>
     <string name="all_detected_saved">%1$d işlem kaydedildi</string>
     <string name="err_type_required">Lütfen bir işlem türü seçin.</string>

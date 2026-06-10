@@ -24,19 +24,38 @@
 -keep class com.virtualworld.easyexpensecontrol.data.local.FinancialDatabase$* { *; }
 -keep class com.virtualworld.easyexpensecontrol.data.local.FinancialDatabaseCallback { *; }
 
-# Retrofit + Gson
+# Retrofit + Gson (Gemini API)
 -keepattributes Signature, InnerClasses, EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+-keepattributes AnnotationDefault
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
     @retrofit2.http.* <methods>;
 }
+# R8 full mode: sin esto las interfaces Retrofit (p. ej. GeminiApi) se eliminan y las llamadas fallan
+-if interface * { @retrofit2.http.* <methods>; }
+-keep,allowobfuscation interface <1>
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 -dontwarn javax.annotation.**
 -dontwarn kotlin.Unit
 -dontwarn retrofit2.KotlinExtensions
 -dontwarn retrofit2.KotlinExtensions$*
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+-keep class retrofit2.** { *; }
+-keep class com.google.gson.** { *; }
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.TypeAdapter
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+-keep class com.virtualworld.easyexpensecontrol.data.remote.** { *; }
 -keep class com.virtualworld.easyexpensecontrol.data.remote.dto.** { *; }
 -keep class com.virtualworld.easyexpensecontrol.domain.model.** { *; }
+-keepclassmembers class com.virtualworld.easyexpensecontrol.BuildConfig {
+    public static final java.lang.String GEMINI_API_KEY;
+}
 
 # Koin
 -keep class org.koin.** { *; }

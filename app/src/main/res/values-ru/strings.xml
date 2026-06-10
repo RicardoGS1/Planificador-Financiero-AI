@@ -182,12 +182,14 @@
     <string name="prepare_transaction">Подготовить операцию</string>
     <string name="finish_editing_prepared">Завершить редактирование</string>
     <string name="remove_prepared_transaction">Удалить</string>
+    <string name="discard_form_changes">Сбросить</string>
     <string name="prepared_transaction_removed">Операция удалена из подготовленного списка</string>
     <string name="prepare_all_detected">Подготовить все (%1$d)</string>
     <string name="transaction_prepared_continue">Операция подготовлена. Можно добавить ещё одну.</string>
     <string name="all_detected_prepared">%1$d операций подготовлено</string>
     <string name="prepared_transactions_session">Подготовленные операции (%1$d)</string>
     <string name="finish_and_save">Добавить операции</string>
+    <string name="finish_or_discard_incomplete_before_add">У вас есть незавершённая операция. Отмените её или заполните поля для подготовки, прежде чем добавлять подготовленные операции.</string>
     <string name="session_saved">%1$d операций успешно сохранено</string>
     <string name="all_detected_saved">Сохранено операций: %1$d</string>
     <string name="err_type_required">Выберите тип операции.</string>

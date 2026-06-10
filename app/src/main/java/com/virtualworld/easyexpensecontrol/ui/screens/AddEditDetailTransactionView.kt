@@ -141,6 +141,7 @@ import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
@@ -169,24 +170,18 @@ fun AddEditDetailTransactionView(
     }
 
     if (id != 0L) {
-        val transaction = transactionViewModel.getTransactionById(id).collectAsState(
-            initial = Transaction(0L, TransactionType.Ingreso, 0.0, 0L, 0L, "")
-        )
-        transaction.value.let {
-            transactionViewModel.transactionTypeState = it.type
-            transactionViewModel.transactionAmountState = it.amount
-            transactionViewModel.transactionDescriptionState = it.description
-            transactionViewModel.transactionCategoryState = it.category
-            transactionViewModel.transactionDateState = it.date
-            transactionViewModel.transactionAccountState = it.accountId
-        }
+        LaunchedEffect(id) {
+            val transaction = transactionViewModel.getTransactionById(id).first()
+            transactionViewModel.transactionTypeState = transaction.type
+            transactionViewModel.transactionAmountState = transaction.amount
+            transactionViewModel.transactionDescriptionState = transaction.description
+            transactionViewModel.transactionCategoryState = transaction.category
+            transactionViewModel.transactionDateState = transaction.date
+            transactionViewModel.transactionAccountState = transaction.accountId
 
-        val category = categoryViewModel.getCategoryById(transactionViewModel.transactionCategoryState)
-            .collectAsState(initial = null)
-        LaunchedEffect(category.value) {
-            category.value?.let {
-                categoryViewModel.categoryNameState = it.name
-                categoryViewModel.categoryTypeState = it.type
+            categoryViewModel.getCategoryById(transaction.category).first()?.let { category ->
+                categoryViewModel.categoryNameState = category.name
+                categoryViewModel.categoryTypeState = category.type
             }
         }
     } else {
@@ -597,6 +592,14 @@ fun AddEditDetailTransactionContent(
             transactionDescriptionState.isNotBlank() ||
             categoryName.isNotBlank()
 
+    fun isFormCompleteForPrepare(): Boolean =
+        transactionTypeState != null &&
+            transactionAmountState > 0 &&
+            transactionDescriptionState.isNotBlank() &&
+            categoryName.isNotBlank() &&
+            datePickerState.selectedDateMillis != null &&
+            (accounts.isEmpty() || accounts.any { it.id == transactionAccountState })
+
     fun hasUnsavedPreparedWork(): Boolean =
         isAddMode && (detectedTransactions.isNotEmpty() || hasUnsavedFormData())
 
@@ -701,6 +704,15 @@ fun AddEditDetailTransactionContent(
                 )
                 scrollState.animateScrollTo(0)
             }
+        }
+    }
+
+    fun discardCurrentFormChanges() {
+        resetFormForNewTransaction()
+        resetLocalCategoryFields()
+        amountText = ""
+        scope.launch {
+            scrollState.animateScrollTo(0)
         }
     }
 
@@ -818,15 +830,20 @@ fun AddEditDetailTransactionContent(
                     onSave = { prepareOrUpdateTransaction() },
                     showPrimaryButton = !isAddMode,
                     onFinish = {
-                        val hasFormData = transactionAmountState > 0 ||
-                            transactionDescriptionState.isNotBlank() ||
-                            categoryName.isNotBlank()
                         when {
-                            hasFormData -> {
-                                if (!validateTransactionForm()) return@TransactionBottomBar
+                            detectedTransactions.isEmpty() -> navController.navigateUp()
+                            hasUnsavedFormData() && !isFormCompleteForPrepare() -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(
+                                            R.string.finish_or_discard_incomplete_before_add
+                                        )
+                                    )
+                                }
+                            }
+                            hasUnsavedFormData() -> {
                                 addCurrentFormToDetected { commitAllDetected() }
                             }
-                            detectedTransactions.isEmpty() -> navController.navigateUp()
                             else -> commitAllDetected()
                         }
                     },
@@ -1103,27 +1120,18 @@ fun AddEditDetailTransactionContent(
                                         onDelete = { deleteSelectedPreparedTransaction() }
                                     )
                                 } else {
-                                    Button(
-                                        onClick = { prepareOrUpdateTransaction() },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(52.dp),
-                                        enabled = !isLoading && !isFinishing,
-                                        shape = RoundedCornerShape(14.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                                    AnimatedVisibility(
+                                        visible = hasUnsavedFormData(),
+                                        enter = fadeIn() + expandVertically(),
+                                        exit = fadeOut() + shrinkVertically()
                                     ) {
-                                        if (isLoading) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                                color = MaterialTheme.colorScheme.onPrimary
-                                            )
-                                        } else {
-                                            Text(
-                                                text = stringResource(R.string.prepare_transaction),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                        }
+                                        PrepareTransactionActions(
+                                            isLoading = isLoading,
+                                            isFinishing = isFinishing,
+                                            accentColor = accentColor,
+                                            onPrepare = { prepareOrUpdateTransaction() },
+                                            onDiscard = { discardCurrentFormChanges() }
+                                        )
                                     }
                                 }
                                 }
@@ -1718,6 +1726,62 @@ private fun AiQuickActionCard(
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
+        }
+    }
+}
+
+@Composable
+private fun PrepareTransactionActions(
+    isLoading: Boolean,
+    isFinishing: Boolean,
+    accentColor: androidx.compose.ui.graphics.Color,
+    onPrepare: () -> Unit,
+    onDiscard: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val enabled = !isLoading && !isFinishing
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedButton(
+            onClick = onDiscard,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp),
+            enabled = enabled,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.discard_form_changes),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Button(
+            onClick = onPrepare,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp),
+            enabled = enabled,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.prepare_transaction),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }

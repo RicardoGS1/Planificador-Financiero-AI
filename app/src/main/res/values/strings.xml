@@ -193,12 +193,14 @@
     <string name="prepare_transaction">Prepare transaction</string>
     <string name="finish_editing_prepared">Finish editing</string>
     <string name="remove_prepared_transaction">Remove</string>
+    <string name="discard_form_changes">Discard</string>
     <string name="prepared_transaction_removed">Transaction removed from the prepared list</string>
     <string name="prepare_all_detected">Prepare all (%1$d)</string>
     <string name="transaction_prepared_continue">Transaction prepared. You can add another.</string>
     <string name="all_detected_prepared">%1$d transactions prepared</string>
     <string name="prepared_transactions_session">Prepared transactions (%1$d)</string>
     <string name="finish_and_save">Add transactions</string>
+    <string name="finish_or_discard_incomplete_before_add">You have an unfinished transaction. Discard it or complete the fields to prepare it before adding the prepared transactions.</string>
     <string name="session_saved">%1$d transactions saved successfully</string>
     <string name="all_detected_saved">%1$d transactions saved</string>
     <string name="err_type_required">Please select a transaction type.</string>

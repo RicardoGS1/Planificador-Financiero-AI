@@ -43,8 +43,8 @@ android {
         applicationId = "com.virtualworld.easyexpensecontrol"
         minSdk = 24
         targetSdk = 35
-        versionCode = 100200701
-        versionName = "1.2.7"
+        versionCode = 100200900
+        versionName = "1.2.9"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
 

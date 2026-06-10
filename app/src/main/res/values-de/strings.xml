@@ -182,12 +182,14 @@
     <string name="prepare_transaction">Transaktion vorbereiten</string>
     <string name="finish_editing_prepared">Bearbeitung beenden</string>
     <string name="remove_prepared_transaction">Entfernen</string>
+    <string name="discard_form_changes">Verwerfen</string>
     <string name="prepared_transaction_removed">Transaktion aus der vorbereiteten Liste entfernt</string>
     <string name="prepare_all_detected">Alle vorbereiten (%1$d)</string>
     <string name="transaction_prepared_continue">Transaktion vorbereitet. Sie können eine weitere hinzufügen.</string>
     <string name="all_detected_prepared">%1$d Transaktionen vorbereitet</string>
     <string name="prepared_transactions_session">Vorbereitete Transaktionen (%1$d)</string>
     <string name="finish_and_save">Transaktionen hinzufügen</string>
+    <string name="finish_or_discard_incomplete_before_add">Sie haben eine unvollständige Transaktion. Verwerfen Sie sie oder füllen Sie die Felder aus, um sie vor dem Hinzufügen der vorbereiteten Transaktionen vorzubereiten.</string>
     <string name="session_saved">%1$d Transaktionen erfolgreich gespeichert</string>
     <string name="all_detected_saved">%1$d Transaktionen gespeichert</string>
     <string name="err_type_required">Bitte wählen Sie einen Transaktionstyp.</string>

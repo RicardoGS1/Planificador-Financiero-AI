@@ -182,12 +182,14 @@
     <string name="prepare_transaction">تحضير المعاملة</string>
     <string name="finish_editing_prepared">إنهاء التعديل</string>
     <string name="remove_prepared_transaction">إزالة</string>
+    <string name="discard_form_changes">تجاهل</string>
     <string name="prepared_transaction_removed">تمت إزالة المعاملة من القائمة المُحضَّرة</string>
     <string name="prepare_all_detected">تحضير الكل (%1$d)</string>
     <string name="transaction_prepared_continue">تم تحضير المعاملة. يمكنك إضافة أخرى.</string>
     <string name="all_detected_prepared">%1$d معاملات مُحضَّرة</string>
     <string name="prepared_transactions_session">المعاملات المُحضَّرة (%1$d)</string>
     <string name="finish_and_save">إضافة المعاملات</string>
+    <string name="finish_or_discard_incomplete_before_add">لديك معاملة غير مكتملة. تجاهلها أو أكمل الحقول لتحضيرها قبل إضافة المعاملات المحضّرة.</string>
     <string name="session_saved">تم حفظ %1$d معاملات بنجاح</string>
     <string name="all_detected_saved">تم حفظ %1$d معاملات</string>
     <string name="err_type_required">يُرجى اختيار نوع المعاملة.</string>

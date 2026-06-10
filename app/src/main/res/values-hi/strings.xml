@@ -182,12 +182,14 @@
     <string name="prepare_transaction">लेनदेन तैयार करें</string>
     <string name="finish_editing_prepared">संपादन समाप्त करें</string>
     <string name="remove_prepared_transaction">हटाएँ</string>
+    <string name="discard_form_changes">रद्द करें</string>
     <string name="prepared_transaction_removed">लेनदेन तैयार सूची से हटाया गया</string>
     <string name="prepare_all_detected">सभी तैयार करें (%1$d)</string>
     <string name="transaction_prepared_continue">लेनदेन तैयार है। आप एक और जोड़ सकते हैं।</string>
     <string name="all_detected_prepared">%1$d लेनदेन तैयार</string>
     <string name="prepared_transactions_session">तैयार लेनदेन (%1$d)</string>
     <string name="finish_and_save">लेनदेन जोड़ें</string>
+    <string name="finish_or_discard_incomplete_before_add">आपके पास एक अधूरी लेनदेन है। तैयार लेनदेन जोड़ने से पहले इसे रद्द करें या तैयार करने के लिए फ़ील्ड पूरे करें।</string>
     <string name="session_saved">%1$d लेनदेन सफलतापूर्वक सहेजे गए</string>
     <string name="all_detected_saved">%1$d लेनदेन सहेजे गए</string>
     <string name="err_type_required">कृपया लेनदेन प्रकार चुनें।</string>

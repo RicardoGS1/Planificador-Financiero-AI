@@ -182,12 +182,14 @@
     <string name="prepare_transaction">Siapkan transaksi</string>
     <string name="finish_editing_prepared">Selesai mengedit</string>
     <string name="remove_prepared_transaction">Hapus</string>
+    <string name="discard_form_changes">Buang</string>
     <string name="prepared_transaction_removed">Transaksi dihapus dari daftar yang disiapkan</string>
     <string name="prepare_all_detected">Siapkan semua (%1$d)</string>
     <string name="transaction_prepared_continue">Transaksi disiapkan. Anda dapat menambahkan yang lain.</string>
     <string name="all_detected_prepared">%1$d transaksi disiapkan</string>
     <string name="prepared_transactions_session">Transaksi yang disiapkan (%1$d)</string>
     <string name="finish_and_save">Tambah transaksi</string>
+    <string name="finish_or_discard_incomplete_before_add">Anda memiliki transaksi yang belum selesai. Buang atau lengkapi kolom untuk menyiapkannya sebelum menambahkan transaksi yang sudah disiapkan.</string>
     <string name="session_saved">%1$d transaksi berhasil disimpan</string>
     <string name="all_detected_saved">%1$d transaksi disimpan</string>
     <string name="err_type_required">Pilih jenis transaksi.</string>
