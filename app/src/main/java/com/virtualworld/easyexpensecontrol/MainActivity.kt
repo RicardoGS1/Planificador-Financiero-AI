@@ -14,6 +14,7 @@ import com.virtualworld.easyexpensecontrol.ads.ConsentManager
 import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
 import com.virtualworld.easyexpensecontrol.ui.navigation.Navigation
 import com.virtualworld.easyexpensecontrol.ui.theme.EasyExpenseControlTheme
+import com.virtualworld.easyexpensecontrol.update.PlayUpdateManager
 
 class MainActivity : ComponentActivity() {
 
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PlayUpdateManager.register(this)
         enableEdgeToEdge()
         // Pantalla completa: ocultar barra de estado y barra de navegación
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -60,5 +62,10 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        PlayUpdateManager.resumeStalledImmediateUpdate(this)
     }
 }

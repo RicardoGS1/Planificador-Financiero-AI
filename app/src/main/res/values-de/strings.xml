@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KI-gestützte Ausgabenkontrolle</string>
+    <string name="force_update_title">Update erforderlich</string>
+    <string name="force_update_message">Eine neue Version ist bei Google Play verfügbar. Bitte aktualisiere die App, um sie weiter zu nutzen.</string>
+    <string name="force_update_button">Bei Google Play aktualisieren</string>
     <string name="update_transaction">Transaktion aktualisieren</string>
     <string name="add_transaction">Transaktion hinzufügen</string>
     <string name="update_budget">Budget aktualisieren</string>

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Kontrol Pengeluaran dengan AI</string>
+    <string name="force_update_title">Pembaruan wajib</string>
+    <string name="force_update_message">Versi baru tersedia di Google Play. Perbarui aplikasi untuk terus menggunakannya.</string>
+    <string name="force_update_button">Perbarui di Google Play</string>
     <string name="update_transaction">Perbarui transaksi</string>
     <string name="add_transaction">Tambah transaksi</string>
     <string name="update_budget">Perbarui anggaran</string>

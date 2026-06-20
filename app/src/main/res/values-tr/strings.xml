@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Yapay Zeka Destekli Harcama Kontrolü</string>
+    <string name="force_update_title">Güncelleme gerekli</string>
+    <string name="force_update_message">Google Play\'de yeni bir sürüm mevcut. Uygulamayı kullanmaya devam etmek için lütfen güncelleyin.</string>
+    <string name="force_update_button">Google Play\'de güncelle</string>
     <string name="update_transaction">İşlemi güncelle</string>
     <string name="add_transaction">İşlem ekle</string>
     <string name="update_budget">Bütçeyi güncelle</string>

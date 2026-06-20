@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AI संचालित खर्च नियंत्रण</string>
+    <string name="force_update_title">अपडेट आवश्यक</string>
+    <string name="force_update_message">Google Play पर नया संस्करण उपलब्ध है। ऐप का उपयोग जारी रखने के लिए कृपया अपडेट करें।</string>
+    <string name="force_update_button">Google Play पर अपडेट करें</string>
     <string name="update_transaction">लेनदेन अपडेट करें</string>
     <string name="add_transaction">लेनदेन जोड़ें</string>
     <string name="update_budget">बजट अपडेट करें</string>

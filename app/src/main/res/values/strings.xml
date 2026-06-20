@@ -12,6 +12,9 @@
     <string name="admob_rewarded_ai_test" translatable="false">ca-app-pub-3940256099942544/5224354917</string>
 
     <string name="app_name">AI-Powered Expense Control</string>
+    <string name="force_update_title">Update required</string>
+    <string name="force_update_message">A new version is available on Google Play. Please update to continue using the app.</string>
+    <string name="force_update_button">Update on Google Play</string>
     <string name="update_transaction">Update transaction</string>
     <string name="add_transaction">Add transaction</string>
     <string name="update_budget">Update budget</string>

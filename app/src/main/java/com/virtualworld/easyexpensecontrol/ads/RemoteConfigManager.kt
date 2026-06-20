@@ -23,6 +23,8 @@ import com.virtualworld.easyexpensecontrol.R
  *  - [KEY_REWARDED_AD_ENABLED]: activa/desactiva el rewarded ad de forma remota.
  *  - [KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS]: segundos máximos que el splash espera a que
  *    cargue el App Open antes de ir a la home (no cuenta mientras el anuncio está visible).
+ *  - [KEY_MIN_VERSION_CODE]: versionCode mínimo obligatorio. Si la app instalada es inferior,
+ *    se fuerza actualización mediante Google Play In-App Updates (IMMEDIATE).
  */
 object RemoteConfigManager {
 
@@ -33,6 +35,7 @@ object RemoteConfigManager {
     const val KEY_INTERSTITIAL_AD_FREQUENCY = "interstitial_ad_frequency"
     const val KEY_REWARDED_AD_ENABLED = "rewarded_ad_enabled"
     const val KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = "splash_app_open_max_wait_seconds"
+    const val KEY_MIN_VERSION_CODE = "min_version_code"
 
     private const val DEFAULT_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = 10L
     private const val MIN_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = 3L
@@ -122,6 +125,32 @@ object RemoteConfigManager {
             default = DEFAULT_SPLASH_APP_OPEN_MAX_WAIT_SECONDS,
         ).coerceIn(MIN_SPLASH_APP_OPEN_MAX_WAIT_SECONDS, MAX_SPLASH_APP_OPEN_MAX_WAIT_SECONDS)
         return seconds * 1_000L
+    }
+
+    /**
+     * versionCode mínimo exigido por Remote Config. 0 = sin restricción.
+     */
+    fun getMinVersionCode(): Long = getNonNegativeLong(KEY_MIN_VERSION_CODE, default = 0L)
+
+    /**
+     * true si la versión instalada es inferior al mínimo remoto.
+     */
+    fun isForceUpdateRequired(): Boolean {
+        val minVersion = getMinVersionCode()
+        if (minVersion <= 0L) return false
+        return BuildConfig.VERSION_CODE.toLong() < minVersion
+    }
+
+    private fun getNonNegativeLong(key: String, default: Long): Long {
+        val remoteConfig = Firebase.remoteConfig
+        val value = remoteConfig.getValue(key)
+        val fromLong = value.asLong()
+        val fromString = value.asString().trim().toLongOrNull()
+        return when {
+            fromLong >= 0L -> fromLong
+            fromString != null && fromString >= 0L -> fromString
+            else -> default
+        }
     }
 
     private fun getPositiveLong(key: String, default: Long): Long {

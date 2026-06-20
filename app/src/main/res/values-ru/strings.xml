@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Контроль расходов с ИИ</string>
+    <string name="force_update_title">Требуется обновление</string>
+    <string name="force_update_message">Доступна новая версия в Google Play. Обновите приложение, чтобы продолжить пользоваться им.</string>
+    <string name="force_update_button">Обновить в Google Play</string>
     <string name="update_transaction">Обновить операцию</string>
     <string name="add_transaction">Добавить операцию</string>
     <string name="update_budget">Обновить бюджет</string>

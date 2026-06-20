@@ -39,6 +39,7 @@ import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.ads.AppOpenAdManager
 import com.virtualworld.easyexpensecontrol.ads.ConsentManager
 import com.virtualworld.easyexpensecontrol.ads.RemoteConfigManager
+import com.virtualworld.easyexpensecontrol.update.PlayUpdateManager
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCategoriesUseCase
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import kotlin.math.max
@@ -59,6 +60,9 @@ fun SplashScreen(navController: NavHostController) {
 
     var targetProgress by remember { mutableFloatStateOf(0f) }
     var navigated by remember { mutableStateOf(false) }
+    var showForceUpdateFallback by remember { mutableStateOf(false) }
+    var blockNavigationForUpdate by remember { mutableStateOf(false) }
+    var updateCheckDone by remember { mutableStateOf(false) }
 
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
@@ -76,6 +80,40 @@ fun SplashScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
         seedDefaultCategoriesUseCase()
+
+        // Breve espera para que Remote Config aplique valores cacheados o recién descargados.
+        delay(800)
+
+        if (activity != null) {
+            val forceUpdateRequired = RemoteConfigManager.isForceUpdateRequired()
+            PlayUpdateManager.checkAndStartForceUpdate(
+                activity = activity,
+                isForceUpdateRequired = forceUpdateRequired,
+                onUpdateStarted = {
+                    updateCheckDone = true
+                    blockNavigationForUpdate = true
+                    targetProgress = 1f
+                },
+                onFallbackRequired = {
+                    updateCheckDone = true
+                    showForceUpdateFallback = true
+                    targetProgress = 1f
+                },
+                onNotRequired = {
+                    updateCheckDone = true
+                },
+            )
+
+            while (!updateCheckDone) {
+                delay(POLL_INTERVAL_MS)
+            }
+
+            if (showForceUpdateFallback || blockNavigationForUpdate) {
+                return@LaunchedEffect
+            }
+        } else {
+            updateCheckDone = true
+        }
 
         if (activity == null || app == null || !ConsentManager.canRequestAds(context)) {
             targetProgress = 1f
@@ -132,7 +170,17 @@ fun SplashScreen(navController: NavHostController) {
         }
     }
 
-    SplashScreenContent(progress = animatedProgress)
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (showForceUpdateFallback) {
+            ForceUpdateScreen(
+                onUpdateClick = {
+                    activity?.let { PlayUpdateManager.openPlayStoreListing(it) }
+                },
+            )
+        } else {
+            SplashScreenContent(progress = animatedProgress)
+        }
+    }
 }
 
 @Composable

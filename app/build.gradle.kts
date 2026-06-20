@@ -162,6 +162,7 @@ dependencies {
     implementation("com.unity3d.ads:unity-ads:4.16.6")
     implementation("com.google.ads.mediation:unity:4.16.6.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)

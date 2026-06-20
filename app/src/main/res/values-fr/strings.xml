@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Contrôle des dépenses avec IA</string>
+    <string name="force_update_title">Mise à jour obligatoire</string>
+    <string name="force_update_message">Une nouvelle version est disponible sur Google Play. Mettez à jour l\'application pour continuer à l\'utiliser.</string>
+    <string name="force_update_button">Mettre à jour sur Google Play</string>
     <string name="update_transaction">Mettre à jour la transaction</string>
     <string name="add_transaction">Ajouter une transaction</string>
     <string name="update_budget">Mettre à jour le budget</string>

@@ -16,6 +16,8 @@
       - splash_app_open_max_wait_seconds: entero (3–60). Segundos máximos que el splash
         espera a que cargue el App Open antes de ir a la home (no cuenta mientras el
         anuncio está en pantalla). Por defecto 10.
+      - min_version_code: entero >= 0. versionCode mínimo obligatorio. Si la app instalada
+        es inferior, se fuerza actualización mediante Google Play. 0 = desactivado.
       Permite desactivar cada formato de forma remota (sin actualizar la app)
       ante problemas de inventario, política o UX.
 -->
@@ -39,5 +41,9 @@
     <entry>
         <key>splash_app_open_max_wait_seconds</key>
         <value>10</value>
+    </entry>
+    <entry>
+        <key>min_version_code</key>
+        <value>0</value>
     </entry>
 </defaultsMap>

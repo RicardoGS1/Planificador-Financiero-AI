@@ -38,11 +38,13 @@ object InterstitialAdHelper {
     private var isLoading = false
     private var showRequestCount = -1
 
-    fun preload(context: Context) {
+    fun preload(context: Context, force: Boolean = false) {
         if (!RemoteConfigManager.isInterstitialAdEnabled()) return
         ensureCountLoaded(context)
-        val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
-        if (!shouldPreloadForNextShow(frequency)) return
+        if (!force) {
+            val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
+            if (!shouldPreloadForNextShow(frequency)) return
+        }
         if (loadedAd != null || isLoading) return
         isLoading = true
         Log.d(TAG, "Iniciando carga de anuncio: tipo=$AD_TYPE")
@@ -92,7 +94,7 @@ object InterstitialAdHelper {
         val ad = loadedAd
         if (ad == null) {
             Log.d(TAG, "Anuncio no listo: tipo=$AD_TYPE, requestCount=$showRequestCount")
-            preload(activity)
+            preload(activity, force = true)
             runOnUi(activity, onDone)
             return
         }
@@ -126,6 +128,9 @@ object InterstitialAdHelper {
      * Solo se reinicia tras mostrar el anuncio (o fallo al mostrarlo).
      */
     private fun shouldShowOnThisRequest(context: Context, frequency: Int): Boolean {
+        if (showRequestCount >= frequency) {
+            return true
+        }
         showRequestCount++
         persistCount(context)
         return showRequestCount >= frequency
@@ -136,10 +141,10 @@ object InterstitialAdHelper {
         persistCount(context)
     }
 
-    /** Precarga solo cuando falta una solicitud para llegar al umbral de frecuencia. */
+    /** Precarga una solicitud antes del umbral o mientras se espera mostrar uno pendiente. */
     private fun shouldPreloadForNextShow(frequency: Int): Boolean {
         if (frequency <= 1) return true
-        return showRequestCount == frequency - 1
+        return showRequestCount >= frequency - 1
     }
 
     private fun ensureCountLoaded(context: Context) {

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">التحكم في المصروفات بالذكاء الاصطناعي</string>
+    <string name="force_update_title">التحديث مطلوب</string>
+    <string name="force_update_message">يتوفر إصدار جديد على Google Play. يُرجى التحديث لمتابعة استخدام التطبيق.</string>
+    <string name="force_update_button">التحديث من Google Play</string>
     <string name="update_transaction">تحديث المعاملة</string>
     <string name="add_transaction">إضافة معاملة</string>
     <string name="update_budget">تحديث الميزانية</string>
