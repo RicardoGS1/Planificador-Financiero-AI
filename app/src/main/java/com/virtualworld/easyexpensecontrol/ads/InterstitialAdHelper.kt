@@ -70,6 +70,14 @@ object InterstitialAdHelper {
         )
     }
 
+    fun showOnAddTransactionIfEnabled(activity: Activity, onDone: () -> Unit = {}) {
+        if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) {
+            onDone()
+            return
+        }
+        show(activity, onDone)
+    }
+
     fun show(activity: Activity, onDone: () -> Unit = {}) {
         if (!RemoteConfigManager.isInterstitialAdEnabled()) {
             AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_DISABLED)

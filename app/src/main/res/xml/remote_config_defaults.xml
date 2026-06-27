@@ -9,6 +9,8 @@
         mostrará anuncios App Open.
       - interstitial_ad_enabled: boolean. Si es false, InterstitialAdHelper NO
         precargará ni mostrará intersticiales.
+      - interstitial_ad_add_transaction_enabled: boolean. Si es false, no se muestra
+        intersticial al guardar transacciones y volver atrás.
       - interstitial_ad_frequency: número entero >= 1. Cada cuántas solicitudes de
         show() se muestra realmente el intersticial (p. ej. 4 = 1 de cada 4).
       - rewarded_ad_enabled: boolean. Si es false, CameraRewardedAdHelper NO
@@ -28,6 +30,10 @@
     </entry>
     <entry>
         <key>interstitial_ad_enabled</key>
+        <value>true</value>
+    </entry>
+    <entry>
+        <key>interstitial_ad_add_transaction_enabled</key>
         <value>true</value>
     </entry>
     <entry>

@@ -113,6 +113,8 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.virtualworld.easyexpensecontrol.ads.AiRewardedAdHelper
+import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
+import com.virtualworld.easyexpensecontrol.ads.RemoteConfigManager
 import com.virtualworld.easyexpensecontrol.audio.AudioRecorder
 import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
@@ -313,6 +315,27 @@ fun AddEditDetailTransactionContent(
     val density = LocalDensity.current
     val imeBottomPadding = with(density) { WindowInsets.ime.getBottom(this).toDp() }
     val context = LocalContext.current
+    val isAddMode = id == 0L
+
+    LaunchedEffect(isAddMode, detectedTransactions.size) {
+        if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) return@LaunchedEffect
+        when {
+            !isAddMode -> InterstitialAdHelper.preload(context)
+            detectedTransactions.isNotEmpty() -> InterstitialAdHelper.preload(context)
+        }
+    }
+
+    fun navigateBackAfterSave() {
+        val activity = context as? Activity
+        if (activity != null) {
+            InterstitialAdHelper.showOnAddTransactionIfEnabled(activity) {
+                navController.navigateUp()
+            }
+        } else {
+            navController.navigateUp()
+        }
+    }
+
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = TakePictureWithUriGrants()
@@ -367,7 +390,6 @@ fun AddEditDetailTransactionContent(
         if (granted) startRecordingAudio()
     }
 
-    val isAddMode = id == 0L
     var selectedDetectedIndex by remember { mutableStateOf<Int?>(null) }
     var showManualForm by remember { mutableStateOf(true) }
     var showExitConfirmDialog by remember { mutableStateOf(false) }
@@ -581,7 +603,7 @@ fun AddEditDetailTransactionContent(
             {
                 isFinishing = false
                 scope.launch {
-                    navController.navigateUp()
+                    navigateBackAfterSave()
                 }
             }
         )
@@ -747,7 +769,7 @@ fun AddEditDetailTransactionContent(
                 },
                 {
                     scope.launch {
-                        navController.navigateUp()
+                        navigateBackAfterSave()
                     }
                 }
             )
