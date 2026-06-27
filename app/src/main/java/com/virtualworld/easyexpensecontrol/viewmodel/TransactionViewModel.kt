@@ -31,6 +31,8 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransac
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.SaveTransactionUseCase
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsEvents
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 import com.virtualworld.easyexpensecontrol.core.util.SensitiveDataSanitizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -63,7 +65,8 @@ class TransactionViewModel(
     private val getCategoryByNameUseCase: GetCategoryByNameUseCase,
     private val getCategoriesByTypeUseCase: GetCategoriesByTypeUseCase,
     private val getVisibleAccountsUseCase: GetVisibleAccountsUseCase,
-    private val appContext: Context
+    private val appContext: Context,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
     var transactionTypeState by mutableStateOf<TransactionType?>(null)
     var transactionAmountState by mutableDoubleStateOf(0.0)
@@ -105,6 +108,7 @@ class TransactionViewModel(
     fun deleteTransactionAndCheckCategory(transaction: Transaction) {
         viewModelScope.launch(Dispatchers.IO) {
             deleteTransactionUseCase(transaction)
+            analyticsManager.logTransactionDeleted(transaction.type)
         }
     }
 
@@ -113,6 +117,7 @@ class TransactionViewModel(
 
     fun processReceiptImage(imageBytes: ByteArray) {
         viewModelScope.launch(Dispatchers.IO) {
+            analyticsManager.logAiAnalysisStarted(AiAnalysisSource.RECEIPT)
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             handleAnalysisResult(
                 result = processReceiptUseCase(imageBytes),
@@ -124,6 +129,7 @@ class TransactionViewModel(
 
     fun processAudio(audioBytes: ByteArray, type: TransactionType?, mimeType: String = "audio/aac") {
         viewModelScope.launch(Dispatchers.IO) {
+            analyticsManager.logAiAnalysisStarted(AiAnalysisSource.AUDIO)
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             handleAnalysisResult(
                 result = processAudioUseCase(audioBytes, type, mimeType),
@@ -140,6 +146,7 @@ class TransactionViewModel(
         endDateMillis: Long
     ) {
         viewModelScope.launch(Dispatchers.IO) {
+            analyticsManager.logAiAnalysisStarted(AiAnalysisSource.SPREADSHEET)
             _receiptProcessingState.value = ReceiptProcessingState.Loading
             val zone = ZoneId.systemDefault()
             val startIso = Instant.ofEpochMilli(startDateMillis).atZone(zone).toLocalDate().toString()
@@ -160,6 +167,11 @@ class TransactionViewModel(
         result
             .onSuccess { data ->
                 if (data.items.isEmpty()) {
+                    analyticsManager.logAiAnalysisResult(
+                        source = source,
+                        success = false,
+                        errorCategory = AnalyticsEvents.ERROR_EMPTY
+                    )
                     _receiptProcessingState.value = ReceiptProcessingState.Error(
                         appContext.getString(R.string.gemini_empty_response)
                     )
@@ -223,8 +235,18 @@ class TransactionViewModel(
                     transactionCount = detected.size,
                     source = source
                 )
+                analyticsManager.logAiAnalysisResult(
+                    source = source,
+                    success = true,
+                    transactionCount = detected.size
+                )
             }
             .onFailure { e ->
+                analyticsManager.logAiAnalysisResult(
+                    source = source,
+                    success = false,
+                    errorCategory = analyticsManager.categorizeAiError(e)
+                )
                 val fallback = when (source) {
                     AiAnalysisSource.SPREADSHEET -> when (e.message) {
                         "empty_file", "empty_spreadsheet" ->
@@ -340,6 +362,7 @@ class TransactionViewModel(
                 }
             }
             _detectedTransactions.value = emptyList()
+            analyticsManager.logTransactionsBatchSaved(items.size)
             withContext(Dispatchers.Main) {
                 onSuccess(items.size)
             }
@@ -379,6 +402,7 @@ class TransactionViewModel(
                 }
                 return@launch
             }
+            analyticsManager.logTransactionSaved(type = type, isEdit = id != 0L)
             withContext(Dispatchers.Main) {
                 onSuccess()
             }

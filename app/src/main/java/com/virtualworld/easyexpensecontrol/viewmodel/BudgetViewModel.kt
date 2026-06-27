@@ -15,6 +15,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetForCat
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.UpdateBudgetUseCase
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -27,7 +28,8 @@ class BudgetViewModel(
     private val getBudgetForCategoryMonthAndYearUseCase: GetBudgetForCategoryMonthAndYearUseCase,
     private val addBudgetUseCase: AddBudgetUseCase,
     private val updateBudgetUseCase: UpdateBudgetUseCase,
-    private val deleteBudgetUseCase: DeleteBudgetUseCase
+    private val deleteBudgetUseCase: DeleteBudgetUseCase,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
     var budgetCategoryState by mutableLongStateOf(0L)
     var budgetMonthlyLimitState by mutableDoubleStateOf(0.0)
@@ -63,6 +65,7 @@ class BudgetViewModel(
     fun addBudget(budget: Budget) {
         viewModelScope.launch {
             addBudgetUseCase(budget)
+            analyticsManager.logBudgetSaved(isEdit = false)
         }
     }
 
@@ -71,12 +74,14 @@ class BudgetViewModel(
     fun updateBudget(budget: Budget) {
         viewModelScope.launch {
             updateBudgetUseCase(budget)
+            analyticsManager.logBudgetSaved(isEdit = true)
         }
     }
 
     fun deleteBudget(budget: Budget) {
         viewModelScope.launch {
             deleteBudgetUseCase(budget)
+            analyticsManager.logBudgetDeleted()
         }
     }
 

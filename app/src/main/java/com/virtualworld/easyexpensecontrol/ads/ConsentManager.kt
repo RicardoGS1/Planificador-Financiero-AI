@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsConsent
 
 /**
  * Gestiona el flujo de consentimiento UMP (User Messaging Platform).
@@ -72,6 +73,7 @@ object ConsentManager {
                     "Privacy options form error: code=${error.errorCode}, message=${error.message}"
                 )
             }
+            AnalyticsConsent.applyFromUmp(activity)
             onDone(canRequestAds(activity))
         }
     }

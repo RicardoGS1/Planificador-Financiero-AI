@@ -1,9 +1,11 @@
 package com.virtualworld.easyexpensecontrol.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,11 +23,13 @@ import com.virtualworld.easyexpensecontrol.ui.screens.SettingsScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.SplashScreen
 import com.virtualworld.easyexpensecontrol.ui.screens.StaticsScreen
 import com.virtualworld.easyexpensecontrol.ads.InterstitialAdHelper
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun Navigation(
@@ -33,12 +37,23 @@ fun Navigation(
     categoryViewModel: CategoryViewModel = koinViewModel(),
     budgetViewModel: BudgetViewModel = koinViewModel(),
     accountViewModel: AccountViewModel = koinViewModel(),
+    analyticsManager: AnalyticsManager = koinInject(),
     navController: NavHostController,
     onPlaySound: (Int) -> Unit
 ) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         InterstitialAdHelper.preload(context)
+    }
+
+    DisposableEffect(navController, analyticsManager) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            analyticsManager.logScreenView(destination.route ?: "unknown")
+        }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose {
+            navController.removeOnDestinationChangedListener(listener)
+        }
     }
 
     SetStatusBarColor(

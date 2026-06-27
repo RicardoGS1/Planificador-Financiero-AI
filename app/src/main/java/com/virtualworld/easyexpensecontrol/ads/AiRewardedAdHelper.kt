@@ -13,6 +13,8 @@ import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.virtualworld.easyexpensecontrol.BuildConfig
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsEvents
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 
 /**
  * Controla el acceso a las funciones de IA mediante un rewarded ad por sesión de app.
@@ -221,7 +223,13 @@ object AiRewardedAdHelper {
                 preloadedAd = null
                 preload(activity)
                 continueOnUiAfterAd(activity) {
-                    if (rewardEarned) onGranted() else onAdNotCompleted()
+                    if (rewardEarned) {
+                        AnalyticsManager.current()?.logAdRewardedCompleted(AnalyticsEvents.PLACEMENT_AI)
+                        onGranted()
+                    } else {
+                        AnalyticsManager.current()?.logAdRewardedDismissed(AnalyticsEvents.PLACEMENT_AI)
+                        onAdNotCompleted()
+                    }
                 }
             }
 

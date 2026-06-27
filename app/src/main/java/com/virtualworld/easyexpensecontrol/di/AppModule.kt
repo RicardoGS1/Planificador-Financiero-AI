@@ -45,6 +45,7 @@ import com.virtualworld.easyexpensecontrol.viewmodel.AccountViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.BudgetViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.CategoryViewModel
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
@@ -80,6 +81,10 @@ val appModule = module {
 
     single { BudgetListVisibilityRepository(androidContext()) }
     single { OnboardingTutorialRepository(androidContext()) }
+
+    single {
+        AnalyticsManager(androidContext()).also { AnalyticsManager.bind(it) }
+    }
 
     // Repositorios (implementaciones data que cumplen interfaces domain)
     single<TransactionRepositoryDomain> { TransactionRepository(get()) }
@@ -152,7 +157,8 @@ val appModule = module {
             getCategoryByNameUseCase = get(),
             getCategoriesByTypeUseCase = get(),
             getVisibleAccountsUseCase = get(),
-            appContext = androidContext()
+            appContext = androidContext(),
+            analyticsManager = get()
         )
     }
     viewModel {
@@ -162,7 +168,8 @@ val appModule = module {
             getBudgetForCategoryMonthAndYearUseCase = get(),
             addBudgetUseCase = get(),
             updateBudgetUseCase = get(),
-            deleteBudgetUseCase = get()
+            deleteBudgetUseCase = get(),
+            analyticsManager = get()
         )
     }
     viewModel {

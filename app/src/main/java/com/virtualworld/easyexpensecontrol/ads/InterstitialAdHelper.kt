@@ -13,6 +13,8 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.virtualworld.easyexpensecontrol.BuildConfig
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsEvents
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 
 /**
  * Muestra un intersticial al navegar a ciertas pantallas (p. ej. presupuestos).
@@ -70,6 +72,7 @@ object InterstitialAdHelper {
 
     fun show(activity: Activity, onDone: () -> Unit = {}) {
         if (!RemoteConfigManager.isInterstitialAdEnabled()) {
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_DISABLED)
             onDone()
             return
         }
@@ -82,6 +85,7 @@ object InterstitialAdHelper {
                 TAG,
                 "Anuncio omitido: tipo=$AD_TYPE, frequencyCap=$frequency, requestCount=$showRequestCount"
             )
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_FREQUENCY_CAP)
             if (shouldPreloadForNextShow(frequency)) preload(activity)
             runOnUi(activity, onDone)
             return
@@ -94,6 +98,7 @@ object InterstitialAdHelper {
         val ad = loadedAd
         if (ad == null) {
             Log.d(TAG, "Anuncio no listo: tipo=$AD_TYPE, requestCount=$showRequestCount")
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_NOT_READY)
             preload(activity, force = true)
             runOnUi(activity, onDone)
             return
@@ -119,6 +124,7 @@ object InterstitialAdHelper {
             }
         }
         Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
+        AnalyticsManager.current()?.logAdInterstitialShown()
         ad.show(activity)
     }
 

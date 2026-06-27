@@ -11,6 +11,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.virtualworld.easyexpensecontrol.ads.AppOpenAdManager
 import com.virtualworld.easyexpensecontrol.ads.RemoteConfigManager
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsConsent
 import com.virtualworld.easyexpensecontrol.core.util.LocaleHelper
 import com.virtualworld.easyexpensecontrol.di.appModule
 import org.koin.android.ext.koin.androidContext
@@ -31,6 +32,8 @@ class FinancialApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        AnalyticsConsent.applyDeniedByDefault()
 
         if (BuildConfig.DEBUG) {
             // Para probar en un móvil físico con build debug sin riesgo de "invalid traffic":

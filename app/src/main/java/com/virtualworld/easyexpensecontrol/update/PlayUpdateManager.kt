@@ -3,6 +3,7 @@ package com.virtualworld.easyexpensecontrol.update
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.IntentSender
 import android.net.Uri
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -160,11 +161,18 @@ object PlayUpdateManager {
         val options = AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
         val manager = appUpdateManager ?: return
 
-        manager.startUpdateFlowForResult(
-            appUpdateInfo,
-            launcher,
-            options
-        ).addOnFailureListener { error ->
+        try {
+            val started = manager.startUpdateFlowForResult(
+                appUpdateInfo,
+                launcher,
+                options
+            )
+            if (!started) {
+                Log.w(TAG, "No se pudo iniciar In-App Update IMMEDIATE (startUpdateFlowForResult=false)")
+                onUpdateFlowFinished = null
+                onFinished(false)
+            }
+        } catch (error: IntentSender.SendIntentException) {
             Log.w(TAG, "No se pudo iniciar In-App Update IMMEDIATE", error)
             onUpdateFlowFinished = null
             onFinished(false)

@@ -13,6 +13,8 @@ import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.virtualworld.easyexpensecontrol.BuildConfig
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsEvents
+import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 
 /**
  * Muestra un rewarded ad antes de abrir la cámara o iniciar la grabación de audio.
@@ -79,6 +81,8 @@ object CameraRewardedAdHelper {
             return
         }
 
+        var rewardEarned = false
+
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "Anuncio cerrado: tipo=$AD_TYPE")
@@ -86,7 +90,14 @@ object CameraRewardedAdHelper {
                 preloadedAd = null
                 lastShownAtMs = System.currentTimeMillis()
                 preload(activity)
-                continueOnUiAfterAd(activity, onContinue)
+                continueOnUiAfterAd(activity) {
+                    if (rewardEarned) {
+                        AnalyticsManager.current()?.logAdRewardedCompleted(AnalyticsEvents.PLACEMENT_CAMERA)
+                    } else {
+                        AnalyticsManager.current()?.logAdRewardedDismissed(AnalyticsEvents.PLACEMENT_CAMERA)
+                    }
+                    onContinue()
+                }
             }
 
             override fun onAdFailedToShowFullScreenContent(error: AdError) {
@@ -100,6 +111,7 @@ object CameraRewardedAdHelper {
         Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
         ad.show(activity) { rewardItem ->
             Log.d(TAG, "Recompensa obtenida: tipo=$AD_TYPE, amount=${rewardItem.amount}, rewardType=${rewardItem.type}")
+            rewardEarned = true
         }
     }
 
