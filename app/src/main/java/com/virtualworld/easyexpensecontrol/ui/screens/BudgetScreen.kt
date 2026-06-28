@@ -118,7 +118,7 @@ fun BudgetScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         val activity = context as? Activity ?: return@LaunchedEffect
-        InterstitialAdHelper.show(activity)
+        InterstitialAdHelper.showOnBudgetIfEnabled(activity)
     }
 
     val currentCalendar = Calendar.getInstance()

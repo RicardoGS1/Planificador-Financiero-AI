@@ -17,11 +17,13 @@ import com.virtualworld.easyexpensecontrol.R
  *
  * Claves expuestas:
  *  - [KEY_APP_OPEN_AD_ENABLED]: activa/desactiva el App Open Ad de forma remota.
- *  - [KEY_INTERSTITIAL_AD_ENABLED]: activa/desactiva el intersticial de forma remota.
+ *  - [KEY_INTERSTITIAL_AD_ENABLED]: activa/desactiva el intersticial de presupuestos.
  *  - [KEY_INTERSTITIAL_AD_ADD_TRANSACTION_ENABLED]: activa/desactiva el intersticial al
  *    guardar transacciones y volver a la pantalla anterior.
- *  - [KEY_INTERSTITIAL_AD_FREQUENCY]: cada cuántas solicitudes de [InterstitialAdHelper.show]
- *    se muestra realmente el intersticial (p. ej. 4 = mostrar 1 de cada 4 solicitudes).
+ *  - [KEY_INTERSTITIAL_AD_ADD_TRANSACTION_FREQUENCY]: cada cuántos guardados de
+ *    transacción se muestra el intersticial (p. ej. 4 = 1 de cada 4).
+ *  - [KEY_INTERSTITIAL_AD_FREQUENCY]: cada cuántas visitas a presupuestos se muestra
+ *    el intersticial (p. ej. 4 = mostrar 1 de cada 4 solicitudes).
  *  - [KEY_REWARDED_AD_ENABLED]: activa/desactiva el rewarded ad de forma remota.
  *  - [KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS]: segundos máximos que el splash espera a que
  *    cargue el App Open antes de ir a la home (no cuenta mientras el anuncio está visible).
@@ -35,6 +37,7 @@ object RemoteConfigManager {
     const val KEY_APP_OPEN_AD_ENABLED = "app_open_ad_enabled"
     const val KEY_INTERSTITIAL_AD_ENABLED = "interstitial_ad_enabled"
     const val KEY_INTERSTITIAL_AD_ADD_TRANSACTION_ENABLED = "interstitial_ad_add_transaction_enabled"
+    const val KEY_INTERSTITIAL_AD_ADD_TRANSACTION_FREQUENCY = "interstitial_ad_add_transaction_frequency"
     const val KEY_INTERSTITIAL_AD_FREQUENCY = "interstitial_ad_frequency"
     const val KEY_REWARDED_AD_ENABLED = "rewarded_ad_enabled"
     const val KEY_SPLASH_APP_OPEN_MAX_WAIT_SECONDS = "splash_app_open_max_wait_seconds"
@@ -89,35 +92,28 @@ object RemoteConfigManager {
 
     fun isAppOpenAdEnabled(): Boolean = getBoolean(KEY_APP_OPEN_AD_ENABLED)
 
+    /**
+     * Activa/desactiva el intersticial al entrar en la pantalla de presupuestos.
+     */
     fun isInterstitialAdEnabled(): Boolean = getBoolean(KEY_INTERSTITIAL_AD_ENABLED)
 
     fun isInterstitialAdOnAddTransactionEnabled(): Boolean =
         getBoolean(KEY_INTERSTITIAL_AD_ADD_TRANSACTION_ENABLED)
 
     /**
-     * Número de solicitudes de intersticial entre cada visualización real.
+     * Número de guardados de transacción entre cada visualización del intersticial.
+     * Valor 1 = mostrar en cada solicitud elegible. Valor 4 = 1 de cada 4 guardados.
+     */
+    fun getInterstitialAdOnAddTransactionFrequency(): Long =
+        getPositiveLong(KEY_INTERSTITIAL_AD_ADD_TRANSACTION_FREQUENCY, default = 1L)
+
+    /**
+     * Número de visitas a presupuestos entre cada visualización del intersticial.
      * Valor 1 = comportamiento habitual (mostrar en cada solicitud elegible).
      * Valor 4 = mostrar solo en la 4.ª solicitud y reiniciar el contador.
      */
-    fun getInterstitialAdFrequency(): Long {
-        val remoteConfig = Firebase.remoteConfig
-        val value = remoteConfig.getValue(KEY_INTERSTITIAL_AD_FREQUENCY)
-        val fromLong = value.asLong()
-        val fromString = value.asString().trim().toLongOrNull()
-        val resolved = when {
-            fromLong > 0L -> fromLong
-            fromString != null && fromString > 0L -> fromString
-            else -> 1L
-        }.coerceAtLeast(1L)
-        if (BuildConfig.DEBUG) {
-            Log.d(
-                TAG,
-                "interstitial_ad_frequency=$resolved (long=$fromLong, string='${value.asString()}', " +
-                    "source=${value.source})"
-            )
-        }
-        return resolved
-    }
+    fun getInterstitialAdFrequency(): Long =
+        getPositiveLong(KEY_INTERSTITIAL_AD_FREQUENCY, default = 1L)
 
     fun isRewardedAdEnabled(): Boolean = getBoolean(KEY_REWARDED_AD_ENABLED)
 

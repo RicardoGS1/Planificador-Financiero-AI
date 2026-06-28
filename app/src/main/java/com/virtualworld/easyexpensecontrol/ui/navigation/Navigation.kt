@@ -43,7 +43,7 @@ fun Navigation(
 ) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        InterstitialAdHelper.preload(context)
+        InterstitialAdHelper.preloadForBudget(context)
     }
 
     DisposableEffect(navController, analyticsManager) {

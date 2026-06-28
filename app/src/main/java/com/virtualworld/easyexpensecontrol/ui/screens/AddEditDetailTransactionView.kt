@@ -320,8 +320,8 @@ fun AddEditDetailTransactionContent(
     LaunchedEffect(isAddMode, detectedTransactions.size) {
         if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) return@LaunchedEffect
         when {
-            !isAddMode -> InterstitialAdHelper.preload(context)
-            detectedTransactions.isNotEmpty() -> InterstitialAdHelper.preload(context)
+            !isAddMode -> InterstitialAdHelper.preloadForAddTransaction(context)
+            detectedTransactions.isNotEmpty() -> InterstitialAdHelper.preloadForAddTransaction(context)
         }
     }
 

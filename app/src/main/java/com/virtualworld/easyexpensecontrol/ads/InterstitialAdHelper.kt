@@ -17,36 +17,173 @@ import com.virtualworld.easyexpensecontrol.analytics.AnalyticsEvents
 import com.virtualworld.easyexpensecontrol.analytics.AnalyticsManager
 
 /**
- * Muestra un intersticial al navegar a ciertas pantallas (p. ej. presupuestos).
+ * Gestiona intersticiales en distintos placements de la app.
  *
- * - Precarga el anuncio mediante [preload] para evitar latencia.
- * - Respeta [RemoteConfigManager.isInterstitialAdEnabled] y el frequency cap remoto
- *   ([RemoteConfigManager.getInterstitialAdFrequency]): solo muestra el intersticial
- *   cada N solicitudes de [show].
- * - Si el anuncio no está listo, se llama a [onDone] de inmediato para no bloquear
- *   el flujo del usuario.
- * - El contador de solicitudes persiste entre sesiones (SharedPreferences).
+ * Presupuestos ([showOnBudgetIfEnabled]):
+ *  - Respeta [RemoteConfigManager.isInterstitialAdEnabled] y
+ *    [RemoteConfigManager.getInterstitialAdFrequency].
+ *
+ * Guardar transacciones ([showOnAddTransactionIfEnabled]):
+ *  - Respeta [RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled] y
+ *    [RemoteConfigManager.getInterstitialAdOnAddTransactionFrequency].
+ *
+ * Si el anuncio no está listo, se llama a [onDone] de inmediato para no bloquear
+ * el flujo del usuario. Los frequency caps persisten entre sesiones.
  */
 object InterstitialAdHelper {
 
     private const val TAG = "mylog_ads"
     private const val AD_TYPE = "interstitial"
     private const val PREFS_NAME = "interstitial_ad_prefs"
-    private const val KEY_SHOW_REQUEST_COUNT = "show_request_count"
+    private const val KEY_BUDGET_SHOW_REQUEST_COUNT = "budget_show_request_count"
+    private const val KEY_ADD_TRANSACTION_SHOW_REQUEST_COUNT = "add_transaction_show_request_count"
+    private const val LEGACY_SHOW_REQUEST_COUNT = "show_request_count"
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var loadedAd: InterstitialAd? = null
     private var isLoading = false
-    private var showRequestCount = -1
+    private var budgetShowRequestCount = -1
+    private var addTransactionShowRequestCount = -1
 
-    fun preload(context: Context, force: Boolean = false) {
+    fun preloadForBudget(context: Context, force: Boolean = false) {
         if (!RemoteConfigManager.isInterstitialAdEnabled()) return
-        ensureCountLoaded(context)
+        ensureBudgetCountLoaded(context)
         if (!force) {
             val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
-            if (!shouldPreloadForNextShow(frequency)) return
+            if (!shouldPreloadForNextShow(budgetShowRequestCount, frequency)) return
         }
+        loadAdIfNeeded(context)
+    }
+
+    fun preloadForAddTransaction(context: Context, force: Boolean = false) {
+        if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) return
+        ensureAddTransactionCountLoaded(context)
+        if (!force) {
+            val frequency = RemoteConfigManager.getInterstitialAdOnAddTransactionFrequency().toInt()
+            if (!shouldPreloadForNextShow(addTransactionShowRequestCount, frequency)) return
+        }
+        loadAdIfNeeded(context)
+    }
+
+    fun showOnBudgetIfEnabled(activity: Activity, onDone: () -> Unit = {}) {
+        if (!RemoteConfigManager.isInterstitialAdEnabled()) {
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_DISABLED)
+            onDone()
+            return
+        }
+
+        ensureBudgetCountLoaded(activity)
+        val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
+
+        if (!shouldShowBudgetOnThisRequest(activity, frequency)) {
+            Log.d(
+                TAG,
+                "Anuncio omitido (presupuesto): tipo=$AD_TYPE, frequencyCap=$frequency, " +
+                    "requestCount=$budgetShowRequestCount"
+            )
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_FREQUENCY_CAP)
+            if (shouldPreloadForNextShow(budgetShowRequestCount, frequency)) {
+                preloadForBudget(activity)
+            }
+            runOnUi(activity, onDone)
+            return
+        }
+
+        Log.d(
+            TAG,
+            "Anuncio elegible (presupuesto): tipo=$AD_TYPE, frequency=$frequency, " +
+                "requestCount=$budgetShowRequestCount"
+        )
+
+        showLoadedAd(
+            activity = activity,
+            onDone = onDone,
+            onDismissed = {
+                resetBudgetShowRequestCount(activity)
+                preloadForBudget(activity)
+            }
+        )
+    }
+
+    fun showOnAddTransactionIfEnabled(activity: Activity, onDone: () -> Unit = {}) {
+        if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) {
+            onDone()
+            return
+        }
+
+        ensureAddTransactionCountLoaded(activity)
+        val frequency = RemoteConfigManager.getInterstitialAdOnAddTransactionFrequency().toInt()
+
+        if (!shouldShowAddTransactionOnThisRequest(activity, frequency)) {
+            Log.d(
+                TAG,
+                "Anuncio omitido (guardar transacción): tipo=$AD_TYPE, frequencyCap=$frequency, " +
+                    "requestCount=$addTransactionShowRequestCount"
+            )
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_FREQUENCY_CAP)
+            if (shouldPreloadForNextShow(addTransactionShowRequestCount, frequency)) {
+                preloadForAddTransaction(activity)
+            }
+            runOnUi(activity, onDone)
+            return
+        }
+
+        Log.d(
+            TAG,
+            "Anuncio elegible (guardar transacción): tipo=$AD_TYPE, frequency=$frequency, " +
+                "requestCount=$addTransactionShowRequestCount"
+        )
+
+        showLoadedAd(
+            activity = activity,
+            onDone = onDone,
+            onDismissed = {
+                resetAddTransactionShowRequestCount(activity)
+                preloadForAddTransaction(activity)
+            }
+        )
+    }
+
+    private fun showLoadedAd(
+        activity: Activity,
+        onDone: () -> Unit,
+        onDismissed: () -> Unit
+    ) {
+        AppOpenAdManager.suppressNextAppOpen()
+
+        val ad = loadedAd
+        if (ad == null) {
+            Log.d(TAG, "Anuncio no listo: tipo=$AD_TYPE")
+            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_NOT_READY)
+            loadAdIfNeeded(activity)
+            runOnUi(activity, onDone)
+            return
+        }
+
+        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                Log.d(TAG, "Anuncio cerrado: tipo=$AD_TYPE")
+                ad.fullScreenContentCallback = null
+                loadedAd = null
+                onDismissed()
+                runOnUi(activity, onDone)
+            }
+
+            override fun onAdFailedToShowFullScreenContent(error: AdError) {
+                Log.e(TAG, "Error al mostrar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}")
+                ad.fullScreenContentCallback = null
+                loadedAd = null
+                onDismissed()
+                runOnUi(activity, onDone)
+            }
+        }
+        Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
+        AnalyticsManager.current()?.logAdInterstitialShown()
+        ad.show(activity)
+    }
+
+    private fun loadAdIfNeeded(context: Context) {
         if (loadedAd != null || isLoading) return
         isLoading = true
         Log.d(TAG, "Iniciando carga de anuncio: tipo=$AD_TYPE")
@@ -62,7 +199,11 @@ object InterstitialAdHelper {
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.e(TAG, "Error al cargar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}, domain=${error.domain}")
+                    Log.e(
+                        TAG,
+                        "Error al cargar: tipo=$AD_TYPE, code=${error.code}, " +
+                            "message=${error.message}, domain=${error.domain}"
+                    )
                     isLoading = false
                     loadedAd = null
                 }
@@ -70,104 +211,67 @@ object InterstitialAdHelper {
         )
     }
 
-    fun showOnAddTransactionIfEnabled(activity: Activity, onDone: () -> Unit = {}) {
-        if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) {
-            onDone()
-            return
-        }
-        show(activity, onDone)
-    }
-
-    fun show(activity: Activity, onDone: () -> Unit = {}) {
-        if (!RemoteConfigManager.isInterstitialAdEnabled()) {
-            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_DISABLED)
-            onDone()
-            return
-        }
-
-        ensureCountLoaded(activity)
-        val frequency = RemoteConfigManager.getInterstitialAdFrequency().toInt()
-
-        if (!shouldShowOnThisRequest(activity, frequency)) {
-            Log.d(
-                TAG,
-                "Anuncio omitido: tipo=$AD_TYPE, frequencyCap=$frequency, requestCount=$showRequestCount"
-            )
-            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_FREQUENCY_CAP)
-            if (shouldPreloadForNextShow(frequency)) preload(activity)
-            runOnUi(activity, onDone)
-            return
-        }
-
-        Log.d(TAG, "Anuncio elegible: tipo=$AD_TYPE, frequency=$frequency, requestCount=$showRequestCount")
-
-        AppOpenAdManager.suppressNextAppOpen()
-
-        val ad = loadedAd
-        if (ad == null) {
-            Log.d(TAG, "Anuncio no listo: tipo=$AD_TYPE, requestCount=$showRequestCount")
-            AnalyticsManager.current()?.logAdInterstitialSkipped(AnalyticsEvents.SKIP_NOT_READY)
-            preload(activity, force = true)
-            runOnUi(activity, onDone)
-            return
-        }
-
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Anuncio cerrado: tipo=$AD_TYPE")
-                ad.fullScreenContentCallback = null
-                loadedAd = null
-                resetShowRequestCount(activity)
-                preload(activity)
-                runOnUi(activity, onDone)
-            }
-
-            override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                Log.e(TAG, "Error al mostrar: tipo=$AD_TYPE, code=${error.code}, message=${error.message}")
-                ad.fullScreenContentCallback = null
-                loadedAd = null
-                resetShowRequestCount(activity)
-                preload(activity)
-                runOnUi(activity, onDone)
-            }
-        }
-        Log.d(TAG, "Mostrando anuncio: tipo=$AD_TYPE")
-        AnalyticsManager.current()?.logAdInterstitialShown()
-        ad.show(activity)
-    }
-
-    /**
-     * Incrementa el contador de solicitudes y devuelve true si corresponde intentar
-     * mostrar el intersticial en esta solicitud. El contador persiste entre sesiones.
-     * Solo se reinicia tras mostrar el anuncio (o fallo al mostrarlo).
-     */
-    private fun shouldShowOnThisRequest(context: Context, frequency: Int): Boolean {
-        if (showRequestCount >= frequency) {
+    private fun shouldShowBudgetOnThisRequest(context: Context, frequency: Int): Boolean {
+        if (budgetShowRequestCount >= frequency) {
             return true
         }
-        showRequestCount++
-        persistCount(context)
-        return showRequestCount >= frequency
+        budgetShowRequestCount++
+        persistBudgetCount(context)
+        return budgetShowRequestCount >= frequency
     }
 
-    private fun resetShowRequestCount(context: Context) {
-        showRequestCount = 0
-        persistCount(context)
+    private fun shouldShowAddTransactionOnThisRequest(context: Context, frequency: Int): Boolean {
+        if (addTransactionShowRequestCount >= frequency) {
+            return true
+        }
+        addTransactionShowRequestCount++
+        persistAddTransactionCount(context)
+        return addTransactionShowRequestCount >= frequency
     }
 
-    /** Precarga una solicitud antes del umbral o mientras se espera mostrar uno pendiente. */
-    private fun shouldPreloadForNextShow(frequency: Int): Boolean {
+    private fun resetBudgetShowRequestCount(context: Context) {
+        budgetShowRequestCount = 0
+        persistBudgetCount(context)
+    }
+
+    private fun resetAddTransactionShowRequestCount(context: Context) {
+        addTransactionShowRequestCount = 0
+        persistAddTransactionCount(context)
+    }
+
+    private fun shouldPreloadForNextShow(requestCount: Int, frequency: Int): Boolean {
         if (frequency <= 1) return true
-        return showRequestCount >= frequency - 1
+        return requestCount >= frequency - 1
     }
 
-    private fun ensureCountLoaded(context: Context) {
-        if (showRequestCount >= 0) return
-        showRequestCount = prefs(context).getInt(KEY_SHOW_REQUEST_COUNT, 0)
+    private fun ensureBudgetCountLoaded(context: Context) {
+        if (budgetShowRequestCount >= 0) return
+        val prefs = prefs(context)
+        budgetShowRequestCount = when {
+            prefs.contains(KEY_BUDGET_SHOW_REQUEST_COUNT) ->
+                prefs.getInt(KEY_BUDGET_SHOW_REQUEST_COUNT, 0)
+            prefs.contains(LEGACY_SHOW_REQUEST_COUNT) ->
+                prefs.getInt(LEGACY_SHOW_REQUEST_COUNT, 0)
+            else -> 0
+        }
     }
 
-    private fun persistCount(context: Context) {
-        prefs(context).edit().putInt(KEY_SHOW_REQUEST_COUNT, showRequestCount).apply()
+    private fun persistBudgetCount(context: Context) {
+        prefs(context).edit()
+            .putInt(KEY_BUDGET_SHOW_REQUEST_COUNT, budgetShowRequestCount)
+            .apply()
+    }
+
+    private fun ensureAddTransactionCountLoaded(context: Context) {
+        if (addTransactionShowRequestCount >= 0) return
+        addTransactionShowRequestCount = prefs(context)
+            .getInt(KEY_ADD_TRANSACTION_SHOW_REQUEST_COUNT, 0)
+    }
+
+    private fun persistAddTransactionCount(context: Context) {
+        prefs(context).edit()
+            .putInt(KEY_ADD_TRANSACTION_SHOW_REQUEST_COUNT, addTransactionShowRequestCount)
+            .apply()
     }
 
     private fun prefs(context: Context) =
