@@ -8,6 +8,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -82,6 +85,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -92,7 +96,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -105,6 +112,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
@@ -392,6 +400,9 @@ fun AddEditDetailTransactionContent(
 
     var selectedDetectedIndex by remember { mutableStateOf<Int?>(null) }
     var showManualForm by remember { mutableStateOf(true) }
+    var pulsingInputOption by remember { mutableStateOf<TransactionInputOption?>(null) }
+    var inputOptionPulseNonce by remember { mutableIntStateOf(0) }
+    var typeSelectorPulseNonce by remember { mutableIntStateOf(0) }
     var showExitConfirmDialog by remember { mutableStateOf(false) }
     var showAiAccessDialog by remember { mutableStateOf(false) }
     var pendingAiAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -399,6 +410,23 @@ fun AddEditDetailTransactionContent(
     var pendingImportBytes by remember { mutableStateOf<ByteArray?>(null) }
     var pendingImportFileName by remember { mutableStateOf("") }
     var pendingImportFileType by remember { mutableStateOf<ImportedFileType?>(null) }
+
+    fun triggerInputOptionPulse(option: TransactionInputOption) {
+        pulsingInputOption = option
+        inputOptionPulseNonce++
+        scope.launch {
+            scrollState.animateScrollTo(0)
+        }
+    }
+
+    fun clearInputOptionPulse() {
+        pulsingInputOption = null
+    }
+
+    fun activateManualEntry() {
+        showManualForm = true
+        typeSelectorPulseNonce++
+    }
 
     fun resolveDisplayFileName(uri: Uri): String {
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -547,12 +575,6 @@ fun AddEditDetailTransactionContent(
                 }
                 return false
             }
-            transactionDescriptionState.isBlank() -> {
-                scope.launch {
-                    snackbarHostState.showSnackbar(context.getString(R.string.err_description_empty))
-                }
-                return false
-            }
             categoryName.isBlank() -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.err_category_empty))
@@ -617,7 +639,6 @@ fun AddEditDetailTransactionContent(
     fun isFormCompleteForPrepare(): Boolean =
         transactionTypeState != null &&
             transactionAmountState > 0 &&
-            transactionDescriptionState.isNotBlank() &&
             categoryName.isNotBlank() &&
             datePickerState.selectedDateMillis != null &&
             (accounts.isEmpty() || accounts.any { it.id == transactionAccountState })
@@ -934,6 +955,10 @@ fun AddEditDetailTransactionContent(
                                         isActive = isAnalyzingReceipt,
                                         isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
                                         onClick = onCameraClick,
+                                        option = TransactionInputOption.Camera,
+                                        pulsingOption = pulsingInputOption,
+                                        pulseNonce = inputOptionPulseNonce,
+                                        onPulseFinished = ::clearInputOptionPulse,
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
@@ -947,6 +972,10 @@ fun AddEditDetailTransactionContent(
                                     isActive = isRecordingAudio || isAnalyzingReceipt,
                                     isEnabled = !isAnalyzingReceipt,
                                     onClick = onMicClick,
+                                    option = TransactionInputOption.Audio,
+                                    pulsingOption = pulsingInputOption,
+                                    pulseNonce = inputOptionPulseNonce,
+                                    onPulseFinished = ::clearInputOptionPulse,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -964,6 +993,10 @@ fun AddEditDetailTransactionContent(
                                     isActive = isAnalyzingReceipt,
                                     isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
                                     onClick = onExcelClick,
+                                    option = TransactionInputOption.Excel,
+                                    pulsingOption = pulsingInputOption,
+                                    pulseNonce = inputOptionPulseNonce,
+                                    onPulseFinished = ::clearInputOptionPulse,
                                     modifier = Modifier.weight(1f)
                                 )
                                 AiQuickActionCard(
@@ -971,7 +1004,11 @@ fun AddEditDetailTransactionContent(
                                     label = stringResource(R.string.manual_entry),
                                     isActive = showManualForm,
                                     isEnabled = !isAnalyzingReceipt && !isRecordingAudio,
-                                    onClick = { showManualForm = true },
+                                    onClick = ::activateManualEntry,
+                                    option = TransactionInputOption.Manual,
+                                    pulsingOption = pulsingInputOption,
+                                    pulseNonce = inputOptionPulseNonce,
+                                    onPulseFinished = ::clearInputOptionPulse,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -990,11 +1027,12 @@ fun AddEditDetailTransactionContent(
                             SectionTitle(text = stringResource(R.string.transaction_type))
                             TransactionTypeSelector(
                                 selectedType = currentType,
-                                onTypeChanged = onTransactionTypeChanged
+                                onTypeChanged = onTransactionTypeChanged,
+                                highlightPulseNonce = typeSelectorPulseNonce
                             )
 
                             if (currentType == null && isAddMode) {
-                                TypeSelectionHintCard()
+                                TypeSelectionHintCard(onOptionClick = ::triggerInputOptionPulse)
                             }
 
                             AnimatedVisibility(
@@ -1450,7 +1488,9 @@ private fun AiOrManualHintCard() {
 }
 
 @Composable
-private fun TypeSelectionHintCard() {
+private fun TypeSelectionHintCard(
+    onOptionClick: (TransactionInputOption) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -1467,7 +1507,8 @@ private fun TypeSelectionHintCard() {
                 icon = Icons.Default.Edit,
                 title = stringResource(R.string.manual_entry),
                 leadingNote = stringResource(R.string.select_type_to_continue),
-                description = stringResource(R.string.input_option_manual_desc)
+                description = stringResource(R.string.input_option_manual_desc),
+                onClick = { onOptionClick(TransactionInputOption.Manual) }
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -1476,7 +1517,8 @@ private fun TypeSelectionHintCard() {
                 icon = Icons.Default.Mic,
                 title = stringResource(R.string.record_audio),
                 description = stringResource(R.string.input_option_audio_desc),
-                example = stringResource(R.string.input_option_audio_example)
+                example = stringResource(R.string.input_option_audio_example),
+                onClick = { onOptionClick(TransactionInputOption.Audio) }
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -1484,7 +1526,8 @@ private fun TypeSelectionHintCard() {
             InputOptionHintRow(
                 icon = Icons.Default.CameraAlt,
                 title = stringResource(R.string.take_photo),
-                description = stringResource(R.string.input_option_scan_desc)
+                description = stringResource(R.string.input_option_scan_desc),
+                onClick = { onOptionClick(TransactionInputOption.Camera) }
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -1492,7 +1535,8 @@ private fun TypeSelectionHintCard() {
             InputOptionHintRow(
                 icon = Icons.Default.TableChart,
                 title = stringResource(R.string.import_excel),
-                description = stringResource(R.string.input_option_excel_desc)
+                description = stringResource(R.string.input_option_excel_desc),
+                onClick = { onOptionClick(TransactionInputOption.Excel) }
             )
         }
     }
@@ -1503,11 +1547,16 @@ private fun InputOptionHintRow(
     icon: ImageVector,
     title: String,
     description: String,
+    onClick: () -> Unit,
     leadingNote: String? = null,
     example: String? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top
     ) {
@@ -1705,6 +1754,74 @@ private fun FormSectionCard(
     }
 }
 
+private enum class TransactionInputOption {
+    Manual,
+    Audio,
+    Camera,
+    Excel
+}
+
+@Composable
+private fun Modifier.pulseHighlightEffect(
+    pulseNonce: Int,
+    enabled: Boolean,
+    cornerRadius: Dp = 16.dp,
+    pulseScale: Float = 1.08f,
+    initialDelayMs: Int = 0,
+    onPulseFinished: () -> Unit = {}
+): Modifier {
+    val scale = remember { Animatable(1f) }
+    val glowAlpha = remember { Animatable(0f) }
+    val pulseColor = lerp(
+        MaterialTheme.colorScheme.primary,
+        Color.White,
+        0.4f
+    )
+    val shape = RoundedCornerShape(cornerRadius)
+
+    LaunchedEffect(pulseNonce) {
+        if (!enabled || pulseNonce == 0) return@LaunchedEffect
+        if (initialDelayMs > 0) delay(initialDelayMs.toLong())
+        repeat(3) {
+            scale.animateTo(pulseScale, tween(180, easing = FastOutSlowInEasing))
+            glowAlpha.animateTo(1f, tween(180, easing = FastOutSlowInEasing))
+            scale.animateTo(1f, tween(220, easing = FastOutSlowInEasing))
+            glowAlpha.animateTo(0.15f, tween(220, easing = FastOutSlowInEasing))
+        }
+        glowAlpha.animateTo(0f, tween(280, easing = FastOutSlowInEasing))
+        onPulseFinished()
+    }
+
+    return this
+        .graphicsLayer {
+            scaleX = scale.value
+            scaleY = scale.value
+        }
+        .then(
+            if (glowAlpha.value > 0.01f) {
+                Modifier.border(
+                    width = 2.5.dp,
+                    color = pulseColor.copy(alpha = glowAlpha.value.coerceIn(0f, 1f)),
+                    shape = shape
+                )
+            } else {
+                Modifier
+            }
+        )
+}
+
+@Composable
+private fun Modifier.inputOptionPulseEffect(
+    option: TransactionInputOption,
+    pulsingOption: TransactionInputOption?,
+    pulseNonce: Int,
+    onPulseFinished: () -> Unit
+): Modifier = pulseHighlightEffect(
+    pulseNonce = pulseNonce,
+    enabled = pulsingOption == option,
+    onPulseFinished = onPulseFinished
+)
+
 @Composable
 private fun AiQuickActionCard(
     icon: ImageVector,
@@ -1712,6 +1829,10 @@ private fun AiQuickActionCard(
     isActive: Boolean,
     isEnabled: Boolean,
     onClick: () -> Unit,
+    option: TransactionInputOption,
+    pulsingOption: TransactionInputOption?,
+    pulseNonce: Int,
+    onPulseFinished: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val containerColor = if (isActive) {
@@ -1721,6 +1842,12 @@ private fun AiQuickActionCard(
     }
     Card(
         modifier = modifier
+            .inputOptionPulseEffect(
+                option = option,
+                pulsingOption = pulsingOption,
+                pulseNonce = pulseNonce,
+                onPulseFinished = onPulseFinished
+            )
             .alpha(if (isEnabled) 1f else 0.5f)
             .clickable(enabled = isEnabled, onClick = onClick),
         shape = RoundedCornerShape(16.dp),
@@ -2143,16 +2270,28 @@ private fun DetectedTransactionRow(
 @Composable
 fun TransactionTypeSelector(
     selectedType: TransactionType?,
-    onTypeChanged: (TransactionType) -> Unit
+    onTypeChanged: (TransactionType) -> Unit,
+    highlightPulseNonce: Int = 0
 ) {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+            .pulseHighlightEffect(
+                pulseNonce = highlightPulseNonce,
+                enabled = highlightPulseNonce > 0,
+                cornerRadius = 18.dp,
+                pulseScale = 1.04f,
+                initialDelayMs = 280
+            )
     ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
         TransactionType.entries.forEach { type ->
             val isSelected = type == selectedType
             val typeColor = if (type == TransactionType.Ingreso) {
@@ -2196,6 +2335,7 @@ fun TransactionTypeSelector(
                     )
                 }
             }
+        }
         }
     }
 }
