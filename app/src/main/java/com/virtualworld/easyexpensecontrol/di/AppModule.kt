@@ -12,11 +12,13 @@ import com.virtualworld.easyexpensecontrol.data.repository.AccountRepository
 import com.virtualworld.easyexpensecontrol.data.repository.BudgetRepository
 import com.virtualworld.easyexpensecontrol.data.repository.CategoryRepository
 import com.virtualworld.easyexpensecontrol.data.repository.ReceiptAnalysisRepositoryImpl
+import com.virtualworld.easyexpensecontrol.data.repository.RecurringTransactionRepository
 import com.virtualworld.easyexpensecontrol.data.repository.TransactionRepository
 import com.virtualworld.easyexpensecontrol.domain.repository.AccountRepository as AccountRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.BudgetRepository as BudgetRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.CategoryRepository as CategoryRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.ReceiptAnalysisRepository
+import com.virtualworld.easyexpensecontrol.domain.repository.RecurringTransactionRepository as RecurringTransactionRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.repository.TransactionRepository as TransactionRepositoryDomain
 import com.virtualworld.easyexpensecontrol.domain.usecase.account.AddAccountUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.account.GetAccountsUseCase
@@ -37,6 +39,9 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCa
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessAudioUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessReceiptUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.receipt.ProcessSpreadsheetUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.recurring.GetRecurringTransactionByIdUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.recurring.ProcessRecurringTransactionsUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.recurring.UpdateRecurringTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.DeleteTransactionUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionByIdUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.transaction.GetTransactionsByCategoryAndDateUseCase
@@ -69,7 +74,8 @@ val appModule = module {
                 FinancialDatabase.MIGRATION_1_2,
                 FinancialDatabase.MIGRATION_2_3,
                 FinancialDatabase.MIGRATION_3_4,
-                FinancialDatabase.MIGRATION_4_5
+                FinancialDatabase.MIGRATION_4_5,
+                FinancialDatabase.MIGRATION_5_6
             )
             .addCallback(FinancialDatabaseCallback(appContext))
             .build()
@@ -79,6 +85,7 @@ val appModule = module {
     single { get<FinancialDatabase>().categoryDao() }
     single { get<FinancialDatabase>().budgetDao() }
     single { get<FinancialDatabase>().accountDao() }
+    single { get<FinancialDatabase>().recurringTransactionDao() }
 
     single { BudgetListVisibilityRepository(androidContext()) }
     single { OnboardingTutorialRepository(androidContext()) }
@@ -89,6 +96,7 @@ val appModule = module {
 
     // Repositorios (implementaciones data que cumplen interfaces domain)
     single<TransactionRepositoryDomain> { TransactionRepository(get()) }
+    single<RecurringTransactionRepositoryDomain> { RecurringTransactionRepository(get()) }
     single<CategoryRepositoryDomain> { CategoryRepository(get()) }
     single<BudgetRepositoryDomain> { BudgetRepository(get()) }
     single<AccountRepositoryDomain> { AccountRepository(get()) }
@@ -103,8 +111,11 @@ val appModule = module {
     single { GetTransactionsUseCase(get()) }
     single { GetTransactionByIdUseCase(get()) }
     single { GetTransactionsByCategoryAndDateUseCase(get()) }
-    single { SaveTransactionUseCase(get(), get(), get()) }
+    single { SaveTransactionUseCase(get(), get(), get(), get()) }
     single { DeleteTransactionUseCase(get(), get()) }
+    single { GetRecurringTransactionByIdUseCase(get()) }
+    single { UpdateRecurringTransactionUseCase(get()) }
+    single { ProcessRecurringTransactionsUseCase(get(), get(), get()) }
 
     // Casos de uso - Category
     single { GetCategoriesUseCase(get()) }
@@ -153,6 +164,8 @@ val appModule = module {
             getTransactionsByCategoryAndDateUseCase = get(),
             saveTransactionUseCase = get(),
             deleteTransactionUseCase = get(),
+            processRecurringTransactionsUseCase = get(),
+            getRecurringTransactionByIdUseCase = get(),
             processReceiptUseCase = get(),
             processAudioUseCase = get(),
             processSpreadsheetUseCase = get(),

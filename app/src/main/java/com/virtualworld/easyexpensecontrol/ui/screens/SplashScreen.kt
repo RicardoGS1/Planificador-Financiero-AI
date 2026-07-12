@@ -41,9 +41,11 @@ import com.virtualworld.easyexpensecontrol.ads.ConsentManager
 import com.virtualworld.easyexpensecontrol.ads.RemoteConfigManager
 import com.virtualworld.easyexpensecontrol.update.PlayUpdateManager
 import com.virtualworld.easyexpensecontrol.domain.usecase.category.SeedDefaultCategoriesUseCase
+import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import com.virtualworld.easyexpensecontrol.ui.navigation.Screen
 import kotlin.math.max
 import kotlinx.coroutines.delay
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,6 +59,7 @@ fun SplashScreen(navController: NavHostController) {
     val activity = context as? Activity
     val app = context.applicationContext as? FinancialApp
     val seedDefaultCategoriesUseCase: SeedDefaultCategoriesUseCase = koinInject()
+    val transactionViewModel: TransactionViewModel = koinViewModel()
 
     var targetProgress by remember { mutableFloatStateOf(0f) }
     var navigated by remember { mutableStateOf(false) }
@@ -80,6 +83,7 @@ fun SplashScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
         seedDefaultCategoriesUseCase()
+        transactionViewModel.processRecurringOnStartup()
 
         // Breve espera para que Remote Config aplique valores cacheados o recién descargados.
         delay(800)

@@ -374,4 +374,20 @@
         <item>NOV</item>
         <item>DES</item>
     </string-array>
+
+    <string name="recurring_transaction_label">Transaksi berulang</string>
+    <string name="recurring_transaction_hint">Berulang otomatis setiap bulan</string>
+    <string name="recurring_deactivate_hint">Transaksi otomatis akan dinonaktifkan pada hari terjadwal berikutnya (%1$s).</string>
+    <string name="recurring_auto_badge">Otomatis</string>
+    <string name="recurring_paused_badge">Dijeda</string>
+    <string name="recurring_auto_dialog_title">Transfer otomatis terjadwal</string>
+    <string name="recurring_auto_dialog_message">%1$d transaksi berulang dibuat secara otomatis:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Perbarui nilai default?</string>
+    <string name="recurring_update_default_message">Anda mengubah nilai transaksi berulang. Apakah Anda ingin memperbarui nilai default untuk transaksi otomatis berikutnya?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Hari terjadwal</string>
+    <string name="recurring_update_default_confirm">Perbarui nilai default</string>
+    <string name="recurring_update_default_keep">Hanya transaksi ini</string>
+    <string name="recurring_dialog_ok">Mengerti</string>
 </resources>

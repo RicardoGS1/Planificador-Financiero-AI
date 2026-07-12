@@ -374,4 +374,20 @@
         <item>NOV</item>
         <item>DEZ</item>
     </string-array>
+
+    <string name="recurring_transaction_label">Wiederkehrende Transaktion</string>
+    <string name="recurring_transaction_hint">Wird jeden Monat automatisch wiederholt</string>
+    <string name="recurring_deactivate_hint">Die automatische Transaktion wird am nächsten geplanten Tag deaktiviert (%1$s).</string>
+    <string name="recurring_auto_badge">Automatisch</string>
+    <string name="recurring_paused_badge">Pausiert</string>
+    <string name="recurring_auto_dialog_title">Geplante automatische Überweisung</string>
+    <string name="recurring_auto_dialog_message">%1$d wiederkehrende Transaktion(en) wurden automatisch erstellt:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Standardwert aktualisieren?</string>
+    <string name="recurring_update_default_message">Sie haben Werte einer wiederkehrenden Transaktion geändert. Möchten Sie den Standardwert für zukünftige automatische Transaktionen aktualisieren?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Geplanter Tag</string>
+    <string name="recurring_update_default_confirm">Standardwert aktualisieren</string>
+    <string name="recurring_update_default_keep">Nur diese Transaktion</string>
+    <string name="recurring_dialog_ok">Verstanden</string>
 </resources>

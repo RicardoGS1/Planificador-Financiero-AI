@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
+import com.virtualworld.easyexpensecontrol.data.model.RecurringTransaction
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 
 @Database(
@@ -14,9 +15,10 @@ import com.virtualworld.easyexpensecontrol.data.model.Transaction
         Transaction::class,
         Category::class,
         Budget::class,
-        Account::class
+        Account::class,
+        RecurringTransaction::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class FinancialDatabase : RoomDatabase() {
@@ -24,6 +26,7 @@ abstract class FinancialDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun budgetDao(): BudgetDao
     abstract fun accountDao(): AccountDao
+    abstract fun recurringTransactionDao(): RecurringTransactionDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -63,6 +66,101 @@ abstract class FinancialDatabase : RoomDatabase() {
                     )
                 }
             }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `RecurringTransaction` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `recurring-type` TEXT NOT NULL,
+                        `recurring-amount` REAL NOT NULL,
+                        `recurring-category` INTEGER NOT NULL,
+                        `recurring-description` TEXT NOT NULL,
+                        `recurring-account` INTEGER NOT NULL,
+                        `recurring-day-of-month` INTEGER NOT NULL,
+                        `recurring-is-active` INTEGER NOT NULL DEFAULT 1,
+                        `recurring-last-processed-year-month` INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY(`recurring-category`) REFERENCES `Category`(`id`)
+                            ON UPDATE CASCADE ON DELETE CASCADE,
+                        FOREIGN KEY(`recurring-account`) REFERENCES `Account`(`id`)
+                            ON UPDATE CASCADE ON DELETE RESTRICT
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_RecurringTransaction_recurring-category`
+                    ON `RecurringTransaction` (`recurring-category`)
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_RecurringTransaction_recurring-account`
+                    ON `RecurringTransaction` (`recurring-account`)
+                    """.trimIndent()
+                )
+                recreateTransactionTableWithRecurringColumns(db)
+            }
+        }
+
+        private fun recreateTransactionTableWithRecurringColumns(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `Transaction_new` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `transaction-type` TEXT NOT NULL,
+                    `transaction-amount` REAL NOT NULL,
+                    `transaction-category` INTEGER NOT NULL,
+                    `transaction-date` INTEGER NOT NULL,
+                    `transaction-description` TEXT NOT NULL,
+                    `transaction-account` INTEGER NOT NULL,
+                    `transaction-recurring-id` INTEGER,
+                    `transaction-is-auto-generated` INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(`transaction-category`) REFERENCES `Category`(`id`)
+                        ON UPDATE CASCADE ON DELETE CASCADE,
+                    FOREIGN KEY(`transaction-account`) REFERENCES `Account`(`id`)
+                        ON UPDATE CASCADE ON DELETE RESTRICT,
+                    FOREIGN KEY(`transaction-recurring-id`) REFERENCES `RecurringTransaction`(`id`)
+                        ON UPDATE CASCADE ON DELETE SET NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                INSERT INTO `Transaction_new` (
+                    `id`, `transaction-type`, `transaction-amount`, `transaction-category`,
+                    `transaction-date`, `transaction-description`, `transaction-account`,
+                    `transaction-recurring-id`, `transaction-is-auto-generated`
+                )
+                SELECT
+                    `id`, `transaction-type`, `transaction-amount`, `transaction-category`,
+                    `transaction-date`, `transaction-description`, `transaction-account`,
+                    NULL, 0
+                FROM `Transaction`
+                """.trimIndent()
+            )
+            db.execSQL("DROP TABLE `Transaction`")
+            db.execSQL("ALTER TABLE `Transaction_new` RENAME TO `Transaction`")
+            db.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS `index_Transaction_transaction-category`
+                ON `Transaction` (`transaction-category`)
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS `index_Transaction_transaction-account`
+                ON `Transaction` (`transaction-account`)
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS `index_Transaction_transaction-recurring-id`
+                ON `Transaction` (`transaction-recurring-id`)
+                """.trimIndent()
+            )
         }
 
         private fun ensureAccountTable(db: SupportSQLiteDatabase) {

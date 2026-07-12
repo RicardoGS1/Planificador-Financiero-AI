@@ -374,4 +374,20 @@
         <item>NOV</item>
         <item>DEZ</item>
     </string-array>
+
+    <string name="recurring_transaction_label">Transação recorrente</string>
+    <string name="recurring_transaction_hint">Repete automaticamente todo mês</string>
+    <string name="recurring_deactivate_hint">A transação automática será desativada no próximo dia programado (%1$s).</string>
+    <string name="recurring_auto_badge">Automática</string>
+    <string name="recurring_paused_badge">Pausado</string>
+    <string name="recurring_auto_dialog_title">Transferência automática programada</string>
+    <string name="recurring_auto_dialog_message">%1$d transação(ões) recorrente(s) foram criadas automaticamente:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Atualizar valor padrão?</string>
+    <string name="recurring_update_default_message">Você alterou valores de uma transação recorrente. Deseja atualizar o valor padrão para as próximas transações automáticas?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Dia programado</string>
+    <string name="recurring_update_default_confirm">Atualizar valor padrão</string>
+    <string name="recurring_update_default_keep">Somente esta transação</string>
+    <string name="recurring_dialog_ok">Entendi</string>
 </resources>

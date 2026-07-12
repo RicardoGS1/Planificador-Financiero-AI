@@ -374,4 +374,20 @@
         <item>НОЯ</item>
         <item>ДЕК</item>
     </string-array>
+
+    <string name="recurring_transaction_label">Повторяющаяся транзакция</string>
+    <string name="recurring_transaction_hint">Повторяется автоматически каждый месяц</string>
+    <string name="recurring_deactivate_hint">Автоматическая транзакция будет отключена в следующий запланированный день (%1$s).</string>
+    <string name="recurring_auto_badge">Автоматическая</string>
+    <string name="recurring_paused_badge">Приостановлено</string>
+    <string name="recurring_auto_dialog_title">Запланированный автоматический перевод</string>
+    <string name="recurring_auto_dialog_message">Автоматически создано повторяющихся транзакций: %1$d:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Обновить значение по умолчанию?</string>
+    <string name="recurring_update_default_message">Вы изменили значения повторяющейся транзакции. Обновить значение по умолчанию для будущих автоматических транзакций?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Запланированный день</string>
+    <string name="recurring_update_default_confirm">Обновить значение по умолчанию</string>
+    <string name="recurring_update_default_keep">Только эта транзакция</string>
+    <string name="recurring_dialog_ok">Понятно</string>
 </resources>

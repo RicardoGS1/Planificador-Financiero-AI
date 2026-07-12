@@ -374,4 +374,20 @@
         <item>KAS</item>
         <item>ARA</item>
     </string-array>
+
+    <string name="recurring_transaction_label">Yinelenen işlem</string>
+    <string name="recurring_transaction_hint">Her ay otomatik olarak tekrarlanır</string>
+    <string name="recurring_deactivate_hint">Otomatik işlem bir sonraki planlanan günde devre dışı bırakılacaktır (%1$s).</string>
+    <string name="recurring_auto_badge">Otomatik</string>
+    <string name="recurring_paused_badge">Duraklatıldı</string>
+    <string name="recurring_auto_dialog_title">Planlanmış otomatik transfer</string>
+    <string name="recurring_auto_dialog_message">%1$d yinelenen işlem otomatik olarak oluşturuldu:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Varsayılan değer güncellensin mi?</string>
+    <string name="recurring_update_default_message">Yinelenen bir işlemin değerlerini değiştirdiniz. Gelecekteki otomatik işlemler için varsayılan değeri güncellemek ister misiniz?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Planlanan gün</string>
+    <string name="recurring_update_default_confirm">Varsayılan değeri güncelle</string>
+    <string name="recurring_update_default_keep">Yalnızca bu işlem</string>
+    <string name="recurring_dialog_ok">Anladım</string>
 </resources>

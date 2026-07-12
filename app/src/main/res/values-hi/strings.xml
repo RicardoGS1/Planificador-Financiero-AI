@@ -374,4 +374,20 @@
         <item>नवं</item>
         <item>दिसं</item>
     </string-array>
+
+    <string name="recurring_transaction_label">आवर्ती लेनदेन</string>
+    <string name="recurring_transaction_hint">हर महीने स्वचालित रूप से दोहराया जाएगा</string>
+    <string name="recurring_deactivate_hint">स्वचालित लेनदेन अगले निर्धारित दिन (%1$s) को निष्क्रिय कर दिया जाएगा।</string>
+    <string name="recurring_auto_badge">स्वचालित</string>
+    <string name="recurring_paused_badge">रोकी गई</string>
+    <string name="recurring_auto_dialog_title">निर्धारित स्वचालित स्थानांतरण</string>
+    <string name="recurring_auto_dialog_message">%1$d आवर्ती लेनदेन स्वचालित रूप से बनाए गए:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">डिफ़ॉल्ट मान अपडेट करें?</string>
+    <string name="recurring_update_default_message">आपने आवर्ती लेनदेन के मान बदले हैं। क्या आप भविष्य के स्वचालित लेनदेन के लिए डिफ़ॉल्ट मान अपडेट करना चाहते हैं?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">निर्धारित दिन</string>
+    <string name="recurring_update_default_confirm">डिफ़ॉल्ट मान अपडेट करें</string>
+    <string name="recurring_update_default_keep">केवल यह लेनदेन</string>
+    <string name="recurring_dialog_ok">समझ गया</string>
 </resources>

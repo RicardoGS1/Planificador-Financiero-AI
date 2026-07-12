@@ -45,6 +45,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
@@ -77,6 +78,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -107,6 +109,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -115,6 +118,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -128,9 +132,14 @@ import com.virtualworld.easyexpensecontrol.R
 import com.virtualworld.easyexpensecontrol.core.util.CategoryNameMatcher
 import com.virtualworld.easyexpensecontrol.core.util.ImportedFileType
 import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
+import com.virtualworld.easyexpensecontrol.core.util.RecurringDateHelper
 import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
+import com.virtualworld.easyexpensecontrol.core.util.fromDatePickerUtcMillis
+import com.virtualworld.easyexpensecontrol.core.util.getTodayStartOfDay
+import com.virtualworld.easyexpensecontrol.core.util.toDatePickerUtcMillis
 import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.data.model.Category
+import com.virtualworld.easyexpensecontrol.data.model.RecurringTransaction
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.contracts.TakePictureWithUriGrants
@@ -151,7 +160,9 @@ import com.virtualworld.easyexpensecontrol.viewmodel.ReceiptProcessingState
 import com.virtualworld.easyexpensecontrol.viewmodel.DetectedTransactionItem
 import com.virtualworld.easyexpensecontrol.viewmodel.TransactionViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
@@ -188,6 +199,7 @@ fun AddEditDetailTransactionView(
             transactionViewModel.transactionCategoryState = transaction.category
             transactionViewModel.transactionDateState = transaction.date
             transactionViewModel.transactionAccountState = transaction.accountId
+            transactionViewModel.loadRecurringStateForEdit(transaction)
 
             categoryViewModel.getCategoryById(transaction.category).first()?.let { category ->
                 categoryViewModel.categoryNameState = category.name
@@ -195,20 +207,10 @@ fun AddEditDetailTransactionView(
             }
         }
     } else {
-        LaunchedEffect(id) {
-            transactionViewModel.clearDetectedTransactions()
-            transactionViewModel.transactionTypeState = null
-            transactionViewModel.transactionAmountState = 0.0
-            transactionViewModel.transactionDescriptionState = ""
-            transactionViewModel.transactionCategoryState = 0L
-            transactionViewModel.transactionAccountState = accounts.firstOrNull()?.id ?: 1L
-            val todayStart = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-            transactionViewModel.transactionDateState = todayStart
+        LaunchedEffect(id, accounts) {
+            transactionViewModel.initializeForNewTransaction(
+                defaultAccountId = accounts.firstOrNull()?.id ?: 1L
+            )
         }
     }
 
@@ -220,6 +222,8 @@ fun AddEditDetailTransactionView(
         transactionCategoryState = transactionViewModel.transactionCategoryState,
         transactionDateState = transactionViewModel.transactionDateState,
         transactionAccountState = transactionViewModel.transactionAccountState,
+        isRecurringEnabled = transactionViewModel.isRecurringEnabledState,
+        editingRecurringTransactionId = transactionViewModel.editingRecurringTransactionId,
         receiptState = receiptState,
         detectedTransactions = detectedTransactions,
         categoryNameState = categoryViewModel.categoryNameState,
@@ -229,6 +233,7 @@ fun AddEditDetailTransactionView(
         onTransactionDescriptionChanged = { transactionViewModel.transactionDescriptionState = it },
         onTransactionAccountChanged = { transactionViewModel.transactionAccountState = it },
         onTransactionDateChanged = transactionViewModel::onTransactionDateChanged,
+        onRecurringEnabledChanged = transactionViewModel::onRecurringEnabledChanged,
         onCategoryNameChanged = { categoryViewModel.categoryNameState = it },
         processReceiptImage = transactionViewModel::processReceiptImage,
         processAudio = transactionViewModel::processAudio,
@@ -242,9 +247,13 @@ fun AddEditDetailTransactionView(
         loadDetectedTransaction = transactionViewModel::loadDetectedTransaction,
         removeDetectedTransactionAt = transactionViewModel::removeDetectedTransactionAt,
         resetFormForNewTransaction = transactionViewModel::resetFormForNewTransaction,
-        saveTransaction = { tid, catName, cat, icon, onError, onSuccess ->
-            transactionViewModel.saveTransaction(tid, catName, cat, icon, onError, onSuccess)
+        saveTransaction = { tid, catName, cat, icon, updateRecurringDefault, onError, onSuccess ->
+            transactionViewModel.saveTransaction(tid, catName, cat, icon, updateRecurringDefault, onError, onSuccess)
         },
+        hasTemplateChanges = { recurringId, type, amount, description, categoryId, accountId, date ->
+            transactionViewModel.hasTemplateChanges(recurringId, type, amount, description, categoryId, accountId, date)
+        },
+        observeRecurringTransaction = transactionViewModel::observeRecurringTransaction,
         getCategoryById = categoryViewModel::getCategoryById,
         getCategoriesByType = categoryViewModel::getCategoriesByType,
         navController = navController
@@ -261,6 +270,8 @@ fun AddEditDetailTransactionContent(
     transactionCategoryState: Long,
     transactionDateState: Long,
     transactionAccountState: Long,
+    isRecurringEnabled: Boolean,
+    editingRecurringTransactionId: Long?,
     receiptState: ReceiptProcessingState,
     detectedTransactions: List<DetectedTransactionItem>,
     categoryNameState: String,
@@ -270,6 +281,7 @@ fun AddEditDetailTransactionContent(
     onTransactionDescriptionChanged: (String) -> Unit,
     onTransactionAccountChanged: (Long) -> Unit,
     onTransactionDateChanged: (Long) -> Unit,
+    onRecurringEnabledChanged: (Boolean) -> Unit,
     onCategoryNameChanged: (String) -> Unit,
     processReceiptImage: (ByteArray) -> Unit,
     processAudio: (ByteArray, TransactionType?) -> Unit,
@@ -281,7 +293,9 @@ fun AddEditDetailTransactionContent(
     loadDetectedTransaction: (DetectedTransactionItem) -> Unit,
     removeDetectedTransactionAt: (Int) -> Boolean,
     resetFormForNewTransaction: () -> Unit,
-    saveTransaction: (id: Long, categoryName: String, category: Category?, iconName: String?, onError: suspend (String) -> Unit, onSuccess: suspend () -> Unit) -> Unit,
+    saveTransaction: (id: Long, categoryName: String, category: Category?, iconName: String?, updateRecurringDefault: Boolean?, onError: suspend (String) -> Unit, onSuccess: suspend () -> Unit) -> Unit,
+    hasTemplateChanges: suspend (recurringId: Long, type: TransactionType, amount: Double, description: String, categoryId: Long, accountId: Long, date: Long) -> Boolean,
+    observeRecurringTransaction: (Long) -> Flow<RecurringTransaction?> = { flowOf(null) },
     getCategoryById: (Long) -> kotlinx.coroutines.flow.Flow<Category?>,
     getCategoriesByType: (TransactionType) -> kotlinx.coroutines.flow.Flow<List<Category>>,
     navController: NavController
@@ -319,11 +333,32 @@ fun AddEditDetailTransactionContent(
     var isLoading by remember { mutableStateOf(false) }
     var isFinishing by remember { mutableStateOf(false) }
     var datePickerExpanded by remember { mutableStateOf(false) }
+    var showRecurringUpdateDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
     val imeBottomPadding = with(density) { WindowInsets.ime.getBottom(this).toDp() }
     val context = LocalContext.current
     val isAddMode = id == 0L
+    val showRecurringToggle = isAddMode || editingRecurringTransactionId != null
+    val recurringTemplate by editingRecurringTransactionId?.let { recurringId ->
+        observeRecurringTransaction(recurringId).collectAsState(initial = null)
+    } ?: remember { mutableStateOf<RecurringTransaction?>(null) }
+    val recurringHintText = if (editingRecurringTransactionId != null && !isRecurringEnabled) {
+        val dayOfMonth = recurringTemplate?.dayOfMonth
+            ?: RecurringDateHelper.dayOfMonthFromMillis(transactionDateState)
+        val nextScheduledDate = RecurringDateHelper.nextScheduledDate(dayOfMonth)
+        val nextScheduledDateMillis = RecurringDateHelper.millisAtStartOfDay(
+            nextScheduledDate.year,
+            nextScheduledDate.monthNumber,
+            nextScheduledDate.dayOfMonth
+        )
+        stringResource(
+            R.string.recurring_deactivate_hint,
+            convertTimestampToString(nextScheduledDateMillis)
+        )
+    } else {
+        stringResource(R.string.recurring_transaction_hint)
+    }
 
     LaunchedEffect(isAddMode, detectedTransactions.size) {
         if (!RemoteConfigManager.isInterstitialAdOnAddTransactionEnabled()) return@LaunchedEffect
@@ -527,19 +562,27 @@ fun AddEditDetailTransactionContent(
         }
     }
 
-    val initialDateMillis = transactionDateState.takeIf { it != 0L }
-        ?: System.currentTimeMillis()
+    val effectiveLocalDateMillis = transactionDateState.takeIf { it != 0L } ?: getTodayStartOfDay()
+    val datePickerInitialMillis = toDatePickerUtcMillis(effectiveLocalDateMillis)
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialDateMillis,
-        initialDisplayedMonthMillis = initialDateMillis
+        initialSelectedDateMillis = datePickerInitialMillis,
+        initialDisplayedMonthMillis = datePickerInitialMillis
     )
     LaunchedEffect(datePickerState.selectedDateMillis) {
-        datePickerState.selectedDateMillis?.let { onTransactionDateChanged(it) }
+        datePickerState.selectedDateMillis?.let { utcMillis ->
+            val localStart = fromDatePickerUtcMillis(utcMillis)
+            if (localStart != transactionDateState) {
+                onTransactionDateChanged(localStart)
+            }
+        }
     }
     LaunchedEffect(transactionDateState) {
         val modelDate = transactionDateState
-        if (modelDate != 0L && datePickerState.selectedDateMillis != modelDate) {
-            datePickerState.selectedDateMillis = modelDate
+        if (modelDate != 0L) {
+            val pickerMillis = toDatePickerUtcMillis(modelDate)
+            if (datePickerState.selectedDateMillis != pickerMillis) {
+                datePickerState.selectedDateMillis = pickerMillis
+            }
         }
     }
 
@@ -759,6 +802,31 @@ fun AddEditDetailTransactionContent(
         }
     }
 
+    fun performSave(updateRecurringDefault: Boolean?) {
+        isLoading = true
+        saveTransaction(
+            id,
+            categoryName,
+            resolvedCategory,
+            selectedIconKey,
+            updateRecurringDefault,
+            { error ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        if (error.isBlank()) context.getString(R.string.error_unknown)
+                        else context.getString(R.string.error_prefix, error)
+                    )
+                    isLoading = false
+                }
+            },
+            {
+                scope.launch {
+                    navigateBackAfterSave()
+                }
+            }
+        )
+    }
+
     fun prepareOrUpdateTransaction() {
         if (!validateTransactionForm()) return
         if (isAddMode) {
@@ -773,27 +841,33 @@ fun AddEditDetailTransactionContent(
                 }
             }
         } else {
-            isLoading = true
-            saveTransaction(
-                id,
-                categoryName,
-                resolvedCategory,
-                selectedIconKey,
-                { error ->
+            val recurringId = editingRecurringTransactionId
+            val type = transactionTypeState
+            if (recurringId != null && type != null) {
+                if (!isRecurringEnabled) {
+                    performSave(updateRecurringDefault = null)
+                } else {
                     scope.launch {
-                        snackbarHostState.showSnackbar(
-                            if (error.isBlank()) context.getString(R.string.error_unknown)
-                            else context.getString(R.string.error_prefix, error)
+                        val categoryId = resolvedCategory?.id ?: transactionCategoryState
+                        val hasChanges = hasTemplateChanges(
+                            recurringId,
+                            type,
+                            transactionAmountState,
+                            transactionDescriptionState.trim(),
+                            categoryId,
+                            transactionAccountState,
+                            transactionDateState
                         )
-                        isLoading = false
-                    }
-                },
-                {
-                    scope.launch {
-                        navigateBackAfterSave()
+                        if (hasChanges) {
+                            showRecurringUpdateDialog = true
+                        } else {
+                            performSave(updateRecurringDefault = null)
+                        }
                     }
                 }
-            )
+            } else {
+                performSave(updateRecurringDefault = null)
+            }
         }
     }
 
@@ -1135,7 +1209,11 @@ fun AddEditDetailTransactionContent(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Text(
-                                                text = datePickerState.selectedDateMillis?.let { convertTimestampToString(it) }
+                                                text = transactionDateState.takeIf { it != 0L }
+                                                    ?.let { convertTimestampToString(it) }
+                                                    ?: datePickerState.selectedDateMillis?.let {
+                                                        convertTimestampToString(fromDatePickerUtcMillis(it))
+                                                    }
                                                     ?: stringResource(R.string.tap_pick_date),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = MaterialTheme.colorScheme.onSurface,
@@ -1167,6 +1245,37 @@ fun AddEditDetailTransactionContent(
                                             todayContentColor = MaterialTheme.colorScheme.primary
                                         )
                                     )
+                                }
+
+                                if (showRecurringToggle) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(R.string.recurring_transaction_label),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = recurringHintText,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                            )
+                                        }
+                                        Switch(
+                                            checked = isRecurringEnabled,
+                                            onCheckedChange = onRecurringEnabledChanged
+                                        )
+                                    }
                                 }
                             }
 
@@ -1232,6 +1341,29 @@ fun AddEditDetailTransactionContent(
                     onDismiss = { showExitConfirmDialog = false },
                     onSave = { savePreparedAndExit() },
                     onDiscard = { discardPreparedAndExit() }
+                )
+            }
+
+            if (showRecurringUpdateDialog && recurringTemplate != null) {
+                RecurringDefaultUpdateDialog(
+                    template = recurringTemplate!!,
+                    newType = transactionTypeState ?: TransactionType.Gasto,
+                    newAmount = transactionAmountState,
+                    newDescription = transactionDescriptionState.trim(),
+                    newCategoryId = resolvedCategory?.id ?: transactionCategoryState,
+                    newAccountId = transactionAccountState,
+                    newDateMillis = transactionDateState,
+                    accounts = accounts,
+                    getCategoryById = getCategoryById,
+                    onDismiss = { showRecurringUpdateDialog = false },
+                    onConfirm = {
+                        showRecurringUpdateDialog = false
+                        performSave(updateRecurringDefault = true)
+                    },
+                    onKeepThisOnly = {
+                        showRecurringUpdateDialog = false
+                        performSave(updateRecurringDefault = false)
+                    }
                 )
             }
 
@@ -2388,6 +2520,359 @@ fun TransactionTypeDropdown(
     TransactionTypeSelector(selectedType = selectedType, onTypeChanged = onTypeChanged)
 }
 
+private sealed interface RecurringDefaultChangeItem {
+    val label: String
+
+    data class Amount(
+        override val label: String,
+        val currentAmount: Double,
+        val newAmount: Double,
+        val transactionType: TransactionType
+    ) : RecurringDefaultChangeItem
+
+    data class Text(
+        override val label: String,
+        val currentValue: String,
+        val newValue: String
+    ) : RecurringDefaultChangeItem
+}
+
+@Composable
+private fun CompactAmountBadge(
+    amount: Double,
+    isIngreso: Boolean,
+    accentColor: Color,
+    modifier: Modifier = Modifier,
+    muted: Boolean = false
+) {
+    val currencySymbol = CurrencyFormatter.symbol(LocalContext.current)
+    val amountText = if (amount == amount.toLong().toDouble()) {
+        amount.toLong().toString()
+    } else {
+        String.format(Locale.getDefault(), "%.2f", amount)
+    }
+    val contentColor = if (muted) accentColor.copy(alpha = 0.5f) else accentColor
+    val amountTextStyle = TextStyle(
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        color = contentColor
+    )
+    val symbolStyle = MaterialTheme.typography.titleMedium.copy(
+        fontWeight = FontWeight.Bold,
+        color = contentColor
+    )
+    val signStyle = MaterialTheme.typography.titleMedium.copy(
+        fontWeight = FontWeight.Bold,
+        color = contentColor
+    )
+
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = accentColor.copy(alpha = if (muted) 0.06f else 0.12f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = if (isIngreso) "+" else "−",
+                style = signStyle
+            )
+            Text(
+                text = currencySymbol,
+                style = symbolStyle,
+                modifier = Modifier.padding(start = 2.dp, end = 4.dp)
+            )
+            Text(
+                text = amountText,
+                style = amountTextStyle
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecurringDefaultTextChangeRow(
+    label: String,
+    currentValue: String,
+    newValue: String
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+            ) {
+                Text(
+                    text = currentValue,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(18.dp)
+            )
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+            ) {
+                Text(
+                    text = newValue,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecurringDefaultAmountChangeRow(
+    label: String,
+    currentAmount: Double,
+    newAmount: Double,
+    transactionType: TransactionType
+) {
+    val accentColor = when (transactionType) {
+        TransactionType.Ingreso -> MaterialTheme.colorScheme.primary
+        TransactionType.Gasto -> MaterialTheme.colorScheme.error
+    }
+    val isIngreso = transactionType == TransactionType.Ingreso
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                CompactAmountBadge(
+                    amount = currentAmount,
+                    isIngreso = isIngreso,
+                    accentColor = accentColor,
+                    muted = true
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(18.dp)
+            )
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                CompactAmountBadge(
+                    amount = newAmount,
+                    isIngreso = isIngreso,
+                    accentColor = accentColor
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecurringDefaultUpdateDialog(
+    template: RecurringTransaction,
+    newType: TransactionType,
+    newAmount: Double,
+    newDescription: String,
+    newCategoryId: Long,
+    newAccountId: Long,
+    newDateMillis: Long,
+    accounts: List<Account>,
+    getCategoryById: (Long) -> Flow<Category?>,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    onKeepThisOnly: () -> Unit
+) {
+    val templateCategory by getCategoryById(template.categoryId).collectAsState(initial = null)
+    val newCategory by getCategoryById(newCategoryId).collectAsState(initial = null)
+    val incomeLabel = stringResource(R.string.transaction_type_income)
+    val expenseLabel = stringResource(R.string.transaction_type_expense)
+    val noDescription = stringResource(R.string.no_description)
+    val noCategory = stringResource(R.string.no_category)
+    val amountLabel = stringResource(R.string.amount_label)
+    val descriptionLabel = stringResource(R.string.description_label)
+    val categoryLabel = stringResource(R.string.category_label)
+    val accountLabel = stringResource(R.string.account_label)
+    val typeLabel = stringResource(R.string.transaction_type)
+    val dayLabel = stringResource(R.string.recurring_default_day_label)
+
+    fun formatType(type: TransactionType): String = when (type) {
+        TransactionType.Ingreso -> incomeLabel
+        TransactionType.Gasto -> expenseLabel
+    }
+
+    fun formatAccountName(accountId: Long): String =
+        accounts.firstOrNull { it.id == accountId }?.name ?: accountId.toString()
+
+    val changes = buildList<RecurringDefaultChangeItem> {
+        if (template.type != newType) {
+            add(
+                RecurringDefaultChangeItem.Text(
+                    label = typeLabel,
+                    currentValue = formatType(template.type),
+                    newValue = formatType(newType)
+                )
+            )
+        }
+        if (template.amount != newAmount) {
+            add(
+                RecurringDefaultChangeItem.Amount(
+                    label = amountLabel,
+                    currentAmount = template.amount,
+                    newAmount = newAmount,
+                    transactionType = newType
+                )
+            )
+        }
+        if (template.description != newDescription) {
+            add(
+                RecurringDefaultChangeItem.Text(
+                    label = descriptionLabel,
+                    currentValue = template.description.ifBlank { noDescription },
+                    newValue = newDescription.ifBlank { noDescription }
+                )
+            )
+        }
+        if (template.categoryId != newCategoryId) {
+            add(
+                RecurringDefaultChangeItem.Text(
+                    label = categoryLabel,
+                    currentValue = templateCategory?.name ?: noCategory,
+                    newValue = newCategory?.name ?: noCategory
+                )
+            )
+        }
+        if (template.accountId != newAccountId) {
+            add(
+                RecurringDefaultChangeItem.Text(
+                    label = accountLabel,
+                    currentValue = formatAccountName(template.accountId),
+                    newValue = formatAccountName(newAccountId)
+                )
+            )
+        }
+        val newDay = RecurringDateHelper.dayOfMonthFromMillis(newDateMillis)
+        if (template.dayOfMonth != newDay) {
+            add(
+                RecurringDefaultChangeItem.Text(
+                    label = dayLabel,
+                    currentValue = template.dayOfMonth.toString(),
+                    newValue = newDay.toString()
+                )
+            )
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.recurring_update_default_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.recurring_update_default_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (changes.isNotEmpty()) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        changes.forEach { change ->
+                            when (change) {
+                                is RecurringDefaultChangeItem.Amount -> RecurringDefaultAmountChangeRow(
+                                    label = change.label,
+                                    currentAmount = change.currentAmount,
+                                    newAmount = change.newAmount,
+                                    transactionType = change.transactionType
+                                )
+                                is RecurringDefaultChangeItem.Text -> RecurringDefaultTextChangeRow(
+                                    label = change.label,
+                                    currentValue = change.currentValue,
+                                    newValue = change.newValue
+                                )
+                            }
+                        }
+                    }
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = onConfirm,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text(stringResource(R.string.recurring_update_default_confirm))
+                    }
+                    OutlinedButton(
+                        onClick = onKeepThisOnly,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text(stringResource(R.string.recurring_update_default_keep))
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun AddEditDetailTransactionViewPreview() {
@@ -2404,6 +2889,8 @@ fun AddEditDetailTransactionViewPreview() {
             transactionAccountState = 1L,
             transactionDateState = System.currentTimeMillis(),
             transactionCategoryState = 0L,
+            isRecurringEnabled = false,
+            editingRecurringTransactionId = null,
             receiptState = ReceiptProcessingState.Idle,
             detectedTransactions = emptyList(),
             categoryNameState = "Supermercado",
@@ -2413,6 +2900,7 @@ fun AddEditDetailTransactionViewPreview() {
             onTransactionDescriptionChanged = {},
             onTransactionAccountChanged = {},
             onTransactionDateChanged = {},
+            onRecurringEnabledChanged = {},
             onCategoryNameChanged = {},
             processReceiptImage = {},
             processAudio = { _, _ -> },
@@ -2424,7 +2912,8 @@ fun AddEditDetailTransactionViewPreview() {
             loadDetectedTransaction = {},
             removeDetectedTransactionAt = { false },
             resetFormForNewTransaction = {},
-            saveTransaction = { _, _, _, _, _, _ -> },
+            saveTransaction = { _, _, _, _, _, _, _ -> },
+            hasTemplateChanges = { _, _, _, _, _, _, _ -> false },
             getCategoryById = { kotlinx.coroutines.flow.flowOf(null) },
             getCategoriesByType = { kotlinx.coroutines.flow.flowOf(emptyList()) },
             navController = rememberNavController()

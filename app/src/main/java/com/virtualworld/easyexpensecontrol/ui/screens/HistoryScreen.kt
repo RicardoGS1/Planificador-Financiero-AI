@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import com.virtualworld.easyexpensecontrol.ui.components.CategoryIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -71,6 +73,7 @@ import com.virtualworld.easyexpensecontrol.core.util.convertTimestampToString
 import com.virtualworld.easyexpensecontrol.data.model.Account
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
+import com.virtualworld.easyexpensecontrol.data.model.RecurringTransaction
 import com.virtualworld.easyexpensecontrol.data.model.Transaction
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
 import com.virtualworld.easyexpensecontrol.ui.components.CurvedBottomBar
@@ -236,6 +239,7 @@ fun HistoryScreen(
                             TransactionItem(
                                 transaction = transaction,
                                 categoryViewModel = categoryViewModel,
+                                transactionViewModel = transactionViewModel,
                                 accountName = accountNameMap[transaction.accountId]
                             ) {
                                 val id = transaction.id
@@ -338,12 +342,16 @@ private val ExpenseRed = Color(0xFFE33936)
 fun TransactionItem(
     transaction: Transaction,
     categoryViewModel: CategoryViewModel,
+    transactionViewModel: TransactionViewModel,
     accountName: String? = null,
     onClick: () -> Unit
 ) {
     val isIngreso = transaction.type == TransactionType.Ingreso
     val categoryFlow = categoryViewModel.getCategoryById(transaction.category)
     val category = categoryFlow.collectAsState(initial = Category(0L, "", TransactionType.Ingreso)).value
+    val recurringTemplate by transaction.recurringTransactionId?.let { recurringId ->
+        transactionViewModel.observeRecurringTransaction(recurringId).collectAsState(initial = null)
+    } ?: remember { mutableStateOf<RecurringTransaction?>(null) }
     val displayIcon = if (isIngreso) Icons.Default.ArrowDownward else CategoryIcons.getIcon(category.iconName)
 
     Card(
@@ -398,11 +406,49 @@ fun TransactionItem(
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.size(2.dp))
-                Text(
-                    text = convertTimestampToString(transaction.date),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = convertTimestampToString(transaction.date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                    if (transaction.recurringTransactionId != null) {
+                        val isRecurringPaused = recurringTemplate?.isActive == false
+                        AssistChip(
+                            onClick = {},
+                            label = {
+                                Text(
+                                    text = stringResource(
+                                        if (isRecurringPaused) {
+                                            R.string.recurring_paused_badge
+                                        } else {
+                                            R.string.recurring_auto_badge
+                                        }
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            enabled = false,
+                            colors = AssistChipDefaults.assistChipColors(
+                                disabledContainerColor = if (isRecurringPaused) {
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+                                } else {
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                },
+                                disabledLabelColor = if (isRecurringPaused) {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                }
+                            ),
+                            border = null,
+                            modifier = Modifier.height(24.dp)
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(

@@ -1,5 +1,9 @@
 package com.virtualworld.easyexpensecontrol.core.util
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -8,6 +12,30 @@ import java.util.Locale
 fun convertTimestampToString(timestamp: Long): String {
     val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return formatter.format(Date(timestamp))
+}
+
+/** Inicio del día actual (00:00:00) en la zona horaria local. */
+fun getTodayStartOfDay(): Long = getStartOfDay(System.currentTimeMillis())
+
+/**
+ * Convierte un instante local (inicio de día) al formato UTC que usa Material3 DatePicker.
+ * El picker interpreta los millis como medianoche UTC de la fecha seleccionada.
+ */
+fun toDatePickerUtcMillis(localEpochMillis: Long): Long {
+    val localDate = RecurringDateHelper.localDateFromMillis(localEpochMillis)
+    return localDate.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
+}
+
+/** Convierte la selección del DatePicker (UTC) a inicio de día en zona horaria local. */
+fun fromDatePickerUtcMillis(utcPickerMillis: Long): Long {
+    val utcDate = Instant.fromEpochMilliseconds(utcPickerMillis)
+        .toLocalDateTime(TimeZone.UTC)
+        .date
+    return RecurringDateHelper.millisAtStartOfDay(
+        utcDate.year,
+        utcDate.monthNumber,
+        utcDate.dayOfMonth
+    )
 }
 
 /** Devuelve el inicio del día (00:00:00) en milisegundos para la fecha del timestamp. */

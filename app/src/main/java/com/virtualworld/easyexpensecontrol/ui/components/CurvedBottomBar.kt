@@ -19,7 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,7 +62,7 @@ fun CurvedBottomBar(
 ) {
     val items = listOf(
         CurvedNavItem(Screen.DashboardScreen.route, stringResource(R.string.nav_home), Icons.Outlined.Home),
-        CurvedNavItem(Screen.HistoryScreen.route, stringResource(R.string.nav_history), Icons.Outlined.History),
+        CurvedNavItem(Screen.HistoryScreen.route, stringResource(R.string.nav_history), Icons.Outlined.EditNote),
         CurvedNavItem(Screen.StaticsScreen.route, stringResource(R.string.nav_statistics), Icons.Outlined.BarChart),
         CurvedNavItem(Screen.BudgetScreen.route, stringResource(R.string.nav_budgets), Icons.Outlined.AccountBalanceWallet)
     )

@@ -385,4 +385,21 @@
         <item>NOV</item>
         <item>DEC</item>
     </string-array>
+
+    <!-- Recurring transactions -->
+    <string name="recurring_transaction_label">Recurring transaction</string>
+    <string name="recurring_transaction_hint">Repeats automatically every month</string>
+    <string name="recurring_deactivate_hint">The automatic transaction will be deactivated on the next scheduled day (%1$s).</string>
+    <string name="recurring_auto_badge">Automatic</string>
+    <string name="recurring_paused_badge">Paused</string>
+    <string name="recurring_auto_dialog_title">Scheduled automatic transfer</string>
+    <string name="recurring_auto_dialog_message">%1$d recurring transaction(s) were created automatically:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Update default value?</string>
+    <string name="recurring_update_default_message">You changed values of a recurring transaction. Do you want to update the default for future automatic transactions?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Scheduled day</string>
+    <string name="recurring_update_default_confirm">Update default value</string>
+    <string name="recurring_update_default_keep">This transaction only</string>
+    <string name="recurring_dialog_ok">Got it</string>
 </resources>

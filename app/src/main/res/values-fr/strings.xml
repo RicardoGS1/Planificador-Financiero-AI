@@ -374,4 +374,20 @@
         <item>NOV</item>
         <item>DÉC</item>
     </string-array>
+
+    <string name="recurring_transaction_label">Transaction récurrente</string>
+    <string name="recurring_transaction_hint">Se répète automatiquement chaque mois</string>
+    <string name="recurring_deactivate_hint">La transaction automatique sera désactivée le prochain jour programmé (%1$s).</string>
+    <string name="recurring_auto_badge">Automatique</string>
+    <string name="recurring_paused_badge">En pause</string>
+    <string name="recurring_auto_dialog_title">Virement automatique programmé</string>
+    <string name="recurring_auto_dialog_message">%1$d transaction(s) récurrente(s) ont été créées automatiquement :</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">Mettre à jour la valeur par défaut ?</string>
+    <string name="recurring_update_default_message">Vous avez modifié les valeurs d\'une transaction récurrente. Voulez-vous mettre à jour la valeur par défaut pour les futures transactions automatiques ?</string>
+    <string name="recurring_update_default_change">%1$s : %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Jour programmé</string>
+    <string name="recurring_update_default_confirm">Mettre à jour la valeur par défaut</string>
+    <string name="recurring_update_default_keep">Cette transaction uniquement</string>
+    <string name="recurring_dialog_ok">Compris</string>
 </resources>

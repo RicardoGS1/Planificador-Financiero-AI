@@ -374,4 +374,21 @@
         <item>NOV</item>
         <item>DIC</item>
     </string-array>
+
+    <!-- Transacciones recurrentes -->
+    <string name="recurring_transaction_label">Transacción recurrente</string>
+    <string name="recurring_transaction_hint">Se repetirá automáticamente cada mes</string>
+    <string name="recurring_deactivate_hint">La transacción automática se desactivará el próximo día programado (%1$s).</string>
+    <string name="recurring_auto_badge">Automática</string>
+    <string name="recurring_paused_badge">Pausado</string>
+    <string name="recurring_auto_dialog_title">Transferencia automática programada</string>
+    <string name="recurring_auto_dialog_message">Se crearon %1$d transacción(es) recurrente(s) automáticamente:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">¿Actualizar valor por defecto?</string>
+    <string name="recurring_update_default_message">Has cambiado valores de una transacción recurrente. ¿Quieres actualizar el valor por defecto para las próximas transacciones automáticas?</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">Día programado</string>
+    <string name="recurring_update_default_confirm">Actualizar valor por defecto</string>
+    <string name="recurring_update_default_keep">Solo esta transacción</string>
+    <string name="recurring_dialog_ok">Entendido</string>
 </resources>

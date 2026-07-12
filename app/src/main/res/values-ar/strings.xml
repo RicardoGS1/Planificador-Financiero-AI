@@ -374,4 +374,20 @@
         <item>نوف</item>
         <item>ديس</item>
     </string-array>
+
+    <string name="recurring_transaction_label">معاملة متكررة</string>
+    <string name="recurring_transaction_hint">تتكرر تلقائياً كل شهر</string>
+    <string name="recurring_deactivate_hint">سيتم إيقاف المعاملة التلقائية في يوم الجدولة التالي (%1$s).</string>
+    <string name="recurring_auto_badge">تلقائية</string>
+    <string name="recurring_paused_badge">متوقف</string>
+    <string name="recurring_auto_dialog_title">تحويل تلقائي مجدول</string>
+    <string name="recurring_auto_dialog_message">تم إنشاء %1$d معاملة/معاملات متكررة تلقائياً:</string>
+    <string name="recurring_auto_dialog_item">• %1$s — %2$s</string>
+    <string name="recurring_update_default_title">تحديث القيمة الافتراضية؟</string>
+    <string name="recurring_update_default_message">لقد غيّرت قيم معاملة متكررة. هل تريد تحديث القيمة الافتراضية للمعاملات التلقائية المستقبلية؟</string>
+    <string name="recurring_update_default_change">%1$s: %2$s → %3$s</string>
+    <string name="recurring_default_day_label">اليوم المجدول</string>
+    <string name="recurring_update_default_confirm">تحديث القيمة الافتراضية</string>
+    <string name="recurring_update_default_keep">هذه المعاملة فقط</string>
+    <string name="recurring_dialog_ok">حسناً</string>
 </resources>
