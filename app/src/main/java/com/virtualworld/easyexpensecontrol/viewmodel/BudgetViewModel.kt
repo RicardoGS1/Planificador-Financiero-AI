@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.AddBudgetUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.budget.CarryOverBudgetsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.DeleteBudgetUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetForCategoryMonthAndYearUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetByIdUseCase
@@ -29,6 +30,7 @@ class BudgetViewModel(
     private val addBudgetUseCase: AddBudgetUseCase,
     private val updateBudgetUseCase: UpdateBudgetUseCase,
     private val deleteBudgetUseCase: DeleteBudgetUseCase,
+    private val carryOverBudgetsUseCase: CarryOverBudgetsUseCase,
     private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
     var budgetCategoryState by mutableLongStateOf(0L)
@@ -87,4 +89,10 @@ class BudgetViewModel(
 
     fun getBudgetForCategoryMonthAndYear(categoryId: Long, month: String, year: Int) =
         getBudgetForCategoryMonthAndYearUseCase(categoryId, month, year)
+
+    fun carryOverBudgetsIfNeeded(month: String, year: Int) {
+        viewModelScope.launch {
+            carryOverBudgetsUseCase(month, year)
+        }
+    }
 }

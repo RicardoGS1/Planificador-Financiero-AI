@@ -64,7 +64,7 @@
     <string name="budget_remaining">%1$.2f %2$s kaldı</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">Bütçe belirle</string>
-    <string name="increase_budget">Bütçeyi artır</string>
+    <string name="increase_budget">Bütçeyi düzenle</string>
     <string name="budget_list_visibility_title">Bütçe listesindeki kategoriler</string>
     <string name="budget_list_visibility_hint">Bir kategorinin işaretini kaldırarak bu listeden gizleyebilirsiniz. Seçiminiz bu cihazda kaydedilir.</string>
     <string name="budget_list_visibility_apply">Uygula</string>

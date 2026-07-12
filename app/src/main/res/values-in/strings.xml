@@ -64,7 +64,7 @@
     <string name="budget_remaining">Sisa %1$.2f %2$s</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">Atur anggaran</string>
-    <string name="increase_budget">Tambah anggaran</string>
+    <string name="increase_budget">Edit anggaran</string>
     <string name="budget_list_visibility_title">Kategori di daftar anggaran</string>
     <string name="budget_list_visibility_hint">Hapus centang kategori untuk menyembunyikannya dari daftar ini. Pilihan Anda disimpan di perangkat ini.</string>
     <string name="budget_list_visibility_apply">Terapkan</string>

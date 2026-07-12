@@ -64,7 +64,7 @@
     <string name="budget_remaining">Осталось %1$.2f %2$s</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">Задать бюджет</string>
-    <string name="increase_budget">Увеличить бюджет</string>
+    <string name="increase_budget">Редактировать бюджет</string>
     <string name="budget_list_visibility_title">Категории в списке бюджета</string>
     <string name="budget_list_visibility_hint">Снимите флажок с категории, чтобы скрыть её в этом списке. Выбор сохраняется на этом устройстве.</string>
     <string name="budget_list_visibility_apply">Применить</string>

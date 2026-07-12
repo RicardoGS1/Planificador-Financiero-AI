@@ -128,6 +128,10 @@ fun BudgetScreen(
     val monthNames = stringArrayResource(R.array.month_names_full)
     val currentMonthLabel = monthNames.getOrElse(currentCalendar.get(Calendar.MONTH)) { currentMonth }
 
+    LaunchedEffect(currentMonth, currentYear) {
+        budgetViewModel.carryOverBudgetsIfNeeded(currentMonth, currentYear)
+    }
+
     val expenseCategories by categoryViewModel
         .getCategoriesByType(TransactionType.Gasto)
         .collectAsState(initial = emptyList())

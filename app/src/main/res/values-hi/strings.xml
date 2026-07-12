@@ -64,7 +64,7 @@
     <string name="budget_remaining">%1$.2f %2$s शेष</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">बजट निर्धारित करें</string>
-    <string name="increase_budget">बजट बढ़ाएँ</string>
+    <string name="increase_budget">बजट संपादित करें</string>
     <string name="budget_list_visibility_title">बजट सूची में श्रेणियाँ</string>
     <string name="budget_list_visibility_hint">किसी श्रेणी को इस सूची से छिपाने के लिए उसका चेक हटाएँ। आपकी पसंद इस डिवाइस पर सहेजी जाती है।</string>
     <string name="budget_list_visibility_apply">लागू करें</string>

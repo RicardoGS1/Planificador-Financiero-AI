@@ -75,7 +75,7 @@
     <string name="budget_remaining">%1$.2f %2$s left</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">Set budget</string>
-    <string name="increase_budget">Increase budget</string>
+    <string name="increase_budget">Edit budget</string>
     <string name="budget_list_visibility_title">Categories in budget list</string>
     <string name="budget_list_visibility_hint">Uncheck a category to hide it from this list. Your choice is saved on this device.</string>
     <string name="budget_list_visibility_apply">Apply</string>

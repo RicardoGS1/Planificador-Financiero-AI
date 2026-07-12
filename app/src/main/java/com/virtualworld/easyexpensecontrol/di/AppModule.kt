@@ -23,6 +23,7 @@ import com.virtualworld.easyexpensecontrol.domain.usecase.account.GetAccountsUse
 import com.virtualworld.easyexpensecontrol.domain.usecase.account.GetVisibleAccountsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.account.UpdateAccountUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.AddBudgetUseCase
+import com.virtualworld.easyexpensecontrol.domain.usecase.budget.CarryOverBudgetsUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.DeleteBudgetUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetForCategoryMonthAndYearUseCase
 import com.virtualworld.easyexpensecontrol.domain.usecase.budget.GetBudgetByIdUseCase
@@ -142,6 +143,7 @@ val appModule = module {
     single { AddBudgetUseCase(get()) }
     single { UpdateBudgetUseCase(get()) }
     single { DeleteBudgetUseCase(get()) }
+    single { CarryOverBudgetsUseCase(get(), get()) }
 
     // ViewModels
     viewModel {
@@ -169,6 +171,7 @@ val appModule = module {
             addBudgetUseCase = get(),
             updateBudgetUseCase = get(),
             deleteBudgetUseCase = get(),
+            carryOverBudgetsUseCase = get(),
             analyticsManager = get()
         )
     }

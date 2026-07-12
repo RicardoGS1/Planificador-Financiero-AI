@@ -62,6 +62,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.virtualworld.easyexpensecontrol.R
+import com.virtualworld.easyexpensecontrol.core.util.CurrencyFormatter
 import com.virtualworld.easyexpensecontrol.data.model.Budget
 import com.virtualworld.easyexpensecontrol.data.model.Category
 import com.virtualworld.easyexpensecontrol.data.model.TransactionType
@@ -317,26 +318,40 @@ fun AddEditDetailBudgetContent(
                     icon = Icons.Default.Payments,
                     title = stringResource(R.string.monthly_limit)
                 ) {
+                    val currencySymbol = CurrencyFormatter.symbol(LocalContext.current)
                     Spacer(modifier = Modifier.height(12.dp))
-                    AppTextField(
-                        label = stringResource(R.string.hint_amount),
-                        value = monthlyLimitText,
-                        onValueChange = { value ->
-                            val normalized = value.replace(',', '.')
-                            val filtered = normalized.filter { it.isDigit() || it == '.' }
-                            val sanitized = run {
-                                val firstDot = filtered.indexOf('.')
-                                if (firstDot == -1) filtered
-                                else filtered.substring(0, firstDot + 1) +
-                                    filtered.substring(firstDot + 1).replace(".", "")
-                            }
-                            monthlyLimitText = sanitized
-                            onMonthlyLimitChanged(
-                                sanitized.toDoubleOrNull() ?: 0.0
-                            )
-                        },
-                        keyboardType = KeyboardType.Decimal
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = currencySymbol,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 5.dp, end = 8.dp)
+                        )
+                        AppTextField(
+                            label = stringResource(R.string.hint_amount),
+                            value = monthlyLimitText,
+                            onValueChange = { value ->
+                                val normalized = value.replace(',', '.')
+                                val filtered = normalized.filter { it.isDigit() || it == '.' }
+                                val sanitized = run {
+                                    val firstDot = filtered.indexOf('.')
+                                    if (firstDot == -1) filtered
+                                    else filtered.substring(0, firstDot + 1) +
+                                        filtered.substring(firstDot + 1).replace(".", "")
+                                }
+                                monthlyLimitText = sanitized
+                                onMonthlyLimitChanged(
+                                    sanitized.toDoubleOrNull() ?: 0.0
+                                )
+                            },
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
                 Button(

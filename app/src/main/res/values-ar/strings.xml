@@ -64,7 +64,7 @@
     <string name="budget_remaining">متبقي %1$.2f %2$s</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">تعيين الميزانية</string>
-    <string name="increase_budget">زيادة الميزانية</string>
+    <string name="increase_budget">تعديل الميزانية</string>
     <string name="budget_list_visibility_title">الفئات في قائمة الميزانية</string>
     <string name="budget_list_visibility_hint">ألغِ تحديد فئة لإخفائها من هذه القائمة. يتم حفظ اختيارك على هذا الجهاز.</string>
     <string name="budget_list_visibility_apply">تطبيق</string>

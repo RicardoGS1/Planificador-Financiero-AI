@@ -64,7 +64,7 @@
     <string name="budget_remaining">Restam %1$.2f %2$s</string>
     <string name="budget_spent_limit">%1$.2f %2$s / %3$.2f %2$s</string>
     <string name="set_budget">Definir orçamento</string>
-    <string name="increase_budget">Aumentar orçamento</string>
+    <string name="increase_budget">Editar orçamento</string>
     <string name="budget_list_visibility_title">Categorias na lista de orçamento</string>
     <string name="budget_list_visibility_hint">Desmarque uma categoria para ocultá-la nesta lista. Sua escolha é salva neste dispositivo.</string>
     <string name="budget_list_visibility_apply">Aplicar</string>

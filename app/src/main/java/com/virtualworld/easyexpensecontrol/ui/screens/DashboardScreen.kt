@@ -608,6 +608,11 @@ fun TotalBalanceSection(
     }
     val currencySymbol = CurrencyFormatter.symbol(LocalContext.current)
     val amountText = "%.2f".format(Locale.getDefault(), abs(displayBalance))
+    val signText = when {
+        displayBalance > 0 -> "+"
+        displayBalance < 0 -> "−"
+        else -> null
+    }
     val amountTextStyle = TextStyle(
         fontSize = 42.sp,
         fontWeight = FontWeight.Bold,
@@ -654,6 +659,14 @@ fun TotalBalanceSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
+                if (signText != null) {
+                    Text(
+                        text = signText,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
+                }
                 Text(
                     text = amountText,
                     style = amountTextStyle
